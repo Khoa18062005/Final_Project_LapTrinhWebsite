@@ -1,0 +1,96 @@
+
+# Compiled Java classes
+*.class
+
+# Logs
+*.log
+logs/
+
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.properties
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# VS Code
+.vscode/
+
+# Mac OS
+.DS_Store
+
+# Windows thumbnails
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+~*  # Thêm: Ignore temp files kiểu Emacs/Vim
+*.lock  # Thêm: Ignore lock files (như package-lock.json nếu có JS)
+
+# Data files (tùy dự án, ví dụ file users.txt từ UserDB)
+users.txt
+
+# Packages
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# OS generated files
+Desktop.ini
+ehthumbs.db
+
+# Environment variables và secrets (KHÔNG PUSH NÀY!)
+src/main/resources/.env
+*.env
+*.secret
+database.properties  # Nếu bạn tạo file config riêng
+
+# Docker ignore (nếu có volumes hoặc build artifacts)
+docker-compose.yml  # Nếu dùng cục bộ, không push nếu có secrets
+volumes/  # Thêm: Ignore Docker volumes data nếu có
+data/  # Thêm: Ignore data folders nếu project có DB local dump
+
+# Gradle (thêm nếu có thể dùng Gradle sau)
+.gradle/
+
+# Test coverage/reports (thêm nếu dùng JUnit/JaCoCo)
+coverage/
+jacoco.exec
+*.exec
+site/
+reports/
