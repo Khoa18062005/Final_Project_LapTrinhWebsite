@@ -3,19 +3,22 @@
              xmlns="http://xmlns.jcp.org/xml/ns/persistence"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence
-       http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
-    <persistence-unit name="VietTech"
-                      transaction-type="RESOURCE_LOCAL">
-        <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
-<!--        <class>murach.business.Message</class>  Này class mapping thêm dô-->
+             http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
+
+    <persistence-unit name="VietTech" transaction-type="RESOURCE_LOCAL">
+
+        <!-- ✅ Provider: Dùng Hibernate thay vì EclipseLink -->
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <!-- ✅ Auto scan entities trong package viettech.entity -->
         <exclude-unlisted-classes>false</exclude-unlisted-classes>
+
+        <!-- ✅ KHÔNG CẦN properties ở đây! -->
+        <!-- Tất cả config sẽ override trong JPAConfig.java -->
         <properties>
-            <!-- Driver có thể để ở đây làm default, nhưng sẽ bị override bởi HikariCP trong code -->
-            <property name="javax.persistence.jdbc.driver"
-                      value="com.mysql.cj.jdbc.Driver"/>
-            <property name="javax.persistence.schema-generation.database.action"
-                      value="create"/>
-            <!-- Bỏ user/password/url, sẽ override trong code qua DataSource -->
+            <!-- Để trống hoặc chỉ có comment -->
+            <!-- All configurations will be set programmatically in JPAConfig.java -->
         </properties>
+
     </persistence-unit>
 </persistence>
