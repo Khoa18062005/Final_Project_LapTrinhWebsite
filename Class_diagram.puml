@@ -287,37 +287,6 @@ class Tablet extends Product {
     - fingerprintSensor : boolean
 }
 
-class PCComponent extends Product {
-    - componentType : String
-    - compatibility : String
-    - chipset : String
-    - socket : String
-    - cores : int
-    - threads : int
-    - baseClock : double
-    - boostClock : double
-    - tdp : int
-    - vram : int
-    - memoryType : String
-    - memoryClock : int
-    - displayPorts : String
-    - panelSize : double
-    - panelResolution : String
-    - panelType : String
-    - refreshRate : int
-    - responseTime : int
-    - capacity : int
-    - speed : int
-    - formFactor : String
-    - interface : String
-    - powerRating : int
-    - efficiency : String
-    - modular : boolean
-    - coolingType : String
-    - rgbLighting : boolean
-    - warranty : int
-}
-
 class Headphone extends Product {
     - type : String
     - formFactor : String
@@ -345,34 +314,6 @@ class Headphone extends Product {
     - customEQ : boolean
     - surroundSound : boolean
     - foldable : boolean
-}
-
-class Accessory extends Product {
-    - accessoryType : String
-    - compatibleWith : String
-    - compatibility : String
-    - wireless : boolean
-    - batteryLife : int
-    - chargingTime : int
-    - connectivity : String
-    - dpi : int
-    - maxDpi : int
-    - sensitivity : String
-    - switches : String
-    - switchType : String
-    - keycapMaterial : String
-    - rgbLighting : boolean
-    - rgbZones : int
-    - programmableButtons : int
-    - onboardMemory : boolean
-    - chargingPower : int
-    - fastCharging : boolean
-    - cableLength : double
-    - cableType : String
-    - material : String
-    - portTypes : String
-    - portCount : int
-    - dataTransferSpeed : String
 }
 
 class Variant {

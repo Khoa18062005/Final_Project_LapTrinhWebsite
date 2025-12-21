@@ -1,0 +1,266 @@
+package viettech.entity.product;
+
+import javax.persistence.*;
+import java.util.Date;
+
+@Entity
+@Table(name = "products")
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Product {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "product_id")
+    protected Long productId;
+
+    @Column(name = "vendor_id", nullable = false)
+    protected String vendorId;
+
+    @Column(name = "category_id", nullable = false)
+    protected String categoryId;
+
+    @Column(nullable = false)
+    protected String name;
+
+    @Column(nullable = false, unique = true)
+    protected String slug;
+
+    @Column(name = "base_price", nullable = false)
+    protected double basePrice;
+
+    @Column(columnDefinition = "TEXT")
+    protected String description;
+
+    protected String brand;
+
+    @Column(columnDefinition = "TEXT")
+    protected String specifications;
+
+    protected String status;
+    protected String condition;
+
+    protected double weight;
+    protected String dimensions;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", nullable = false)
+    protected Date createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "updated_at", nullable = false)
+    protected Date updatedAt;
+
+    @Column(name = "average_rating")
+    protected double averageRating;
+
+    @Column(name = "total_reviews")
+    protected int totalReviews;
+
+    @Column(name = "total_sold")
+    protected int totalSold;
+
+    @Column(name = "view_count")
+    protected int viewCount;
+
+    @Column(name = "is_featured")
+    protected boolean isFeatured;
+
+    /* =========================
+       CONSTRUCTORS
+       ========================= */
+
+    // Constructor mặc định (BẮT BUỘC cho JPA)
+    protected Product() {
+        this.vendorId = "";
+        this.categoryId = "";
+        this.name = "";
+        this.slug = "";
+        this.basePrice = 0.0;
+        this.description = "";
+        this.brand = "";
+        this.specifications = "";
+        this.status = "";
+        this.condition = "";
+        this.weight = 0.0;
+        this.dimensions = "";
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
+        this.averageRating = 0.0;
+        this.totalReviews = 0;
+        this.totalSold = 0;
+        this.viewCount = 0;
+        this.isFeatured = false;
+    }
+
+    // Constructor dùng khi tạo Product (cho class con gọi super)
+    protected Product(String vendorId,
+                      String categoryId,
+                      String name,
+                      String slug,
+                      double basePrice,
+                      String description,
+                      String brand,
+                      String specifications,
+                      String status,
+                      String condition,
+                      double weight,
+                      String dimensions,
+                      boolean isFeatured) {
+
+        this.vendorId = vendorId != null ? vendorId : "";
+        this.categoryId = categoryId != null ? categoryId : "";
+        this.name = name != null ? name : "";
+        this.slug = slug != null ? slug : "";
+        this.basePrice = basePrice;
+        this.description = description != null ? description : "";
+        this.brand = brand != null ? brand : "";
+        this.specifications = specifications != null ? specifications : "";
+        this.status = status != null ? status : "";
+        this.condition = condition != null ? condition : "";
+        this.weight = weight;
+        this.dimensions = dimensions != null ? dimensions : "";
+        this.createdAt = new Date();
+        this.updatedAt = new Date();
+        this.averageRating = 0.0;
+        this.totalReviews = 0;
+        this.totalSold = 0;
+        this.viewCount = 0;
+        this.isFeatured = isFeatured;
+    }
+
+    /* =========================
+       GETTERS & SETTERS
+       ========================= */
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public String getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(String vendorId) {
+        this.vendorId = vendorId != null ? vendorId : "";
+    }
+
+    public String getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId != null ? categoryId : "";
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name != null ? name : "";
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug != null ? slug : "";
+    }
+
+    public double getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(double basePrice) {
+        this.basePrice = basePrice;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description != null ? description : "";
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand != null ? brand : "";
+    }
+
+    public String getSpecifications() {
+        return specifications;
+    }
+
+    public void setSpecifications(String specifications) {
+        this.specifications = specifications != null ? specifications : "";
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status != null ? status : "";
+    }
+
+    public String getCondition() {
+        return condition;
+    }
+
+    public void setCondition(String condition) {
+        this.condition = condition != null ? condition : "";
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    public String getDimensions() {
+        return dimensions;
+    }
+
+    public void setDimensions(String dimensions) {
+        this.dimensions = dimensions != null ? dimensions : "";
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public double getAverageRating() {
+        return averageRating;
+    }
+
+    public int getTotalReviews() {
+        return totalReviews;
+    }
+
+    public int getTotalSold() {
+        return totalSold;
+    }
+
+    public int getViewCount() {
+        return viewCount;
+    }
+
+    public boolean isFeatured() {
+        return isFeatured;
+    }
+
+    public void setFeatured(boolean featured) {
+        isFeatured = featured;
+    }
+}
