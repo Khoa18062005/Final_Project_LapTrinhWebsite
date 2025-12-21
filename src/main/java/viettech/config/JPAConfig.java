@@ -1,11 +1,22 @@
 package viettech.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * JPA Configuration
+ * Quản lý EntityManagerFactory và JPA configuration
+ *
+ * @author VietTech Team
+ */
 public class JPAConfig {
+
+    private static final Logger logger = LoggerFactory.getLogger(JPAConfig.class);
 
     private static EntityManagerFactory emf;
     private static final String PERSISTENCE_UNIT_NAME = "VietTech"; // ✅ Khớp với persistence.xml
@@ -16,8 +27,9 @@ public class JPAConfig {
         }
         return emf;
     }
+
     private static void initializeEntityManagerFactory() {
-        System.out.println("\n🔧 Initializing JPA EntityManagerFactory...");
+        logger.info("🔧 Initializing JPA EntityManagerFactory...");
 
         try {
             // 1. Load database config
@@ -58,30 +70,29 @@ public class JPAConfig {
             properties.put("hibernate.physical_naming_strategy",
                     "org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl");
 
-            System.out.println("✓ JPA properties configured");
-            System.out.println("  Persistence Unit: " + PERSISTENCE_UNIT_NAME);
-            System.out.println("  Hibernate Dialect: MySQL8Dialect");
-            System.out.println("  DDL Auto: update");
+            logger.info("✓ JPA properties configured");
+            logger.debug("  Persistence Unit: {}", PERSISTENCE_UNIT_NAME);
+            logger.debug("  Hibernate Dialect: MySQL8Dialect");
+            logger.debug("  DDL Auto: update");
 
             // 4. Create EntityManagerFactory
-            System.out.println("🔄 Creating EntityManagerFactory...");
+            logger.info("🔄 Creating EntityManagerFactory...");
             emf = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME, properties);
 
-            System.out.println("✅ EntityManagerFactory initialized successfully!");
+            logger.info("✅ EntityManagerFactory initialized successfully!");
 
         } catch (Exception e) {
-            System.err.println("❌ Failed to initialize EntityManagerFactory");
-            e.printStackTrace();
+            logger.error("❌ Failed to initialize EntityManagerFactory", e);
             throw new RuntimeException("Failed to initialize JPA", e);
         }
     }
 
     public static synchronized void closeEntityManagerFactory() {
-        System.out.println("🛑 Closing EntityManagerFactory...");
+        logger.info("🛑 Closing EntityManagerFactory...");
 
         if (emf != null && emf.isOpen()) {
             emf.close();
-            System.out.println("✓ EntityManagerFactory closed");
+            logger.info("✓ EntityManagerFactory closed");
             emf = null;
         }
 
