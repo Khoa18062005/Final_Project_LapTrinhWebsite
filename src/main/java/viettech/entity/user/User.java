@@ -3,7 +3,9 @@ package viettech.entity.user;
 import javax.persistence.*;
 import java.util.Date;
 
-@MappedSuperclass
+@Entity
+@Table(name = "users")
+@Inheritance(strategy = InheritanceType.JOINED)
 public abstract class User {
 
     @Id

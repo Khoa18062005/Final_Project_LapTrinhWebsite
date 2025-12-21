@@ -6,6 +6,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table(name = "customers")
+@PrimaryKeyJoinColumn(name = "user_id")
 public class Customer extends User {
 
     @Column(name = "loyalty_points", nullable = false)

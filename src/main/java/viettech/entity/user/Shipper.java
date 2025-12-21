@@ -2,10 +2,12 @@ package viettech.entity.user;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.PrimaryKeyJoinColumn;
 import javax.persistence.Table;
 
 @Entity
 @Table(name = "shippers")
+@PrimaryKeyJoinColumn(name = "user_id")
 public class Shipper extends User {
 
     @Column(name = "license_number", nullable = false)
