@@ -1,6 +1,6 @@
 package viettech.entity.user;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 import java.util.Date;
 
 @MappedSuperclass
