@@ -5,13 +5,15 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.example</groupId>
-  <artifactId>EmailListWebApp</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <!-- ✅ Project Information -->
+  <groupId>vn.viettech</groupId>
+  <artifactId>viettech-ecommerce</artifactId>
+  <version>1.0.0</version>
   <packaging>war</packaging>
 
-  <name>EmailListWebApp Maven Webapp</name>
-  <url>http://maven.apache.org</url>
+  <name>VietTech E-commerce Platform</name>
+  <description>Java Servlet-based e-commerce platform for Vietnamese market</description>
+  <url>https://viettech.vn</url>
 
   <dependencies>
     <!-- Servlet API -->
@@ -99,14 +101,14 @@
       <version>0.4</version>
     </dependency>
 
-    <!-- ✅ SLF4J Logging API -->
+    <!-- SLF4J Logging API -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>2.0.9</version>
     </dependency>
 
-    <!-- ✅ Logback Implementation -->
+    <!-- Logback Implementation -->
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
