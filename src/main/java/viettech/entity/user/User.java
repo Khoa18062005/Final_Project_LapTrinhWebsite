@@ -137,7 +137,7 @@ public abstract class User {
        GETTERS & SETTERS
        ========================= */
 
-    public Long getUserId() {
+    public long getUserId() {
         return userId;
     }
 
