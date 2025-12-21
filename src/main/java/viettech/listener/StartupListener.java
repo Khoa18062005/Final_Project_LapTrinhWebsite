@@ -7,6 +7,7 @@ import viettech.config.JPAConfig;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import java.io.File;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -28,6 +29,9 @@ public class StartupListener implements ServletContextListener {
      */
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+        // ✅ BƯỚC 1: TẠO LOGS FOLDER TRƯỚC KHI GỌI LOGGER
+        createLogsDirectory();
+
         String timestamp = LocalDateTime.now().format(formatter);
 
         logger.info("======================================================================");
@@ -102,5 +106,32 @@ public class StartupListener implements ServletContextListener {
             logger.warn("======================================================================");
             logger.error("Shutdown error details:", e);
         }
+    }
+
+    /**
+     * ✅ Tạo logs directory nếu chưa tồn tại
+     */
+    private void createLogsDirectory() {
+        // Lấy working directory
+        String workingDir = System.getProperty("user.dir");
+        System.out.println("========================================");
+        System.out.println("Working Directory: " + workingDir);
+        System.out.println("========================================");
+
+        // Tạo logs folder
+        File logsDir = new File("logs");
+        System.out.println("Logs Directory Path: " + logsDir.getAbsolutePath());
+
+        if (!logsDir.exists()) {
+            boolean created = logsDir.mkdirs();
+            if (created) {
+                System.out.println("✅ Logs directory created successfully!");
+            } else {
+                System.err.println("❌ Failed to create logs directory!");
+            }
+        } else {
+            System.out.println("✓ Logs directory already exists");
+        }
+        System.out.println("========================================");
     }
 }

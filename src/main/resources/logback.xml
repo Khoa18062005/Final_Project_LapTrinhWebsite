@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
+    <!-- ✅ Định nghĩa property cho log directory -->
+    <property name="LOG_DIR" value="logs" />
+
     <!-- ========================================
          Console Appender (for Development)
          ======================================== -->
@@ -15,12 +18,13 @@
          File Appender (for Production)
          ======================================== -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/viettech.log</file>
+        <!-- ✅ Sử dụng property -->
+        <file>${LOG_DIR}/viettech.log</file>
 
         <!-- Rolling Policy: Daily rotation -->
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <!-- Daily rollover -->
-            <fileNamePattern>logs/viettech-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_DIR}/viettech-%d{yyyy-MM-dd}.log</fileNamePattern>
             <!-- Keep 30 days worth of history -->
             <maxHistory>30</maxHistory>
             <!-- Max total size of all log files: 1GB -->
@@ -37,7 +41,8 @@
          Error File Appender (Only Errors)
          ======================================== -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/error.log</file>
+        <!-- ✅ Sử dụng property -->
+        <file>${LOG_DIR}/error.log</file>
 
         <!-- Only log ERROR level -->
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -47,7 +52,7 @@
         </filter>
 
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/error-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_DIR}/error-%d{yyyy-MM-dd}.log</fileNamePattern>
             <!-- Keep error logs for 90 days -->
             <maxHistory>90</maxHistory>
             <totalSizeCap>500MB</totalSizeCap>
@@ -94,4 +99,3 @@
     <logger name="org.apache" level="WARN" />
 
 </configuration>
-
