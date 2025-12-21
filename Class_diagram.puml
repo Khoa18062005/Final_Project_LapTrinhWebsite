@@ -1,0 +1,990 @@
+@startuml
+
+' ========== USER MANAGEMENT ==========
+abstract class User {
+    # userId : String
+    # firstName : String
+    # lastName : String
+    # username : String
+    # password : String
+    # email : String
+    # phone : String
+    # avatar : String
+    # dateOfBirth : Date
+    # gender : String
+    # createdAt : Date
+    # updatedAt : Date
+    # isActive : boolean
+    # lastLoginAt : Date
+    
+    + login() : boolean
+    + logout() : void
+    + register() : boolean
+    + updateProfile() : void
+    + changePassword(oldPassword : String, newPassword : String) : boolean
+    + resetPassword(email : String) : void
+    + verifyEmail() : boolean
+}
+
+class Customer extends User {
+    - loyaltyPoints : int
+    - membershipTier : String
+    - totalSpent : double
+    
+    + searchProduct(keyword : String) : List<Product>
+    + addToCart(productId : String, variantId : String, quantity : int) : void
+    + placeOrder() : Order
+    + queryCart() : Cart
+    + removeProductFromCart(cartItemId : String) : void
+    + updateCartQuantity(cartItemId : String, quantity : int) : void
+    + rateProduct(productId : String, orderDetailId : String, rating : int, comment : String) : void
+    + addToWishlist(productId : String) : void
+    + trackOrder(orderId : String) : OrderStatus
+    + requestRefund(orderId : String, reason : String) : Refund
+    + applyVoucher(voucherId : String) : boolean
+    + viewOrderHistory() : List<Order>
+}
+
+class Vendor extends User {
+    - businessName : String
+    - taxId : String
+    - rating : double
+    - commission : double
+    - isVerified : boolean
+    - bankAccount : String
+    
+    + addProduct(product : Product) : void
+    + updateProduct(product : Product) : void
+    + deleteProduct(productId : String) : void
+    + manageOrder(orderId : String, action : String) : void
+    + assignShipper(orderId : String, shipperId : String) : void
+    + manageInventory(productId : String, warehouseId : String, quantity : int) : void
+    + viewSalesReport(startDate : Date, endDate : Date) : Report
+    + respondToReview(reviewId : String, response : String) : void
+    + withdrawBalance() : Transaction
+    + manageWarehouse(warehouseId : String, action : String) : void
+}
+
+class Shipper extends User {
+    - licenseNumber : String
+    - vehicleType : String
+    - vehiclePlate : String
+    - isAvailable : boolean
+    - currentLatitude : double
+    - currentLongitude : double
+    - rating : double
+    - totalDeliveries : int
+    
+    + acceptDelivery(deliveryId : String) : void
+    + rejectDelivery(deliveryId : String, reason : String) : void
+    + updateDeliveryStatus(deliveryId : String, status : String) : void
+    + viewAssignedDeliveries() : List<Delivery>
+    + viewDeliveryHistory() : List<Delivery>
+    + pickFromWarehouse(orderId : String, warehouseId : String) : void
+    + updateLocation(latitude : double, longitude : double) : void
+    + completeDelivery(orderId : String, signature : String) : void
+    + reportIssue(deliveryId : String, issue : String) : void
+}
+
+class Admin extends User {
+    - accessLevel : String
+    - department : String
+    
+    + manageUser(userId : String, action : String) : void
+    + manageRole(roleId : String, action : String) : void
+    + manageProduct(productId : String, action : String) : void
+    + manageOrder(orderId : String, action : String) : void
+    + generateStatistic(period : String, type : String) : Statistic
+    + handleDispute(disputeId : String, resolution : String) : void
+    + manageVoucher(voucherId : String, action : String) : void
+    + manageCategory(categoryId : String, action : String) : void
+    + reviewVendorApplication(vendorId : String, approved : boolean) : void
+    + banUser(userId : String, reason : String, duration : int) : void
+    + viewSystemLogs() : List<TransactionHistory>
+}
+
+class Role {
+    - roleId : String
+    - roleName : String
+    - description : String
+    - permissions : List<String>
+    - createdAt : Date
+    
+    + addPermission(permission : String) : void
+    + removePermission(permission : String) : void
+    + hasPermission(permission : String) : boolean
+}
+
+' ========== ADDRESS MANAGEMENT ==========
+class Address {
+    - addressId : String
+    - userId : String
+    - type : String
+    - recipientName : String
+    - phone : String
+    - addressLine : String
+    - province : String
+    - district : String
+    - ward : String
+    - latitude : double
+    - longitude : double
+    - isDefault : boolean
+    - createdAt : Date
+    - updatedAt : Date
+    
+    + validate() : boolean
+    + setAsDefault() : void
+    + calculateDistance(toAddress : Address) : double
+    + getFullAddress() : String
+}
+
+' ========== SHOPPING CART ==========
+class Cart {
+    - cartId : String
+    - customerId : String
+    - createdAt : Date
+    - updatedAt : Date
+    - expiresAt : Date
+    
+    + addItem(productId : String, variantId : String, quantity : int) : void
+    + removeItem(cartItemId : String) : void
+    + updateQuantity(cartItemId : String, quantity : int) : void
+    + clear() : void
+    + getTotalPrice() : double
+    + getTotalItems() : int
+    + checkAvailability() : boolean
+    + mergeCarts(otherCartId : String) : void
+}
+
+class CartItem {
+    - cartItemId : String
+    - cartId : String
+    - variantId : String
+    - quantity : int
+    - priceAtAdd : double
+    - subtotal : double
+    - addedAt : Date
+    
+    + increaseQuantity(amount : int) : void
+    + decreaseQuantity(amount : int) : void
+    + updateSubtotal() : void
+    + isAvailable() : boolean
+}
+
+' ========== PRODUCT MANAGEMENT ==========
+abstract class Product {
+    # productId : String
+    # vendorId : String
+    # categoryId : String
+    # name : String
+    # slug : String
+    # basePrice : double
+    # description : String
+    # brand : String
+    # specifications : String
+    # status : String
+    # condition : String
+    # weight : double
+    # dimensions : String
+    # createdAt : Date
+    # updatedAt : Date
+    # averageRating : double
+    # totalReviews : int
+    # totalSold : int
+    # viewCount : int
+    # isFeatured : boolean
+    
+    + updateStock(warehouseId : String, quantity : int) : void
+    + calculatePrice(variantId : String) : double
+    + isAvailable() : boolean
+    + updateRating() : void
+    + incrementViewCount() : void
+}
+
+class Phone extends Product {
+    - screenSize : double
+    - screenResolution : String
+    - screenType : String
+    - refreshRate : int
+    - batteryCapacity : int
+    - chargerType : String
+    - chargingSpeed : int
+    - processor : String
+    - gpu : String
+    - rearCamera : String
+    - frontCamera : String
+    - videoRecording : String
+    - os : String
+    - osVersion : String
+    - simType : String
+    - networkSupport : String
+    - connectivity : String
+    - nfc : boolean
+    - waterproofRating : String
+    - dustproofRating : String
+    - fingerprintSensor : boolean
+    - faceRecognition : boolean
+    - wirelessCharging : boolean
+    - reverseCharging : boolean
+    - audioJack : boolean
+}
+
+class Laptop extends Product {
+    - cpu : String
+    - cpuGeneration : String
+    - cpuSpeed : double
+    - gpu : String
+    - gpuMemory : int
+    - ram : int
+    - ramType : String
+    - maxRam : int
+    - storage : int
+    - storageType : String
+    - additionalSlot : boolean
+    - screenSize : double
+    - screenResolution : String
+    - screenType : String
+    - refreshRate : int
+    - colorGamut : String
+    - batteryCapacity : int
+    - batteryLife : int
+    - ports : String
+    - os : String
+    - keyboardType : String
+    - keyboardBacklight : boolean
+    - webcam : String
+    - speakers : String
+    - microphone : String
+    - touchScreen : boolean
+    - fingerprintSensor : boolean
+    - discreteGpu : boolean
+    - thunderbolt : boolean
+}
+
+class Tablet extends Product {
+    - screenSize : double
+    - screenResolution : String
+    - screenType : String
+    - refreshRate : int
+    - batteryCapacity : int
+    - processor : String
+    - gpu : String
+    - rearCamera : String
+    - frontCamera : String
+    - videoRecording : String
+    - os : String
+    - osVersion : String
+    - simSupport : boolean
+    - networkSupport : String
+    - connectivity : String
+    - stylusSupport : boolean
+    - stylusIncluded : boolean
+    - keyboardSupport : boolean
+    - speakers : String
+    - audioJack : boolean
+    - waterproofRating : String
+    - faceRecognition : boolean
+    - fingerprintSensor : boolean
+}
+
+class PCComponent extends Product {
+    - componentType : String
+    - compatibility : String
+    - chipset : String
+    - socket : String
+    - cores : int
+    - threads : int
+    - baseClock : double
+    - boostClock : double
+    - tdp : int
+    - vram : int
+    - memoryType : String
+    - memoryClock : int
+    - displayPorts : String
+    - panelSize : double
+    - panelResolution : String
+    - panelType : String
+    - refreshRate : int
+    - responseTime : int
+    - capacity : int
+    - speed : int
+    - formFactor : String
+    - interface : String
+    - powerRating : int
+    - efficiency : String
+    - modular : boolean
+    - coolingType : String
+    - rgbLighting : boolean
+    - warranty : int
+}
+
+class Headphone extends Product {
+    - type : String
+    - formFactor : String
+    - batteryLife : int
+    - chargingTime : int
+    - chargingPort : String
+    - noiseCancellation : boolean
+    - noiseCancellationType : String
+    - ambientMode : boolean
+    - driverSize : int
+    - driverType : String
+    - frequencyResponse : String
+    - impedance : int
+    - sensitivity : int
+    - microphone : boolean
+    - micType : String
+    - waterproofRating : String
+    - connectivity : String
+    - bluetoothVersion : String
+    - bluetoothCodecs : String
+    - wiredConnection : String
+    - multipoint : boolean
+    - soundProfile : String
+    - appControl : boolean
+    - customEQ : boolean
+    - surroundSound : boolean
+    - foldable : boolean
+}
+
+class Accessory extends Product {
+    - accessoryType : String
+    - compatibleWith : String
+    - compatibility : String
+    - wireless : boolean
+    - batteryLife : int
+    - chargingTime : int
+    - connectivity : String
+    - dpi : int
+    - maxDpi : int
+    - sensitivity : String
+    - switches : String
+    - switchType : String
+    - keycapMaterial : String
+    - rgbLighting : boolean
+    - rgbZones : int
+    - programmableButtons : int
+    - onboardMemory : boolean
+    - chargingPower : int
+    - fastCharging : boolean
+    - cableLength : double
+    - cableType : String
+    - material : String
+    - portTypes : String
+    - portCount : int
+    - dataTransferSpeed : String
+}
+
+class Variant {
+    - variantId : String
+    - productId : String
+    - sku : String
+    - basePrice : double
+    - finalPrice : double
+    - weight : double
+    - isActive : boolean
+    - createdAt : Date
+    
+    + calculateFinalPrice() : double
+    + getTotalStock() : int
+    + isInStock() : boolean
+    + getAttributeValue(name : String) : String
+}
+
+class VariantAttribute {
+    - attributeId : String
+    - variantId : String
+    - attributeName : String
+    - attributeValue : String
+    - priceAdjustment : double
+    - sortOrder : int
+    
+    + apply() : void
+}
+
+class ProductImage {
+    - imageId : String
+    - productId : String
+    - variantId : String
+    - url : String
+    - altText : String
+    - sortOrder : int
+    - isPrimary : boolean
+    - uploadedAt : Date
+    
+    + setPrimary() : void
+    + reorder(newOrder : int) : void
+}
+
+class Category {
+    - categoryId : String
+    - name : String
+    - slug : String
+    - description : String
+    - parentCategoryId : String
+    - icon : String
+    - banner : String
+    - sortOrder : int
+    - isActive : boolean
+    - createdAt : Date
+    
+    + addProduct(product : Product) : void
+    + removeProduct(productId : String) : void
+    + getSubcategories() : List<Category>
+    + getProductCount() : int
+    + isLeafCategory() : boolean
+}
+
+' ========== INVENTORY & WAREHOUSE ==========
+class Warehouse {
+    - warehouseId : String
+    - vendorId : String
+    - name : String
+    - code : String
+    - addressLine : String
+    - ward : String
+    - district : String
+    - province : String
+    - latitude : double
+    - longitude : double
+    - capacity : int
+    - usedCapacity : int
+    - managerId : String
+    - phone : String
+    - email : String
+    - operatingHours : String
+    - isActive : boolean
+    - createdAt : Date
+    
+    + checkCapacity() : int
+    + getAvailableCapacity() : int
+    + transferStock(productId : String, variantId : String, toWarehouseId : String, quantity : int) : boolean
+    + addManager(userId : String) : void
+    + calculateDistance(latitude : double, longitude : double) : double
+}
+
+class Inventory {
+    - inventoryId : String
+    - warehouseId : String
+    - variantId : String
+    - stockQuantity : int
+    - reservedQuantity : int
+    - availableQuantity : int
+    - damagedQuantity : int
+    - lastUpdated : Date
+    - lastRestockedAt : Date
+    - reorderLevel : int
+    - reorderQuantity : int
+    - location : String
+    
+    + updateStock(quantity : int, action : String) : void
+    + reserveStock(quantity : int) : boolean
+    + releaseStock(quantity : int) : void
+    + checkAvailability(quantity : int) : boolean
+    + needsReorder() : boolean
+    + reportDamage(quantity : int, reason : String) : void
+    + moveLocation(newLocation : String) : void
+}
+
+class StockMovement {
+    - movementId : String
+    - inventoryId : String
+    - type : String
+    - quantity : int
+    - fromWarehouseId : String
+    - toWarehouseId : String
+    - reason : String
+    - performedBy : String
+    - timestamp : Date
+    - referenceId : String
+    
+    + record() : void
+    + validate() : boolean
+}
+
+' ========== ORDER MANAGEMENT ==========
+class Order {
+    - orderId : String
+    - orderNumber : String
+    - customerId : String
+    - vendorId : String
+    - addressId : String
+    - orderDate : Date
+    - status : String
+    - subtotal : double
+    - shippingFee : double
+    - discount : double
+    - tax : double
+    - voucherDiscount : double
+    - loyaltyPointsUsed : int
+    - loyaltyPointsDiscount : double
+    - totalPrice : double
+    - notes : String
+    - cancelReason : String
+    - cancelledAt : Date
+    - cancelledBy : String
+    - estimatedDelivery : Date
+    - completedAt : Date
+    
+    + placeOrder() : boolean
+    + cancelOrder(reason : String) : boolean
+    + updateStatus(status : String, note : String) : void
+    + calculateTotal() : double
+    + applyVoucher(voucherId : String) : boolean
+    + removeVoucher() : void
+    + useLoyaltyPoints(points : int) : boolean
+    + canCancel() : boolean
+    + canRefund() : boolean
+}
+
+class OrderDetail {
+    - orderDetailId : String
+    - orderId : String
+    - productId : String
+    - variantId : String
+    - productName : String
+    - variantInfo : String
+    - quantity : int
+    - unitPrice : double
+    - discount : double
+    - subtotal : double
+    - status : String
+    
+    + calculateSubtotal() : double
+    + canReview() : boolean
+    + canReturn() : boolean
+}
+
+class OrderStatus {
+    - statusId : String
+    - orderId : String
+    - status : String
+    - timestamp : Date
+    - note : String
+    - location : String
+    - updatedBy : String
+    - images : String
+    
+    + notifyCustomer() : void
+}
+
+' ========== SHIPPING & DELIVERY ==========
+class Delivery {
+    - deliveryId : String
+    - orderId : String
+    - trackingNumber : String
+    - shippingMethod : String
+    - carrier : String
+    - warehouseId : String
+    - addressId : String
+    - estimatedPickup : Date
+    - actualPickup : Date
+    - estimatedDelivery : Date
+    - actualDelivery : Date
+    - shippingFee : double
+    - insuranceFee : double
+    - currentLocation : String
+    - currentLatitude : double
+    - currentLongitude : double
+    - status : String
+    - attemptCount : int
+    - signature : String
+    - proofOfDelivery : String
+    - notes : String
+    
+    + updateLocation(location : String, latitude : double, longitude : double) : void
+    + updateStatus(status : String, note : String) : void
+    + calculateFee(distance : double, weight : double) : double
+    + generateTrackingNumber() : String
+    + recordAttempt() : void
+    + uploadProof(imageUrl : String) : void
+}
+
+class DeliveryAssignment {
+    - assignmentId : String
+    - deliveryId : String
+    - shipperId : String
+    - assignedAt : Date
+    - acceptedAt : Date
+    - startedAt : Date
+    - completedAt : Date
+    - status : String
+    - earnings : double
+    - rating : int
+    - feedback : String
+    
+    + accept() : void
+    + reject(reason : String) : void
+    + start() : void
+    + complete() : void
+}
+
+' ========== PAYMENT ==========
+class Payment {
+    - paymentId : String
+    - orderId : String
+    - method : String
+    - provider : String
+    - amount : double
+    - status : String
+    - transactionId : String
+    - paymentDate : Date
+    - paidAt : Date
+    - gateway : String
+    - bankCode : String
+    - responseCode : String
+    - errorMessage : String
+    - ipAddress : String
+    - metadata : String
+    
+    + processPayment() : boolean
+    + verifyPayment() : boolean
+    + capturePayment() : boolean
+    + voidPayment() : boolean
+    + refundPayment(amount : double, reason : String) : Refund
+}
+
+class Refund {
+    - refundId : String
+    - paymentId : String
+    - orderId : String
+    - customerId : String
+    - type : String
+    - reason : String
+    - amount : double
+    - status : String
+    - requestDate : Date
+    - approvedDate : Date
+    - processedDate : Date
+    - completedDate : Date
+    - approvedBy : String
+    - processedBy : String
+    - notes : String
+    - customerNotes : String
+    - adminNotes : String
+    - refundMethod : String
+    - transactionId : String
+    
+    + request(reason : String) : void
+    + approve(adminId : String) : void
+    + reject(reason : String, adminId : String) : void
+    + process() : boolean
+    + complete() : void
+    + cancel(reason : String) : void
+}
+
+' ========== VOUCHER & PROMOTION ==========
+class FlashSale {
+    - saleId : String
+    - productId : String
+    - variantId : String
+    - name : String
+    - description : String
+    - originalPrice : double
+    - salePrice : double
+    - discountPercent : double
+    - startTime : Date
+    - endTime : Date
+    - totalQuantity : int
+    - soldCount : int
+    - limitPerCustomer : int
+    - isActive : boolean
+    - createdAt : Date
+    
+    + isActive() : boolean
+    + getRemainingQuantity() : int
+    + canPurchase(customerId : String, quantity : int) : boolean
+    + incrementSold(quantity : int) : void
+    + getTimeRemaining() : long
+}
+
+class Voucher {
+    - voucherId : String
+    - code : String
+    - name : String
+    - description : String
+    - type : String
+    - scope : String
+    - discountPercent : double
+    - discountAmount : double
+    - maxDiscount : double
+    - minOrderValue : double
+    - applicableProducts : String
+    - applicableCategories : String
+    - startDate : Date
+    - expiryDate : Date
+    - usageLimit : int
+    - usageLimitPerUser : int
+    - usageCount : int
+    - isActive : boolean
+    - isPublic : boolean
+    - createdBy : String
+    - createdAt : Date
+    
+    + validate(customerId : String, orderTotal : double) : boolean
+    + calculateDiscount(orderTotal : double) : double
+    + canUse(customerId : String, orderTotal : double) : boolean
+    + incrementUsage() : void
+    + isExpired() : boolean
+    + isAvailable() : boolean
+}
+
+class VoucherUsage {
+    - usageId : String
+    - voucherId : String
+    - customerId : String
+    - orderId : String
+    - usedDate : Date
+    - orderValue : double
+    - discountApplied : double
+}
+
+' ========== REVIEW & RATING ==========
+class Review {
+    - reviewId : String
+    - productId : String
+    - variantId : String
+    - customerId : String
+    - orderDetailId : String
+    - rating : int
+    - title : String
+    - comment : String
+    - reviewDate : Date
+    - updatedAt : Date
+    - images : String
+    - videos : String
+    - likes : int
+    - dislikes : int
+    - helpfulCount : int
+    - isVerifiedPurchase : boolean
+    - status : String
+    - moderatedBy : String
+    - moderatedAt : Date
+    
+    + edit(title : String, comment : String, rating : int) : void
+    + delete() : void
+    + report(reason : String) : void
+    + markHelpful(userId : String) : void
+    + addImages(imageUrls : List<String>) : void
+}
+
+class ReviewResponse {
+    - responseId : String
+    - reviewId : String
+    - vendorId : String
+    - response : String
+    - responseDate : Date
+    - updatedAt : Date
+    
+    + edit(response : String) : void
+    + delete() : void
+}
+
+class ReviewVote {
+    - voteId : String
+    - reviewId : String
+    - userId : String
+    - voteType : String
+    - votedAt : Date
+}
+
+' ========== WISHLIST ==========
+class Wishlist {
+    - wishlistId : String
+    - customerId : String
+    - name : String
+    - isDefault : boolean
+    - isPublic : boolean
+    - createdAt : Date
+    - updatedAt : Date
+    
+    + addProduct(productId : String, variantId : String) : void
+    + removeProduct(wishlistItemId : String) : void
+    + moveToCart(wishlistItemId : String, quantity : int) : void
+    + getItems() : List<WishlistItem>
+    + share() : String
+}
+
+class WishlistItem {
+    - itemId : String
+    - wishlistId : String
+    - productId : String
+    - variantId : String
+    - addedDate : Date
+    - notifyOnDiscount : boolean
+    - notifyOnRestock : boolean
+    - priority : int
+    - notes : String
+}
+
+' ========== NOTIFICATION ==========
+class Notification {
+    - notificationId : String
+    - userId : String
+    - type : String
+    - title : String
+    - message : String
+    - data : String
+    - imageUrl : String
+    - actionUrl : String
+    - isRead : boolean
+    - readAt : Date
+    - createdAt : Date
+    - expiresAt : Date
+    
+    + markAsRead() : void
+    + markAsUnread() : void
+    + send() : boolean
+    + scheduleNotification(sendAt : Date) : void
+}
+
+' ========== TRANSACTION & ANALYTICS ==========
+class TransactionHistory {
+    - historyId : String
+    - entityType : String
+    - entityId : String
+    - action : String
+    - timestamp : Date
+    - performedBy : String
+    - ipAddress : String
+    - userAgent : String
+    - beforeData : String
+    - afterData : String
+    - details : String
+    
+    + record() : void
+    + getChanges() : String
+}
+
+class Statistic {
+    - statId : String
+    - vendorId : String
+    - period : String
+    - startDate : Date
+    - endDate : Date
+    - revenue : double
+    - salesCount : int
+    - orderCount : int
+    - averageOrderValue : double
+    - conversionRate : double
+    - returnRate : double
+    - topProducts : String
+    - topCategories : String
+    - newCustomers : int
+    - returningCustomers : int
+    - cancelledOrders : int
+    - completedOrders : int
+    - generatedAt : Date
+    
+    + calculate() : void
+    + getRevenue() : double
+    + getSalesCount() : int
+    + getTopProducts(limit : int) : List<Product>
+    + getConversionRate() : double
+    + exportReport(format : String) : File
+}
+
+' ========== SEARCH & RECOMMENDATION ==========
+class SearchHistory {
+    - searchId : String
+    - customerId : String
+    - keyword : String
+    - filters : String
+    - searchDate : Date
+    - resultsCount : int
+    - clickedProductId : String
+    - clickedPosition : int
+}
+
+class ProductView {
+    - viewId : String
+    - productId : String
+    - customerId : String
+    - sessionId : String
+    - viewDate : Date
+    - duration : int
+    - source : String
+    - referrer : String
+}
+
+' ========================================
+' RELATIONSHIPS
+' ========================================
+
+' User relationships
+User "1" *-- "1..*" Role : has
+Customer "1" -- "0..1" Cart : owns
+Customer "1" -- "0..*" Wishlist : has
+Customer "1" -- "0..*" Address : has
+Customer "1" -- "0..*" Order : places
+Customer "1" -- "0..*" Review : writes
+Customer "1" -- "0..*" Notification : receives
+Customer "1" -- "0..*" SearchHistory : has
+Customer "1" -- "0..*" ProductView : generates
+
+' Address relationships
+Address "1" -- "0..*" Order : used in
+
+' Cart relationships
+Cart "1" *-- "0..*" CartItem : contains
+CartItem "*" -- "1" Variant : references
+CartItem "*" -- "1" Product : of
+
+' Product relationships
+Product "*" -- "1" Category : belongs to
+Product "*" -- "1" Vendor : managed by
+Product "1" *-- "0..*" Variant : has
+Product "1" -- "0..*" Review : has
+Product "1" -- "0..*" ProductImage : has
+Product "1" -- "0..*" ProductView : tracked by
+Variant "1" -- "0..*" Inventory : tracked by
+Variant "1" -- "0..*" ProductImage : has
+Variant "1" -- "1..*" VariantAttribute : described by
+Review "*" -- "0..1" ReviewResponse : has
+Review "1" -- "0..*" ReviewVote : has
+Review "*" -- "0..1" OrderDetail : verifies
+
+' Inventory & Warehouse
+Inventory "*" -- "1" Warehouse : stored in
+Inventory "1" -- "0..*" StockMovement : has
+Vendor "1" -- "0..*" Warehouse : manages
+Warehouse "1" -- "0..*" Delivery : ships from
+DeliveryAssignment "*" -- "1" Shipper : assigned to
+DeliveryAssignment "*" -- "1" Delivery : for
+
+' Order relationships
+Order "1" *-- "1..*" OrderDetail : contains
+Order "1" -- "1..*" OrderStatus : has history
+Order "1" -- "1" Address : ships to
+Order "*" -- "0..1" Voucher : applies
+Order "1" -- "1..*" Payment : paid by
+Order "1" -- "0..1" Delivery : has
+Order "1" -- "0..*" Refund : may have
+Order "1" -- "0..*" TransactionHistory : logs
+OrderDetail "*" -- "1" Variant : references
+OrderDetail "*" -- "1" Product : of
+
+' Delivery relationships
+Delivery "1" -- "0..*" DeliveryAssignment : has
+
+' Voucher relationships
+FlashSale "*" -- "1" Product : promotes
+FlashSale "*" -- "0..1" Variant : applies to
+Voucher "1" -- "0..*" VoucherUsage : tracks
+VoucherUsage "*" -- "1" Customer : used by
+VoucherUsage "*" -- "0..1" Order : applied to
+
+' Wishlist relationships
+Wishlist "1" *-- "0..*" WishlistItem : contains
+WishlistItem "*" -- "1" Product : references
+WishlistItem "*" -- "0..1" Variant : specifies
+
+' Payment relationships
+Payment "1" -- "0..*" Refund : generates
+
+' Analytics
+Admin ..> Statistic : generates
+Vendor ..> Statistic : views
+Vendor "1" -- "0..*" Statistic : has
+
+@enduml
