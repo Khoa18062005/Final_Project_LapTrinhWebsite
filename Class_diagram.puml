@@ -2,7 +2,7 @@
 
 ' ========== USER MANAGEMENT ==========
 abstract class User {
-    # userId : String
+    # userId : int
     # firstName : String
     # lastName : String
     # username : String
@@ -32,16 +32,16 @@ class Customer extends User {
     - totalSpent : double
     
     + searchProduct(keyword : String) : List<Product>
-    + addToCart(productId : String, variantId : String, quantity : int) : void
+    + addToCart(productId : int, variantId : int, quantity : int) : void
     + placeOrder() : Order
     + queryCart() : Cart
-    + removeProductFromCart(cartItemId : String) : void
-    + updateCartQuantity(cartItemId : String, quantity : int) : void
-    + rateProduct(productId : String, orderDetailId : String, rating : int, comment : String) : void
-    + addToWishlist(productId : String) : void
-    + trackOrder(orderId : String) : OrderStatus
-    + requestRefund(orderId : String, reason : String) : Refund
-    + applyVoucher(voucherId : String) : boolean
+    + removeProductFromCart(cartItemId : int) : void
+    + updateCartQuantity(cartItemId : int, quantity : int) : void
+    + rateProduct(productId : int, orderDetailId : int, rating : int, comment : String) : void
+    + addToWishlist(productId : int) : void
+    + trackOrder(orderId : int) : OrderStatus
+    + requestRefund(orderId : int, reason : String) : Refund
+    + applyVoucher(voucherId : int) : boolean
     + viewOrderHistory() : List<Order>
 }
 
@@ -52,17 +52,17 @@ class Vendor extends User {
     - commission : double
     - isVerified : boolean
     - bankAccount : String
-    
+
     + addProduct(product : Product) : void
     + updateProduct(product : Product) : void
-    + deleteProduct(productId : String) : void
-    + manageOrder(orderId : String, action : String) : void
-    + assignShipper(orderId : String, shipperId : String) : void
-    + manageInventory(productId : String, warehouseId : String, quantity : int) : void
+    + deleteProduct(productId : int) : void
+    + manageOrder(orderId : int, action : String) : void
+    + assignShipper(orderId : int, shipperId : int) : void
+    + manageInventory(productId : int, warehouseId : int, quantity : int) : void
     + viewSalesReport(startDate : Date, endDate : Date) : Report
-    + respondToReview(reviewId : String, response : String) : void
+    + respondToReview(reviewId : int, response : String) : void
     + withdrawBalance() : Transaction
-    + manageWarehouse(warehouseId : String, action : String) : void
+    + manageWarehouse(warehouseId : int, action : String) : void
 }
 
 class Shipper extends User {
@@ -74,42 +74,42 @@ class Shipper extends User {
     - currentLongitude : double
     - rating : double
     - totalDeliveries : int
-    
-    + acceptDelivery(deliveryId : String) : void
-    + rejectDelivery(deliveryId : String, reason : String) : void
-    + updateDeliveryStatus(deliveryId : String, status : String) : void
+
+    + acceptDelivery(deliveryId : int) : void
+    + rejectDelivery(deliveryId : int, reason : String) : void
+    + updateDeliveryStatus(deliveryId : int, status : String) : void
     + viewAssignedDeliveries() : List<Delivery>
     + viewDeliveryHistory() : List<Delivery>
-    + pickFromWarehouse(orderId : String, warehouseId : String) : void
+    + pickFromWarehouse(orderId : int, warehouseId : int) : void
     + updateLocation(latitude : double, longitude : double) : void
-    + completeDelivery(orderId : String, signature : String) : void
-    + reportIssue(deliveryId : String, issue : String) : void
+    + completeDelivery(orderId : int, signature : String) : void
+    + reportIssue(deliveryId : int, issue : String) : void
 }
 
 class Admin extends User {
     - accessLevel : String
     - department : String
-    
-    + manageUser(userId : String, action : String) : void
-    + manageRole(roleId : String, action : String) : void
-    + manageProduct(productId : String, action : String) : void
-    + manageOrder(orderId : String, action : String) : void
+
+    + manageUser(userId : int, action : String) : void
+    + manageRole(roleId : int, action : String) : void
+    + manageProduct(productId : int, action : String) : void
+    + manageOrder(orderId : int, action : String) : void
     + generateStatistic(period : String, type : String) : Statistic
-    + handleDispute(disputeId : String, resolution : String) : void
-    + manageVoucher(voucherId : String, action : String) : void
-    + manageCategory(categoryId : String, action : String) : void
-    + reviewVendorApplication(vendorId : String, approved : boolean) : void
-    + banUser(userId : String, reason : String, duration : int) : void
+    + handleDispute(disputeId : int, resolution : String) : void
+    + manageVoucher(voucherId : int, action : String) : void
+    + manageCategory(categoryId : int, action : String) : void
+    + reviewVendorApplication(vendorId : int, approved : boolean) : void
+    + banUser(userId : int, reason : String, duration : int) : void
     + viewSystemLogs() : List<TransactionHistory>
 }
 
 class Role {
-    - roleId : String
+    - roleId : int
     - roleName : String
     - description : String
     - permissions : List<String>
     - createdAt : Date
-    
+
     + addPermission(permission : String) : void
     + removePermission(permission : String) : void
     + hasPermission(permission : String) : boolean
@@ -117,8 +117,8 @@ class Role {
 
 ' ========== ADDRESS MANAGEMENT ==========
 class Address {
-    - addressId : String
-    - userId : String
+    - addressId : int
+    - userId : int
     - type : String
     - recipientName : String
     - phone : String
@@ -131,7 +131,7 @@ class Address {
     - isDefault : boolean
     - createdAt : Date
     - updatedAt : Date
-    
+
     + validate() : boolean
     + setAsDefault() : void
     + calculateDistance(toAddress : Address) : double
@@ -140,31 +140,31 @@ class Address {
 
 ' ========== SHOPPING CART ==========
 class Cart {
-    - cartId : String
-    - customerId : String
+    - cartId : int
+    - customerId : int
     - createdAt : Date
     - updatedAt : Date
     - expiresAt : Date
-    
-    + addItem(productId : String, variantId : String, quantity : int) : void
-    + removeItem(cartItemId : String) : void
-    + updateQuantity(cartItemId : String, quantity : int) : void
+
+    + addItem(productId : int, variantId : int, quantity : int) : void
+    + removeItem(cartItemId : int) : void
+    + updateQuantity(cartItemId : int, quantity : int) : void
     + clear() : void
     + getTotalPrice() : double
     + getTotalItems() : int
     + checkAvailability() : boolean
-    + mergeCarts(otherCartId : String) : void
+    + mergeCarts(otherCartId : int) : void
 }
 
 class CartItem {
-    - cartItemId : String
-    - cartId : String
-    - variantId : String
+    - cartItemId : int
+    - cartId : int
+    - variantId : int
     - quantity : int
     - priceAtAdd : double
     - subtotal : double
     - addedAt : Date
-    
+
     + increaseQuantity(amount : int) : void
     + decreaseQuantity(amount : int) : void
     + updateSubtotal() : void
@@ -173,9 +173,9 @@ class CartItem {
 
 ' ========== PRODUCT MANAGEMENT ==========
 abstract class Product {
-    # productId : String
-    # vendorId : String
-    # categoryId : String
+    # productId : int
+    # vendorId : int
+    # categoryId : int
     # name : String
     # slug : String
     # basePrice : double
@@ -193,9 +193,9 @@ abstract class Product {
     # totalSold : int
     # viewCount : int
     # isFeatured : boolean
-    
-    + updateStock(warehouseId : String, quantity : int) : void
-    + calculatePrice(variantId : String) : double
+
+    + updateStock(warehouseId : int, quantity : int) : void
+    + calculatePrice(variantId : int) : double
     + isAvailable() : boolean
     + updateRating() : void
     + incrementViewCount() : void
@@ -317,15 +317,15 @@ class Headphone extends Product {
 }
 
 class Variant {
-    - variantId : String
-    - productId : String
+    - variantId : int
+    - productId : int
     - sku : String
     - basePrice : double
     - finalPrice : double
     - weight : double
     - isActive : boolean
     - createdAt : Date
-    
+
     + calculateFinalPrice() : double
     + getTotalStock() : int
     + isInStock() : boolean
@@ -333,44 +333,44 @@ class Variant {
 }
 
 class VariantAttribute {
-    - attributeId : String
-    - variantId : String
+    - attributeId : int
+    - variantId : int
     - attributeName : String
     - attributeValue : String
     - priceAdjustment : double
     - sortOrder : int
-    
+
     + apply() : void
 }
 
 class ProductImage {
-    - imageId : String
-    - productId : String
-    - variantId : String
+    - imageId : int
+    - productId : int
+    - variantId : int
     - url : String
     - altText : String
     - sortOrder : int
     - isPrimary : boolean
     - uploadedAt : Date
-    
+
     + setPrimary() : void
     + reorder(newOrder : int) : void
 }
 
 class Category {
-    - categoryId : String
+    - categoryId : int
     - name : String
     - slug : String
     - description : String
-    - parentCategoryId : String
+    - parentCategoryId : int
     - icon : String
     - banner : String
     - sortOrder : int
     - isActive : boolean
     - createdAt : Date
-    
+
     + addProduct(product : Product) : void
-    + removeProduct(productId : String) : void
+    + removeProduct(productId : int) : void
     + getSubcategories() : List<Category>
     + getProductCount() : int
     + isLeafCategory() : boolean
@@ -378,8 +378,8 @@ class Category {
 
 ' ========== INVENTORY & WAREHOUSE ==========
 class Warehouse {
-    - warehouseId : String
-    - vendorId : String
+    - warehouseId : int
+    - vendorId : int
     - name : String
     - code : String
     - addressLine : String
@@ -390,24 +390,24 @@ class Warehouse {
     - longitude : double
     - capacity : int
     - usedCapacity : int
-    - managerId : String
+    - managerId : int
     - phone : String
     - email : String
     - operatingHours : String
     - isActive : boolean
     - createdAt : Date
-    
+
     + checkCapacity() : int
     + getAvailableCapacity() : int
-    + transferStock(productId : String, variantId : String, toWarehouseId : String, quantity : int) : boolean
-    + addManager(userId : String) : void
+    + transferStock(productId : int, variantId : int, toWarehouseId : int, quantity : int) : boolean
+    + addManager(userId : int) : void
     + calculateDistance(latitude : double, longitude : double) : double
 }
 
 class Inventory {
-    - inventoryId : String
-    - warehouseId : String
-    - variantId : String
+    - inventoryId : int
+    - warehouseId : int
+    - variantId : int
     - stockQuantity : int
     - reservedQuantity : int
     - availableQuantity : int
@@ -417,7 +417,7 @@ class Inventory {
     - reorderLevel : int
     - reorderQuantity : int
     - location : String
-    
+
     + updateStock(quantity : int, action : String) : void
     + reserveStock(quantity : int) : boolean
     + releaseStock(quantity : int) : void
@@ -428,28 +428,28 @@ class Inventory {
 }
 
 class StockMovement {
-    - movementId : String
-    - inventoryId : String
+    - movementId : int
+    - inventoryId : int
     - type : String
     - quantity : int
-    - fromWarehouseId : String
-    - toWarehouseId : String
+    - fromWarehouseId : int
+    - toWarehouseId : int
     - reason : String
     - performedBy : String
     - timestamp : Date
     - referenceId : String
-    
+
     + record() : void
     + validate() : boolean
 }
 
 ' ========== ORDER MANAGEMENT ==========
 class Order {
-    - orderId : String
+    - orderId : int
     - orderNumber : String
-    - customerId : String
-    - vendorId : String
-    - addressId : String
+    - customerId : int
+    - vendorId : int
+    - addressId : int
     - orderDate : Date
     - status : String
     - subtotal : double
@@ -466,12 +466,12 @@ class Order {
     - cancelledBy : String
     - estimatedDelivery : Date
     - completedAt : Date
-    
+
     + placeOrder() : boolean
     + cancelOrder(reason : String) : boolean
     + updateStatus(status : String, note : String) : void
     + calculateTotal() : double
-    + applyVoucher(voucherId : String) : boolean
+    + applyVoucher(voucherId : int) : boolean
     + removeVoucher() : void
     + useLoyaltyPoints(points : int) : boolean
     + canCancel() : boolean
@@ -479,10 +479,10 @@ class Order {
 }
 
 class OrderDetail {
-    - orderDetailId : String
-    - orderId : String
-    - productId : String
-    - variantId : String
+    - orderDetailId : int
+    - orderId : int
+    - productId : int
+    - variantId : int
     - productName : String
     - variantInfo : String
     - quantity : int
@@ -490,34 +490,34 @@ class OrderDetail {
     - discount : double
     - subtotal : double
     - status : String
-    
+
     + calculateSubtotal() : double
     + canReview() : boolean
     + canReturn() : boolean
 }
 
 class OrderStatus {
-    - statusId : String
-    - orderId : String
+    - statusId : int
+    - orderId : int
     - status : String
     - timestamp : Date
     - note : String
     - location : String
     - updatedBy : String
     - images : String
-    
+
     + notifyCustomer() : void
 }
 
 ' ========== SHIPPING & DELIVERY ==========
 class Delivery {
-    - deliveryId : String
-    - orderId : String
+    - deliveryId : int
+    - orderId : int
     - trackingNumber : String
     - shippingMethod : String
     - carrier : String
-    - warehouseId : String
-    - addressId : String
+    - warehouseId : int
+    - addressId : int
     - estimatedPickup : Date
     - actualPickup : Date
     - estimatedDelivery : Date
@@ -532,7 +532,7 @@ class Delivery {
     - signature : String
     - proofOfDelivery : String
     - notes : String
-    
+
     + updateLocation(location : String, latitude : double, longitude : double) : void
     + updateStatus(status : String, note : String) : void
     + calculateFee(distance : double, weight : double) : double
@@ -542,9 +542,9 @@ class Delivery {
 }
 
 class DeliveryAssignment {
-    - assignmentId : String
-    - deliveryId : String
-    - shipperId : String
+    - assignmentId : int
+    - deliveryId : int
+    - shipperId : int
     - assignedAt : Date
     - acceptedAt : Date
     - startedAt : Date
@@ -553,7 +553,7 @@ class DeliveryAssignment {
     - earnings : double
     - rating : int
     - feedback : String
-    
+
     + accept() : void
     + reject(reason : String) : void
     + start() : void
@@ -562,8 +562,8 @@ class DeliveryAssignment {
 
 ' ========== PAYMENT ==========
 class Payment {
-    - paymentId : String
-    - orderId : String
+    - paymentId : int
+    - orderId : int
     - method : String
     - provider : String
     - amount : double
@@ -577,7 +577,7 @@ class Payment {
     - errorMessage : String
     - ipAddress : String
     - metadata : String
-    
+
     + processPayment() : boolean
     + verifyPayment() : boolean
     + capturePayment() : boolean
@@ -586,10 +586,10 @@ class Payment {
 }
 
 class Refund {
-    - refundId : String
-    - paymentId : String
-    - orderId : String
-    - customerId : String
+    - refundId : int
+    - paymentId : int
+    - orderId : int
+    - customerId : int
     - type : String
     - reason : String
     - amount : double
@@ -605,10 +605,10 @@ class Refund {
     - adminNotes : String
     - refundMethod : String
     - transactionId : String
-    
+
     + request(reason : String) : void
-    + approve(adminId : String) : void
-    + reject(reason : String, adminId : String) : void
+    + approve(adminId : int) : void
+    + reject(reason : String, adminId : int) : void
     + process() : boolean
     + complete() : void
     + cancel(reason : String) : void
@@ -616,9 +616,9 @@ class Refund {
 
 ' ========== VOUCHER & PROMOTION ==========
 class FlashSale {
-    - saleId : String
-    - productId : String
-    - variantId : String
+    - saleId : int
+    - productId : int
+    - variantId : int
     - name : String
     - description : String
     - originalPrice : double
@@ -631,16 +631,16 @@ class FlashSale {
     - limitPerCustomer : int
     - isActive : boolean
     - createdAt : Date
-    
+
     + isActive() : boolean
     + getRemainingQuantity() : int
-    + canPurchase(customerId : String, quantity : int) : boolean
+    + canPurchase(customerId : int, quantity : int) : boolean
     + incrementSold(quantity : int) : void
     + getTimeRemaining() : long
 }
 
 class Voucher {
-    - voucherId : String
+    - voucherId : int
     - code : String
     - name : String
     - description : String
@@ -661,20 +661,20 @@ class Voucher {
     - isPublic : boolean
     - createdBy : String
     - createdAt : Date
-    
-    + validate(customerId : String, orderTotal : double) : boolean
+
+    + validate(customerId : int, orderTotal : double) : boolean
     + calculateDiscount(orderTotal : double) : double
-    + canUse(customerId : String, orderTotal : double) : boolean
+    + canUse(customerId : int, orderTotal : double) : boolean
     + incrementUsage() : void
     + isExpired() : boolean
     + isAvailable() : boolean
 }
 
 class VoucherUsage {
-    - usageId : String
-    - voucherId : String
-    - customerId : String
-    - orderId : String
+    - usageId : int
+    - voucherId : int
+    - customerId : int
+    - orderId : int
     - usedDate : Date
     - orderValue : double
     - discountApplied : double
@@ -682,11 +682,11 @@ class VoucherUsage {
 
 ' ========== REVIEW & RATING ==========
 class Review {
-    - reviewId : String
-    - productId : String
-    - variantId : String
-    - customerId : String
-    - orderDetailId : String
+    - reviewId : int
+    - productId : int
+    - variantId : int
+    - customerId : int
+    - orderDetailId : int
     - rating : int
     - title : String
     - comment : String
@@ -701,56 +701,56 @@ class Review {
     - status : String
     - moderatedBy : String
     - moderatedAt : Date
-    
+
     + edit(title : String, comment : String, rating : int) : void
     + delete() : void
     + report(reason : String) : void
-    + markHelpful(userId : String) : void
+    + markHelpful(userId : int) : void
     + addImages(imageUrls : List<String>) : void
 }
 
 class ReviewResponse {
-    - responseId : String
-    - reviewId : String
-    - vendorId : String
+    - responseId : int
+    - reviewId : int
+    - vendorId : int
     - response : String
     - responseDate : Date
     - updatedAt : Date
-    
+
     + edit(response : String) : void
     + delete() : void
 }
 
 class ReviewVote {
-    - voteId : String
-    - reviewId : String
-    - userId : String
+    - voteId : int
+    - reviewId : int
+    - userId : int
     - voteType : String
     - votedAt : Date
 }
 
 ' ========== WISHLIST ==========
 class Wishlist {
-    - wishlistId : String
-    - customerId : String
+    - wishlistId : int
+    - customerId : int
     - name : String
     - isDefault : boolean
     - isPublic : boolean
     - createdAt : Date
     - updatedAt : Date
-    
-    + addProduct(productId : String, variantId : String) : void
-    + removeProduct(wishlistItemId : String) : void
-    + moveToCart(wishlistItemId : String, quantity : int) : void
+
+    + addProduct(productId : int, variantId : int) : void
+    + removeProduct(wishlistItemId : int) : void
+    + moveToCart(wishlistItemId : int, quantity : int) : void
     + getItems() : List<WishlistItem>
     + share() : String
 }
 
 class WishlistItem {
-    - itemId : String
-    - wishlistId : String
-    - productId : String
-    - variantId : String
+    - itemId : int
+    - wishlistId : int
+    - productId : int
+    - variantId : int
     - addedDate : Date
     - notifyOnDiscount : boolean
     - notifyOnRestock : boolean
@@ -760,8 +760,8 @@ class WishlistItem {
 
 ' ========== NOTIFICATION ==========
 class Notification {
-    - notificationId : String
-    - userId : String
+    - notificationId : int
+    - userId : int
     - type : String
     - title : String
     - message : String
@@ -772,7 +772,7 @@ class Notification {
     - readAt : Date
     - createdAt : Date
     - expiresAt : Date
-    
+
     + markAsRead() : void
     + markAsUnread() : void
     + send() : boolean
@@ -781,7 +781,7 @@ class Notification {
 
 ' ========== TRANSACTION & ANALYTICS ==========
 class TransactionHistory {
-    - historyId : String
+    - historyId : int
     - entityType : String
     - entityId : String
     - action : String
@@ -792,14 +792,14 @@ class TransactionHistory {
     - beforeData : String
     - afterData : String
     - details : String
-    
+
     + record() : void
     + getChanges() : String
 }
 
 class Statistic {
-    - statId : String
-    - vendorId : String
+    - statId : int
+    - vendorId : int
     - period : String
     - startDate : Date
     - endDate : Date
@@ -816,7 +816,7 @@ class Statistic {
     - cancelledOrders : int
     - completedOrders : int
     - generatedAt : Date
-    
+
     + calculate() : void
     + getRevenue() : double
     + getSalesCount() : int
@@ -827,20 +827,20 @@ class Statistic {
 
 ' ========== SEARCH & RECOMMENDATION ==========
 class SearchHistory {
-    - searchId : String
-    - customerId : String
+    - searchId : int
+    - customerId : int
     - keyword : String
     - filters : String
     - searchDate : Date
     - resultsCount : int
-    - clickedProductId : String
+    - clickedProductId : int
     - clickedPosition : int
 }
 
 class ProductView {
-    - viewId : String
-    - productId : String
-    - customerId : String
+    - viewId : int
+    - productId : int
+    - customerId : int
     - sessionId : String
     - viewDate : Date
     - duration : int

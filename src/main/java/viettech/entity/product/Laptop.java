@@ -132,8 +132,8 @@ public class Laptop extends Product {
     }
 
     // Constructor dùng khi tạo Laptop mới
-    public Laptop(String vendorId,
-                  String categoryId,
+    public Laptop(int vendorId,
+                  int categoryId,
                   String name,
                   String slug,
                   double basePrice,

@@ -112,8 +112,8 @@ public class Tablet extends Product {
     }
 
     // Constructor dùng khi tạo Tablet mới
-    public Tablet(String vendorId,
-                  String categoryId,
+    public Tablet(int vendorId,
+                  int categoryId,
                   String name,
                   String slug,
                   double basePrice,

@@ -10,10 +10,10 @@ public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cart_id")
-    private Long cartId;
+    private int cartId;
 
     @Column(name = "customer_id", nullable = false)
-    private String customerId;
+    private int customerId;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false)
@@ -33,15 +33,15 @@ public class Cart {
 
     // Constructor mặc định (BẮT BUỘC cho JPA)
     public Cart() {
-        this.customerId = "";
+        this.customerId = 0;
         this.createdAt = new Date();
         this.updatedAt = new Date();
         this.expiresAt = null;
     }
 
     // Constructor dùng khi tạo Cart mới
-    public Cart(String customerId, Date expiresAt) {
-        this.customerId = customerId != null ? customerId : "";
+    public Cart(int customerId, Date expiresAt) {
+        this.customerId = customerId;
         this.createdAt = new Date();
         this.updatedAt = new Date();
         this.expiresAt = expiresAt;
@@ -51,16 +51,16 @@ public class Cart {
        GETTERS & SETTERS
        ========================= */
 
-    public Long getCartId() {
+    public int getCartId() {
         return cartId;
     }
 
-    public String getCustomerId() {
+    public int getCustomerId() {
         return customerId;
     }
 
-    public void setCustomerId(String customerId) {
-        this.customerId = customerId != null ? customerId : "";
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public Date getCreatedAt() {

@@ -10,7 +10,7 @@ public class Variant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "variant_id")
-    private Long variantId;
+    private int variantId;
 
     /* =========================
        RELATIONSHIPS
@@ -76,7 +76,7 @@ public class Variant {
        GETTERS & SETTERS
        ========================= */
 
-    public Long getVariantId() {
+    public int getVariantId() {
         return variantId;
     }
 

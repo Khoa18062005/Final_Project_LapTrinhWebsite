@@ -11,13 +11,13 @@ public abstract class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
-    protected Long productId;
+    protected int productId;
 
     @Column(name = "vendor_id", nullable = false)
-    protected String vendorId;
+    protected int vendorId;
 
     @Column(name = "category_id", nullable = false)
-    protected String categoryId;
+    protected int categoryId;
 
     @Column(nullable = false)
     protected String name;
@@ -71,8 +71,8 @@ public abstract class Product {
 
     // Constructor mặc định (BẮT BUỘC cho JPA)
     protected Product() {
-        this.vendorId = "";
-        this.categoryId = "";
+        this.vendorId = 0;
+        this.categoryId = 0;
         this.name = "";
         this.slug = "";
         this.basePrice = 0.0;
@@ -93,8 +93,8 @@ public abstract class Product {
     }
 
     // Constructor dùng khi tạo Product (cho class con gọi super)
-    protected Product(String vendorId,
-                      String categoryId,
+    protected Product(int vendorId,
+                      int categoryId,
                       String name,
                       String slug,
                       double basePrice,
@@ -107,8 +107,8 @@ public abstract class Product {
                       String dimensions,
                       boolean isFeatured) {
 
-        this.vendorId = vendorId != null ? vendorId : "";
-        this.categoryId = categoryId != null ? categoryId : "";
+        this.vendorId = vendorId;
+        this.categoryId = categoryId;
         this.name = name != null ? name : "";
         this.slug = slug != null ? slug : "";
         this.basePrice = basePrice;
@@ -132,24 +132,24 @@ public abstract class Product {
        GETTERS & SETTERS
        ========================= */
 
-    public Long getProductId() {
+    public int getProductId() {
         return productId;
     }
 
-    public String getVendorId() {
+    public int getVendorId() {
         return vendorId;
     }
 
-    public void setVendorId(String vendorId) {
-        this.vendorId = vendorId != null ? vendorId : "";
+    public void setVendorId(int vendorId) {
+        this.vendorId = vendorId;
     }
 
-    public String getCategoryId() {
+    public int getCategoryId() {
         return categoryId;
     }
 
-    public void setCategoryId(String categoryId) {
-        this.categoryId = categoryId != null ? categoryId : "";
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
     }
 
     public String getName() {
