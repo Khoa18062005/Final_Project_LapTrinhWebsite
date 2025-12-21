@@ -1,0 +1,36 @@
+listener/ - Listeners (Sự kiện lifecycle)
+Classes implement ServletContextListener, xử lý sự kiện app start/stop
+Mục đích: Xử lý khi app start (warm-up) và stop (cleanup)
+
+vi du:
+package viettech.listener;
+
+import viettech.config.JPAConfig;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
+
+@WebListener
+public class StartupListener implements ServletContextListener {
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        System.out.println("🚀 VietTech starting...");
+
+        // Warm-up database
+        JPAConfig.getEntityManagerFactory();
+
+        System.out.println("✅ VietTech started!");
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        System.out.println("🛑 VietTech shutting down...");
+
+        // Cleanup
+        JPAConfig.closeEntityManagerFactory();
+
+        System.out.println("✅ VietTech stopped!");
+    }
+}

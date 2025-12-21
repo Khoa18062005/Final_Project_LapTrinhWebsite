@@ -1,0 +1,40 @@
+ dto/ - Data Transfer Objects (Truyền dữ liệu giữa layers)
+ Classes chứa dữ liệu không nhạy cảm, dùng để truyền giữa layers
+
+ ví dụ
+ package viettech.dto;
+
+ import viettech.entity.User;
+ import java.util.Date;
+
+ public class UserDTO {
+
+     private Long userId;
+     private String firstName;
+     private String lastName;
+     private String email;
+     private String phone;
+     private String role;
+     private Date createdAt;
+
+     // ❌ KHÔNG có password!
+
+     // Constructor from Entity
+     public UserDTO(User user) {
+         this.userId = user.getUserId();
+         this.firstName = user.getFirstName();
+         this.lastName = user.getLastName();
+         this.email = user.getEmail();
+         this.phone = user.getPhone();
+         this.role = user.getRole();
+         this.createdAt = user.getCreatedAt();
+     }
+
+     // Getters only (immutable)
+     public Long getUserId() { return userId; }
+     public String getFirstName() { return firstName; }
+     public String getLastName() { return lastName; }
+     public String getEmail() { return email; }
+     public String getFullName() { return firstName + " " + lastName; }
+     // ...
+ }

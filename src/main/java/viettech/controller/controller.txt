@@ -1,0 +1,58 @@
+controller/ - Servlets (Nhận request, trả response)
+Classes kế thừa HttpServlet, xử lý HTTP requests
+package viettech.controller;
+
+import viettech.service.UserService;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.*;
+import java.io.IOException;
+import java.util.Map;
+
+@WebServlet("/register")
+public class RegisterServlet extends HttpServlet {
+
+    private UserService userService = new UserService();
+
+    // GET: Hiển thị form đăng ký
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
+    }
+
+    // POST: Xử lý đăng ký
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        // 1. LẤY PARAMETERS từ form
+        String firstName = req.getParameter("firstName");
+        String lastName = req.getParameter("lastName");
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+        String phone = req.getParameter("phone");
+
+        // 2. GỌI SERVICE
+        Map<String, String> errors = userService.register(
+            firstName, lastName, email, password, phone
+        );
+
+        // 3. KIỂM TRA KẾT QUẢ & CHỌN VIEW
+        if (errors.isEmpty()) {
+            // Success: Redirect về login
+            resp.sendRedirect("login?success=registered");
+        } else {
+            // Error: Trả về form với errors
+            req.setAttribute("errors", errors);
+            req.setAttribute("firstName", firstName);
+            req.setAttribute("lastName", lastName);
+            req.setAttribute("email", email);
+            req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
+        }
+    }
+}
+
+→ Mục đích: Nhận HTTP request, gọi service, chọn view để hiển thị

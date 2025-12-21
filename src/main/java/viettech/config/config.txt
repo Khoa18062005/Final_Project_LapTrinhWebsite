@@ -1,0 +1,30 @@
+ config/ - Configuration (Cấu hình hệ thống)
+ Classes cấu hình database, connection pool, JPA
+Ví dụ:
+
+package viettech.config;
+
+public class DatabaseConfig {
+    private final String jdbcUrl;
+    private final String username;
+    private final String password;
+
+    private static DatabaseConfig instance;
+
+    private DatabaseConfig() {
+        this.jdbcUrl = System.getenv("DB_URL");
+        this.username = System.getenv("DB_USER");
+        this.password = System.getenv("DB_PASSWORD");
+    }
+
+    public static DatabaseConfig getInstance() {
+        if (instance == null) {
+            instance = new DatabaseConfig();
+        }
+        return instance;
+    }
+
+    public String getJdbcUrl() { return jdbcUrl; }
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+}

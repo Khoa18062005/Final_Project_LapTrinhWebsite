@@ -1,0 +1,138 @@
+service/ - Business Logic (Xử lý nghiệp vụ)
+Classes chứa logic nghiệp vụ (validate, tính toán, xử lý)
+
+Ví dụ
+package viettech.service;
+
+import viettech.dao.UserDAO;
+import viettech.entity.User;
+import viettech.util.PasswordUtil;
+import viettech.util.ValidationUtil;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class UserService {
+
+    private UserDAO userDAO = new UserDAO();
+
+    // Business logic: Đăng ký user
+    public Map<String, String> register(String firstName, String lastName,
+                                       String email, String password, String phone) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        // 1. VALIDATE INPUT
+        if (firstName == null || firstName.trim().isEmpty()) {
+            errors.put("firstName", "Tên không được để trống");
+        }
+
+        if (!ValidationUtil.isValidEmail(email)) {
+            errors.put("email", "Email không hợp lệ");
+        }
+
+        if (!ValidationUtil.isStrongPassword(password)) {
+            errors.put("password", "Mật khẩu phải có ít nhất 8 ký tự, chữ hoa, thường, số");
+        }
+
+        if (!ValidationUtil.isValidPhone(phone)) {
+            errors.put("phone", "Số điện thoại không đúng định dạng VN");
+        }
+
+        // 2. CHECK BUSINESS RULE: Email đã tồn tại?
+        User existingUser = userDAO.findByEmail(email);
+        if (existingUser != null) {
+            errors.put("email", "Email này đã được đăng ký");
+        }
+
+        // 3. NẾU CÓ LỖI → RETURN
+        if (!errors.isEmpty()) {
+            return errors;
+        }
+
+        // 4. XỬ LÝ BUSINESS LOGIC
+        // Hash password
+        String hashedPassword = PasswordUtil.hashPassword(password);
+
+        // Tạo user
+        User user = new User();
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email.toLowerCase());
+        user.setPassword(hashedPassword);
+        user.setPhone(phone);
+        user.setRole("CUSTOMER");
+        user.setActive(true);
+
+        // 5. LƯU VÀO DATABASE qua DAO
+        userDAO.insert(user);
+
+        return errors; // Empty = success
+    }
+
+    // Business logic: Đăng nhập
+    public User login(String email, String password) {
+        // 1. Tìm user
+        User user = userDAO.findByEmail(email);
+        if (user == null) {
+            return null; // Email không tồn tại
+        }
+
+        // 2. Check active
+        if (!user.isActive()) {
+            return null; // Account bị khóa
+        }
+
+        // 3. Verify password
+        boolean isValid = PasswordUtil.verifyPassword(password, user.getPassword());
+        if (!isValid) {
+            return null; // Sai mật khẩu
+        }
+
+        return user; // Login thành công
+    }
+}
+
+Ví dụ:
+package viettech.service;
+
+import viettech.dao.OrderDAO;
+import viettech.dao.ProductDAO;
+import viettech.entity.Order;
+import viettech.entity.Product;
+
+public class OrderService {
+
+    private OrderDAO orderDAO = new OrderDAO();
+    private ProductDAO productDAO = new ProductDAO();
+
+    // Business logic: Tính tổng tiền đơn hàng
+    public double calculateTotal(Order order) {
+        double subtotal = order.getSubtotal();
+        double shippingFee = order.getShippingFee();
+        double discount = order.getDiscount();
+        double tax = subtotal * 0.1; // 10% VAT
+
+        return subtotal + shippingFee - discount + tax;
+    }
+
+    // Business logic: Kiểm tra có thể đặt hàng không
+    public boolean canPlaceOrder(Long productId, int quantity) {
+        Product product = productDAO.findById(productId);
+
+        if (product == null) {
+            return false; // Sản phẩm không tồn tại
+        }
+
+        if (quantity <= 0 || quantity > 100) {
+            return false; // Số lượng không hợp lệ
+        }
+
+        // Check stock (giả sử có method)
+        // if (product.getStock() < quantity) {
+        //     return false;
+        // }
+
+        return true;
+    }
+}
