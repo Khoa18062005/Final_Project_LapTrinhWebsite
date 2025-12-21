@@ -1,0 +1,182 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* ===== RESET ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+}
+
+/* ===== MÀU CHỦ ĐẠO ===== */
+:root {
+    --primary-color: #0d6efd;     /* xanh bootstrap */
+    --primary-light: #3b82f6;
+    --primary-dark: #0a58ca;
+}
+
+/* ===== BACKGROUND XANH DƯƠNG DỊU ===== */
+body {
+    min-height: 100vh;
+    background: linear-gradient(
+            135deg,
+            #0d6efd,
+            #1e40af
+    );
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== CARD ===== */
+.card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    animation: fadeIn 0.6s ease;
+}
+
+/* hiệu ứng xuất hiện */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== HEADER ===== */
+.card-header {
+    background: linear-gradient(
+            135deg,
+            var(--primary-color),
+            var(--primary-light)
+    ) !important;
+    padding: 18px;
+    border-bottom: none;
+}
+
+.card-header h3 {
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+/* ===== BODY ===== */
+.card-body {
+    background-color: #f8faff;
+    padding: 26px;
+}
+
+/* ===== LABEL ===== */
+.form-label {
+    font-weight: 600;
+    color: #333;
+}
+
+/* ===== INPUT ===== */
+.form-control,
+.control {
+    border-radius: 10px;
+    padding: 11px 14px;
+    border: 1px solid #d0d7e2;
+    transition: all 0.25s ease;
+}
+
+.form-control:focus,
+.control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.18rem rgba(13, 110, 253, 0.25);
+    background-color: #ffffff;
+}
+
+/* ===== RADIO ===== */
+.form-check-input {
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* ===== BUTTON ===== */
+.btn {
+    border-radius: 12px;
+    padding: 12px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+}
+
+/* nút đăng ký */
+.btn-primary {
+    background: linear-gradient(
+            135deg,
+            var(--primary-color),
+            var(--primary-dark)
+    );
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(13, 110, 253, 0.4);
+}
+
+/* nút reset */
+.btn-secondary {
+    background-color: #6c757d;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 576px) {
+    .card-body {
+        padding: 20px;
+    }
+
+    .card-header h3 {
+        font-size: 18px;
+    }
+}
+/* ===== FIX ROW HỌ & TÊN ===== */
+.row.mb-3 {
+    display: flex;
+    gap: 16px;
+}
+
+/* mỗi cột */
+.row.mb-3 .col {
+    display: flex;
+    flex-direction: column;
+}
+
+/* label 2 bên thẳng hàng */
+.row.mb-3 .form-label {
+    font-weight: 600;
+    margin-bottom: 6px;
+    min-height: 24px; /* giữ label cùng cao */
+}
+
+/* input họ & tên */
+.row.mb-3 input {
+    height: 46px;                /* CHUẨN HOÁ chiều cao */
+    border-radius: 12px;
+    padding: 10px 14px;
+    border: 1px solid #d0d7e2;
+    font-size: 15px;
+}
+
+/* focus */
+.row.mb-3 input:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.18rem rgba(13, 110, 253, 0.25);
+    outline: none;
+}

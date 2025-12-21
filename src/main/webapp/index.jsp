@@ -13,7 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- CSS riêng -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="style_index.css">
 </head>
 <body>
 
@@ -33,7 +33,7 @@
             <div class="items-header">
                 <h5>Giỏ hàng</h5><i class="bi bi-cart3 fs-4 text-white"></i>
             </div>
-            <div class="items-header">
+            <div class="items-header" onclick="window.location.href='Register/register.jsp'">
                 <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
             </div>
         </div>

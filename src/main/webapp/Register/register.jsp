@@ -6,6 +6,7 @@
   <meta charset="UTF-8">
   <title>Đăng ký tài khoản</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style_register.css">
 </head>
 <body class="bg-light">
 
@@ -21,47 +22,42 @@
 
             <div class="row mb-3">
               <div class="col">
-                <label class="form-label">Họ (First Name)</label>
-                <input type="text" name="firstName" class="form-label control" required placeholder="Nguyễn">
+                <label class="form-label">Họ và Tên đệm</label>
+                <input type="text" name="firstName" class="form-label control" required placeholder="Nguyễn Văn">
               </div>
               <div class="col">
-                <label class="form-label">Tên (Last Name)</label>
-                <input type="text" name="lastName" class="form-label control" required placeholder="Văn A">
+                <label class="form-label">Tên</label>
+                <input type="text" name="lastName" class="form-label control" required placeholder="A">
               </div>
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Tên đăng nhập (Username)</label>
-              <input type="text" name="username" class="form-control" required>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Mật khẩu (Password)</label>
+              <label class="form-label">Mật khẩu</label>
               <input type="password" name="password" class="form-control" required>
             </div>
 
             <div class="mb-3">
               <label class="form-label">Email</label>
-              <input type="email" name="email" class="form-control" required placeholder="example@gmail.com">
+              <input type="email" name="email" class="form-control" required placeholder="">
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Số điện thoại (Phone)</label>
+              <label class="form-label">Số điện thoại</label>
               <input type="tel" name="phone" class="form-control">
             </div>
 
-            <div class="mb-3">
-              <label class="form-label">Đường dẫn ảnh đại diện (Avatar URL)</label>
-              <input type="text" name="avatar" class="form-control" placeholder="http://image-url.com/avatar.jpg">
-            </div>
+<%--            <div class="mb-3">--%>
+<%--              <label class="form-label">Đường dẫn ảnh đại diện (Avatar URL)</label>--%>
+<%--              <input type="text" name="avatar" class="form-control" placeholder="http://image-url.com/avatar.jpg">--%>
+<%--            </div>--%>
 
             <div class="mb-3">
-              <label class="form-label">Ngày sinh (Date of Birth)</label>
+              <label class="form-label">Ngày sinh</label>
               <input type="date" name="dateOfBirth" class="form-control">
             </div>
 
             <div class="mb-3">
-              <label class="form-label">Giới tính (Gender)</label>
+              <label class="form-label">Giới tính</label>
               <div class="mt-1">
                 <div class="form-check form-check-inline">
                   <input class="form-check-input" type="radio" name="gender" id="male" value="Male" checked>
