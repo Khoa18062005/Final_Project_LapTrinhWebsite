@@ -121,8 +121,8 @@ public class Phone extends Product {
     }
 
     // Constructor dùng khi tạo Phone mới
-    public Phone(String vendorId,
-                 String categoryId,
+    public Phone(int vendorId,
+                 int categoryId,
                  String name,
                  String slug,
                  double basePrice,

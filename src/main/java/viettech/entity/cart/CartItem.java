@@ -10,13 +10,13 @@ public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "cart_item_id")
-    private Long cartItemId;
+    private int cartItemId;
 
     @Column(name = "cart_id", nullable = false)
-    private Long cartId;
+    private int cartId;
 
     @Column(name = "variant_id", nullable = false)
-    private String variantId;
+    private int variantId;
 
     @Column(nullable = false)
     private int quantity;
@@ -37,8 +37,8 @@ public class CartItem {
 
     // Constructor mặc định (BẮT BUỘC cho JPA)
     public CartItem() {
-        this.cartId = 0L;
-        this.variantId = "";
+        this.cartId = 0;
+        this.variantId = 0;
         this.quantity = 0;
         this.priceAtAdd = 0.0;
         this.subtotal = 0.0;
@@ -46,13 +46,13 @@ public class CartItem {
     }
 
     // Constructor dùng khi tạo CartItem mới
-    public CartItem(Long cartId,
-                    String variantId,
+    public CartItem(int cartId,
+                    int variantId,
                     int quantity,
                     double priceAtAdd) {
 
-        this.cartId = cartId != null ? cartId : 0L;
-        this.variantId = variantId != null ? variantId : "";
+        this.cartId = cartId;
+        this.variantId = variantId;
         this.quantity = quantity;
         this.priceAtAdd = priceAtAdd;
         this.subtotal = quantity * priceAtAdd;
@@ -63,24 +63,24 @@ public class CartItem {
        GETTERS & SETTERS
        ========================= */
 
-    public Long getCartItemId() {
+    public int getCartItemId() {
         return cartItemId;
     }
 
-    public Long getCartId() {
+    public int getCartId() {
         return cartId;
     }
 
-    public void setCartId(Long cartId) {
-        this.cartId = cartId != null ? cartId : 0L;
+    public void setCartId(int cartId) {
+        this.cartId = cartId;
     }
 
-    public String getVariantId() {
+    public int getVariantId() {
         return variantId;
     }
 
-    public void setVariantId(String variantId) {
-        this.variantId = variantId != null ? variantId : "";
+    public void setVariantId(int variantId) {
+        this.variantId = variantId;
     }
 
     public int getQuantity() {

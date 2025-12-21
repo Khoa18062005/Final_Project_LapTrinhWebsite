@@ -1,0 +1,266 @@
+package viettech.entity.storage;
+
+import javax.persistence.*;
+import java.util.Date;
+
+@Entity
+@Table(name = "warehouses")
+public class Warehouse {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "warehouse_id")
+    private int warehouseId;
+
+    @Column(name = "vendor_id", nullable = false)
+    private int vendorId;
+
+    @Column(nullable = false, length = 150)
+    private String name;
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String code;
+
+    @Column(name = "address_line", nullable = false, length = 255)
+    private String addressLine;
+
+    @Column(length = 100)
+    private String ward;
+
+    @Column(length = 100)
+    private String district;
+
+    @Column(length = 100)
+    private String province;
+
+    @Column(nullable = false)
+    private double latitude;
+
+    @Column(nullable = false)
+    private double longitude;
+
+    @Column(nullable = false)
+    private int capacity;
+
+    @Column(name = "used_capacity", nullable = false)
+    private int usedCapacity;
+
+    @Column(name = "manager_id")
+    private Integer managerId;
+
+    @Column(length = 20)
+    private String phone;
+
+    @Column(length = 150)
+    private String email;
+
+    @Column(name = "operating_hours", length = 255)
+    private String operatingHours;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Date createdAt;
+
+    /* =========================
+       CONSTRUCTORS
+       ========================= */
+
+    // Constructor mặc định (BẮT BUỘC cho JPA)
+    public Warehouse() {
+        this.name = "";
+        this.code = "";
+        this.addressLine = "";
+        this.ward = "";
+        this.district = "";
+        this.province = "";
+        this.latitude = 0.0;
+        this.longitude = 0.0;
+        this.capacity = 0;
+        this.usedCapacity = 0;
+        this.phone = "";
+        this.email = "";
+        this.operatingHours = "";
+        this.isActive = true;
+        this.createdAt = new Date();
+    }
+
+    // Constructor đầy đủ tham số (KHÔNG có warehouseId)
+    public Warehouse(int vendorId,
+                     String name,
+                     String code,
+                     String addressLine,
+                     String ward,
+                     String district,
+                     String province,
+                     double latitude,
+                     double longitude,
+                     int capacity,
+                     int usedCapacity,
+                     Integer managerId,
+                     String phone,
+                     String email,
+                     String operatingHours,
+                     boolean isActive) {
+
+        this.vendorId = vendorId;
+        this.name = name != null ? name : "";
+        this.code = code != null ? code : "";
+        this.addressLine = addressLine != null ? addressLine : "";
+        this.ward = ward;
+        this.district = district;
+        this.province = province;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.capacity = capacity;
+        this.usedCapacity = usedCapacity;
+        this.managerId = managerId;
+        this.phone = phone;
+        this.email = email;
+        this.operatingHours = operatingHours;
+        this.isActive = isActive;
+        this.createdAt = new Date();
+    }
+
+    /* =========================
+       GETTERS & SETTERS
+       ========================= */
+
+    public int getWarehouseId() {
+        return warehouseId;
+    }
+
+    public int getVendorId() {
+        return vendorId;
+    }
+
+    public void setVendorId(int vendorId) {
+        this.vendorId = vendorId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name != null ? name : "";
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code != null ? code : "";
+    }
+
+    public String getAddressLine() {
+        return addressLine;
+    }
+
+    public void setAddressLine(String addressLine) {
+        this.addressLine = addressLine != null ? addressLine : "";
+    }
+
+    public String getWard() {
+        return ward;
+    }
+
+    public void setWard(String ward) {
+        this.ward = ward;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
+    public int getUsedCapacity() {
+        return usedCapacity;
+    }
+
+    public void setUsedCapacity(int usedCapacity) {
+        this.usedCapacity = usedCapacity;
+    }
+
+    public Integer getManagerId() {
+        return managerId;
+    }
+
+    public void setManagerId(Integer managerId) {
+        this.managerId = managerId;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getOperatingHours() {
+        return operatingHours;
+    }
+
+    public void setOperatingHours(String operatingHours) {
+        this.operatingHours = operatingHours;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+}

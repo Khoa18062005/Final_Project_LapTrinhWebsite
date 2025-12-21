@@ -122,8 +122,8 @@ public class Headphone extends Product {
     }
 
     // Constructor dùng khi tạo Headphone mới
-    public Headphone(String vendorId,
-                     String categoryId,
+    public Headphone(int vendorId,
+                     int categoryId,
                      String name,
                      String slug,
                      double basePrice,
