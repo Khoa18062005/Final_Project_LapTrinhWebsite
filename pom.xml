@@ -118,7 +118,7 @@
   </dependencies>
 
   <build>
-    <finalName>Viettech</finalName>
+    <finalName>Final_Project_LapTrinhWebsite</finalName>
     <plugins>
       <!-- Compiler plugin cho JDK 17 -->
       <plugin>
