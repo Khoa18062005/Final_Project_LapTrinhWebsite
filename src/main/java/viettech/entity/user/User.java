@@ -13,6 +13,9 @@ public abstract class User {
     @Column(name = "user_id")
     protected int userId;
 
+    @Column(name = "role_id", nullable = false)
+    protected int roleID;
+
     @Column(name = "first_name", nullable = false)
     protected String firstName;
 
@@ -62,6 +65,7 @@ public abstract class User {
 
     // Constructor mặc định: KHÔNG NULL
     public User() {
+        this.roleID = 0;
         this.firstName = "";
         this.lastName = "";
         this.username = "";
@@ -81,6 +85,7 @@ public abstract class User {
 
     // Constructor truyền đầy đủ
     public User(
+            int roleID,
             String firstName,
             String lastName,
             String username,
@@ -92,6 +97,7 @@ public abstract class User {
             String gender,
             boolean isActive
     ) {
+        this.roleID = roleID;
         this.firstName = firstName != null ? firstName : "";
         this.lastName = lastName != null ? lastName : "";
         this.username = username != null ? username : "";
@@ -140,6 +146,13 @@ public abstract class User {
 
     public int getUserId() { return userId;}
 
+    public int getRoleID() {
+        return roleID;
+    }
+
+    public void setRoleID(int roleID) {
+        this.roleID = roleID;
+    }
 
     public String getFirstName() {
         return firstName;

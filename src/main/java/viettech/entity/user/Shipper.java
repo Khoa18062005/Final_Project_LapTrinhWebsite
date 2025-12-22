@@ -52,6 +52,7 @@ public class Shipper extends User {
 
         this.rating = 0.0;
         this.totalDeliveries = 0;
+        this.roleID = 3;
     }
 
     // Constructor dùng khi đăng ký shipper
@@ -69,6 +70,7 @@ public class Shipper extends User {
 
         super(firstName, lastName, username, password, email, phone, avatar, gender);
 
+        this.roleID = 3;
         this.licenseNumber = licenseNumber != null ? licenseNumber : "";
         this.vehicleType = vehicleType != null ? vehicleType : "";
         this.vehiclePlate = vehiclePlate != null ? vehiclePlate : "";

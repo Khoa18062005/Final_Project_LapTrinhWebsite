@@ -24,6 +24,7 @@ public class Admin extends User {
     public Admin() {
         super();
 
+        this.roleID = 1;
         this.accessLevel = "";
         this.department = "";
     }
