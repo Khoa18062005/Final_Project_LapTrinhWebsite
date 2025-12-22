@@ -23,6 +23,7 @@ public class Customer extends User {
     public Customer() {
         super(); // gọi constructor User
 
+        this.roleID = 4;
         this.loyaltyPoints = 0;
         this.membershipTier = "";
         this.totalSpent = 0.0;
@@ -40,6 +41,7 @@ public class Customer extends User {
 
         super(firstName, lastName, username, password, email, phone, avatar, gender);
 
+        this.roleID = 4;
         this.loyaltyPoints = 0;
         this.membershipTier = "";
         this.totalSpent = 0.0;

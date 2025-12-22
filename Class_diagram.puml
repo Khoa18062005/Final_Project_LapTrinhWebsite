@@ -108,7 +108,6 @@ class Role {
     - roleName : String
     - description : String
     - permissions : List<String>
-    - createdAt : Date
 
     + addPermission(permission : String) : void
     + removePermission(permission : String) : void

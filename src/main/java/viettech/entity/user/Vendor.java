@@ -36,6 +36,7 @@ public class Vendor extends User {
     public Vendor() {
         super(); // User constructor
 
+        this.roleID = 2;
         this.businessName = "";
         this.taxId = "";
         this.rating = 0.0;
@@ -59,6 +60,7 @@ public class Vendor extends User {
 
         super(firstName, lastName, username, password, email, phone, avatar, gender);
 
+        this.roleID = 2;
         this.businessName = businessName != null ? businessName : "";
         this.taxId = taxId != null ? taxId : "";
         this.bankAccount = bankAccount != null ? bankAccount : "";
