@@ -137,9 +137,9 @@ public abstract class User {
        GETTERS & SETTERS
        ========================= */
 
-    public int getUserId() {
-        return userId;
-    }
+
+    public int getUserId() { return userId;}
+
 
     public String getFirstName() {
         return firstName;
