@@ -18,7 +18,7 @@
           <h3>ĐĂNG KÝ TÀI KHOẢN</h3>
         </div>
         <div class="card-body">
-          <form action="register" method="POST">
+          <form action="/register" method="POST">
 
             <div class="row mb-3">
               <div class="col">
