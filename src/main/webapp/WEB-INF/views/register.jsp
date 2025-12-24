@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page isELIgnored="false" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html>
@@ -6,7 +7,7 @@
   <meta charset="UTF-8">
   <title>Đăng ký tài khoản</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="style_register.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/register.css">
 </head>
 <body class="bg-light">
 
@@ -18,16 +19,16 @@
           <h3>ĐĂNG KÝ TÀI KHOẢN</h3>
         </div>
         <div class="card-body">
-          <form action="/register" method="POST">
+          <form action="${pageContext.request.contextPath}/register" method="POST">
 
             <div class="row mb-3">
               <div class="col">
                 <label class="form-label">Họ và Tên đệm</label>
-                <input type="text" name="firstName" class="form-label control" required placeholder="Nguyễn Văn">
+                <input type="text" name="firstName" class="form-control" required placeholder="Nguyễn Văn">
               </div>
               <div class="col">
                 <label class="form-label">Tên</label>
-                <input type="text" name="lastName" class="form-label control" required placeholder="A">
+                <input type="text" name="lastName" class="form-control" required placeholder="A">
               </div>
             </div>
 
@@ -38,18 +39,13 @@
 
             <div class="mb-3">
               <label class="form-label">Email</label>
-              <input type="email" name="email" class="form-control" required placeholder="">
+              <input type="email" name="email" class="form-control" required placeholder="example@email.com">
             </div>
 
             <div class="mb-3">
               <label class="form-label">Số điện thoại</label>
               <input type="tel" name="phone" class="form-control">
             </div>
-
-<%--            <div class="mb-3">--%>
-<%--              <label class="form-label">Đường dẫn ảnh đại diện (Avatar URL)</label>--%>
-<%--              <input type="text" name="avatar" class="form-control" placeholder="http://image-url.com/avatar.jpg">--%>
-<%--            </div>--%>
 
             <div class="mb-3">
               <label class="form-label">Ngày sinh</label>
@@ -79,6 +75,10 @@
               <button type="reset" class="btn btn-secondary">Nhập lại</button>
             </div>
           </form>
+
+          <div class="text-center mt-3">
+            <a href="${pageContext.request.contextPath}/">← Quay về trang chủ</a>
+          </div>
         </div>
       </div>
     </div>

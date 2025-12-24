@@ -14,7 +14,6 @@ public class CustomerDAO {
     public void insert(Customer customer) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         EntityTransaction trans = em.getTransaction();
-
         try {
             trans.begin();
             em.persist(customer);

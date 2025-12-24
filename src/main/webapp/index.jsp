@@ -1,9 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page isELIgnored="false" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>BlueShop | Sàn Thương Mại Điện Tử</title>
+    <title>VietTech | Sàn Thương Mại Điện Tử</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Bootstrap -->
@@ -13,7 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- CSS riêng -->
-    <link rel="stylesheet" href="style_index.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
 </head>
 <body>
 
@@ -21,7 +22,7 @@
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">VietTech</a>
+            <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/">VietTech</a>
 
             <form class="d-flex w-50 mx-3">
                 <input class="form-control me-2" type="search" placeholder="Hôm nay bạn muốn tìm gì...">
@@ -33,19 +34,12 @@
             <div class="items-header">
                 <h5>Giỏ hàng</h5><i class="bi bi-cart3 fs-4 text-white"></i>
             </div>
-            <div class="items-header" onclick="window.location.href='Register/register.jsp'">
+            <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/register'">
                 <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
             </div>
         </div>
     </nav>
 </header>
-
-<!-- BANNER -->
-<%--<section class="container my-4">--%>
-<%--    <img src="https://via.placeholder.com/1200x350?text=BlueShop+Khuyen+Mai"--%>
-<%--         alt="Banner khuyến mãi"--%>
-<%--         class="img-fluid w-100">--%>
-<%--</section>--%>
 
 <!-- CATEGORY -->
 <section class="categories">
