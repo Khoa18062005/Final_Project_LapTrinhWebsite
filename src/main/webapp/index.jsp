@@ -35,7 +35,7 @@
                     <i class="bi bi-cart3 fs-3"></i>
                     <h6 class="mb-0">Giỏ hàng</h6>
                 </div>
-                <div class="items-header text-white text-center" onclick="window.location.href='${pageContext.request.contextPath}/login'">
+                <div class="items-header text-white text-center" onclick="window.location.href='${pageContext.request.contextPath}/register'">
                     <i class="bi bi-person-circle fs-3"></i>
                     <h6 class="mb-0">Đăng nhập</h6>
                 </div>
