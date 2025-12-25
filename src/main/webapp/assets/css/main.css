@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
 /* ===== RESET ===== */
 * {
     margin: 0;
@@ -14,9 +15,9 @@ body {
 
 /* ===== MÀU CHỦ ĐẠO ===== */
 :root {
-    --primary-color: #0d6efd;      /* Màu backhround chính*/
+    --primary-color: #0d6efd;
     --primary-dark: #0b5ed7;
-    --color-border: #e0e0e0; /* Màu viền khung items*/
+    --color-border: #e0e0e0;
 }
 
 /* ===== HEADER ===== */
@@ -24,85 +25,114 @@ body {
     background-color: var(--primary-color) !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
-.items-header{
+
+.items-header {
     display: flex;
-    align-items: center;
+    align-items: center; /* Căn giữa dọc */
+    justify-content: center;
     gap: 8px;
     cursor: pointer;
     border: 1px solid var(--color-border);
     border-radius: 5px;
-    padding: 0px 10px;
-    transition: all 0.3s ease; /* Thêm hiệu ứng mượt mà */
+    padding: 5px 12px;
+    transition: all 0.3s ease;
+    height: 42px; /* Cố định chiều cao để đều nhau */
 }
-.items-header h5{
+
+/* --- QUAN TRỌNG: Sửa lỗi lệch dòng do h5 --- */
+.items-header h5 {
     color: white;
-    margin-top: 10px;
+    margin: 0 !important; /* Bắt buộc reset margin về 0 */
+    padding: 0;
+    font-size: 1rem; /* Chỉnh lại size chữ cho cân đối */
+    line-height: 1; /* Giúp căn giữa chính xác hơn */
     transition: color 0.3s ease;
 }
-.items-header:hover{
+
+.items-header i {
+    color: white;
+    font-size: 1.2rem; /* Chỉnh size icon */
+    transition: color 0.3s ease;
+}
+
+.items-header:hover {
     background-color: white;
 }
+
 .items-header:hover h5,
-.items-header:hover i{
-    color: var(--primary-color)!important;
+.items-header:hover i {
+    color: var(--primary-color) !important;
 }
-.btn-search{
-    background-color: white !important; /* Đặt nền màu trắng */
-    border: 1px solid var(--color-border); /* Thêm viền nhẹ để phân biệt với nền */
-    border-radius: 8px; /* Bo góc cho đồng bộ với thiết kế */
+
+/* --- Button Search --- */
+.btn-search {
+    background-color: white !important;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
     padding: 0 15px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease; /* Hiệu ứng mượt mà */
+    transition: all 0.3s ease;
     cursor: pointer;
-}
-.btn-search i{
-    color: var(--primary-dark)!important;
+    height: 38px; /* Khớp với ô input của Bootstrap */
 }
 
-/* ===== Nút các loại sản phẩm ===== */
-.categories{
-    display: flex;
-    /*flex-wrap: wrap; !* Tự động xuống dòng nếu màn hình hẹp (Responsive) *!*/
-    justify-content: space-around; /* Căn giữa các mục (tùy chọn) */
-    box-shadow: 0 0 8px 0 rgba(0,0,0,0.2);
-    border-radius: 10px;
-    padding: 10px;
-    gap: 10px;
-    cursor: pointer;
+.btn-search i {
+    color: var(--primary-dark) !important;
 }
-.category-items{
+
+/* ===== CATEGORY (DANH MỤC) ===== */
+.categories {
+    display: flex;
+    justify-content: space-around;
+    box-shadow: 0 0 8px 0 rgba(0,0,0,0.1);
+    border-radius: 10px;
+    padding: 15px 10px;
+    gap: 10px;
+    background: white;
+    margin-top: 20px;
+}
+
+.category-items {
     display: flex;
     align-items: center;
     gap: 10px;
-    position: relative; /* Quan trọng: làm gốc cho hiệu ứng gạch chân */
-    padding-bottom: 5px; /* Tạo khoảng trống nhỏ để gạch chân không dính sát chữ */
+    position: relative;
+    padding-bottom: 5px;
+    cursor: pointer;
 }
-.category-items i,
-.category-items h7{
-    color: var(--primary-color)!important;
+
+.category-items i {
+    color: var(--primary-color) !important;
 }
-/* Tạo đường gạch chân ẩn ban đầu */
+
+/* --- QUAN TRỌNG: Xử lý thẻ h7 --- */
+/* Vì h7 không phải thẻ chuẩn, cần set thuộc tính font rõ ràng */
+.category-items h7 {
+    color: var(--primary-color) !important;
+    font-size: 1rem;
+    font-weight: 600; /* Làm đậm chữ lên một chút */
+    display: inline-block; /* Đảm bảo nó hiển thị đúng */
+}
+
+/* Tạo đường gạch chân ẩn */
 .category-items::after {
     content: "";
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 0;             /* Ban đầu chiều dài bằng 0 */
-    height: 2px;          /* Độ dày của đường gạch chân */
-    background-color: var(--primary-color); /* Màu xanh của Cyber Mall */
-    transition: width 0.3s ease; /* Hiệu ứng mượt mà 0.3 giây */
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
 }
 
-/* Hiệu ứng khi hover vào item */
+/* Hiệu ứng Hover */
 .category-items:hover {
-    /* Phóng to 1.1 lần (tương đương 10%) */
     transform: scale(1.05);
-    /* Có thể thêm độ sáng nhẹ để nổi bật hơn */
-    filter: brightness(1.05);
 }
-/* Khi hover vào item, đường gạch chân sẽ dài ra */
+
 .category-items:hover::after {
-    width: 100%;          /* Kéo dài toàn bộ chiều rộng của item */
+    width: 100%;
 }

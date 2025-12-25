@@ -14,9 +14,15 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- CSS riêng -->
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
 </head>
 <body>
+
+<!-- Biến JavaScript để kiểm tra trạng thái đăng nhập (truyền từ server) -->
+<script>
+    // Dùng để JS biết có đang login hay không
+    const isLoggedIn = ${not empty sessionScope.auth};
+</script>
 
 <!-- HEADER -->
 <header>
@@ -61,7 +67,7 @@
                 </c:when>
                 <c:otherwise>
                     <!-- Chưa đăng nhập: Hiển thị nút Đăng nhập -->
-                    <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/register'">
+                    <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/login'">
                         <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
                     </div>
                 </c:otherwise>
@@ -72,7 +78,6 @@
 
 <!-- THÔNG BÁO -->
 <%
-    // Lấy thông báo từ session
     String successMessage = (String) session.getAttribute("successMessage");
     String errorMessage = (String) session.getAttribute("errorMessage");
     String infoMessage = (String) session.getAttribute("infoMessage");
@@ -191,27 +196,55 @@
         </c:otherwise>
     </c:choose>
 </section>
-<!-- Modal khuyến khích đăng nhập -->
+
+<!-- Modal khuyến khích đăng nhập / đăng ký (giống Smember) -->
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="loginModalLabel">Welcome to Viettech!</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Header -->
+            <div class="modal-header border-0 justify-content-center position-relative">
+                <h5 class="modal-title text-danger fw-bold fs-3" id="loginModalLabel">Smember</h5>
+                <button type="button" class="btn-close position-absolute end-0 me-3 top-50 translate-middle-y"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
+            <!-- Body -->
             <div class="modal-body text-center py-5">
-                <i class="bi bi-person-circle fs-1 text-primary mb-3"></i>
-                <p class="fs-5">Để tiếp tục sử dụng tính năng này,<br>bạn vui lòng đăng nhập hoặc đăng ký tài khoản.</p>
+                <!-- Bạn có thể thay bằng logo thật của bạn -->
+                <img src="${pageContext.request.contextPath}/assets/images/smember-logo.png"
+                     alt="Smember Logo"
+                     class="mb-4"
+                     style="width: 100px; height: auto;"
+                     onerror="this.style.display='none'">
+
+                <!-- Nếu không có logo, dùng icon thay thế -->
+                <!-- <i class="bi bi-person-hearts fs-1 text-danger mb-4 d-block"></i> -->
+
+                <p class="fs-5 text-dark mb-0">
+                    Vui lòng đăng nhập tài khoản Smember để xem<br>
+                    <strong>ưu đãi và thanh toán dễ dàng hơn.</strong>
+                </p>
             </div>
-            <div class="modal-footer justify-content-center">
-                <a href="${pageContext.request.contextPath}/login" class="btn btn-primary px-5 py-2">Đăng nhập</a>
-                <a href="${pageContext.request.contextPath}/register" class="btn btn-outline-primary px-5 py-2">Đăng ký</a>
+
+            <!-- Footer: 2 nút -->
+            <div class="modal-footer border-0 justify-content-center gap-3 pb-5">
+                <a href="${pageContext.request.contextPath}/register"
+                   class="btn btn-outline-success btn-lg px-5 py-3 rounded-pill fw-bold">
+                    Đăng ký
+                </a>
+                <a href="${pageContext.request.contextPath}/login"
+                   class="btn btn-danger btn-lg px-5 py-3 rounded-pill fw-bold">
+                    Đăng nhập
+                </a>
             </div>
         </div>
     </div>
 </div>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
+<!-- Script riêng cho popup login -->
+<script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 </body>
 </html>
