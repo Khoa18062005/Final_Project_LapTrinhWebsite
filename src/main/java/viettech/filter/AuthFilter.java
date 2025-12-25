@@ -12,9 +12,14 @@ import java.io.IOException;
 public class AuthFilter implements Filter {
 
     @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+        // Khởi tạo filter (có thể để trống)
+    }
+
+    @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        
+
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse resp = (HttpServletResponse) response;
 
@@ -28,5 +33,10 @@ public class AuthFilter implements Filter {
 
         // Đã đăng nhập → cho phép tiếp tục
         chain.doFilter(request, response);
+    }
+
+    @Override
+    public void destroy() {
+        // Dọn dẹp khi filter bị hủy (có thể để trống)
     }
 }

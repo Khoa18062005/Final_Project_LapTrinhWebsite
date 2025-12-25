@@ -66,9 +66,14 @@ public class RegisterServlet extends HttpServlet {
                                               Register_dto dto) throws IOException {
         Customer newCustomer = userService.findCustomerByEmail(dto.getEmail());
 
+        // ✅ Lưu user vào session
         SessionUtil.setAttribute(req, "auth", newCustomer);
+
+        // ✅ Đặt flag: user mới đăng ký (để hiển thị welcome message)
+        SessionUtil.setAttribute(req, "isNewUser", true);
+
         SessionUtil.setSuccessMessage(req, "Chào mừng " + newCustomer.getFirstName() +
-                "! Hãy hoàn thiện thông tin của bạn.");
+                " đến với VietTech! 🎉");
 
         // Lưu cookie
         CookieUtil.addCookie(resp, "userEmail", dto.getEmail(), COOKIE_MAX_AGE);
