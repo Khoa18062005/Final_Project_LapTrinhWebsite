@@ -3,6 +3,8 @@ package viettech.controller;
 import viettech.dto.Register_dto;
 import viettech.entity.user.Customer;
 import viettech.service.UserService;
+import viettech.util.SessionUtil;
+import viettech.util.CookieUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,6 +15,7 @@ import java.io.IOException;
 public class RegisterServlet extends HttpServlet {
 
     private final UserService userService = new UserService();
+    private static final int COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 ngày
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -28,6 +31,7 @@ public class RegisterServlet extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         resp.setContentType("text/html; charset=UTF-8");
 
+        // Nhận dữ liệu từ form
         Register_dto regist_dto = new Register_dto();
         regist_dto.setFirstName(req.getParameter("firstName"));
         regist_dto.setLastName(req.getParameter("lastName"));
@@ -37,47 +41,67 @@ public class RegisterServlet extends HttpServlet {
         regist_dto.setDateOfBirth(req.getParameter("dateOfBirth"));
         regist_dto.setGender(req.getParameter("gender"));
 
+        // Xử lý đăng ký
         int checkUser = userService.register(regist_dto);
 
         if (checkUser == 1) {
-//            Customer newCustomer = userService.findCustomerByEmail(regist_dto.getEmail());
-//
-//            HttpSession session = req.getSession();
-//            session.setAttribute("auth", newCustomer);
-//            session.setAttribute("successMessage", "Đăng ký thành công!");
-//
-//            Cookie emailCookie = new Cookie("userEmail", regist_dto.getEmail());
-//            emailCookie.setMaxAge(30 * 24 * 60 * 60);
-//            emailCookie.setPath("/");
-//            resp.addCookie(emailCookie);
-//
-//            String fullName = (regist_dto.getFirstName() + " " + regist_dto.getLastName()).trim();
-//            Cookie nameCookie = new Cookie("userName", fullName);
-//            nameCookie.setMaxAge(30 * 24 * 60 * 60);
-//            nameCookie.setPath("/");
-//            resp.addCookie(nameCookie);
-//
-//            resp.sendRedirect(req.getContextPath() + "/index.jsp");
-
-            resp.getWriter().append("Register successful");
+            // ✅ Đăng ký thành công
+            handleSuccessfulRegistration(req, resp, regist_dto);
 
         } else if (checkUser == 2) {
-//            req.setAttribute("errorMessage", "Email này đã được sử dụng. Vui lòng đăng nhập.");
-//            req.setAttribute("email", regist_dto.getEmail());
-//
-//
-//            // ✅ ĐÚNG
-//            req.getRequestDispatcher("Login_account/login.jsp").forward(req, resp);
-            resp.getWriter().append("Email already exists");
+            // ⚠️ Email đã tồn tại
+            handleEmailExists(req, resp, regist_dto);
 
         } else {
-//            req.setAttribute("dto", regist_dto);
-//            req.setAttribute("errorMessage", "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
-//
-//            // ✅ ĐÚNG
-//            req.getRequestDispatcher("Register/register.jsp").forward(req, resp);
-            resp.getWriter().append("Fail to register user");
+            // ❌ Đăng ký thất bại
+            handleRegistrationFailure(req, resp, regist_dto);
         }
     }
-}
 
+    /**
+     * Xử lý khi đăng ký thành công
+     */
+    private void handleSuccessfulRegistration(HttpServletRequest req,
+                                              HttpServletResponse resp,
+                                              Register_dto dto) throws IOException {
+        Customer newCustomer = userService.findCustomerByEmail(dto.getEmail());
+
+        SessionUtil.setAttribute(req, "auth", newCustomer);
+        SessionUtil.setSuccessMessage(req, "Chào mừng " + newCustomer.getFirstName() +
+                "! Hãy hoàn thiện thông tin của bạn.");
+
+        // Lưu cookie
+        CookieUtil.addCookie(resp, "userEmail", dto.getEmail(), COOKIE_MAX_AGE);
+        String fullName = (dto.getFirstName() + " " + dto.getLastName()).trim();
+        CookieUtil.addCookie(resp, "userName", fullName, COOKIE_MAX_AGE);
+
+        // ✅ Redirect về profile
+        resp.sendRedirect(req.getContextPath() + "/profile");
+    }
+
+    /**
+     * Xử lý khi email đã tồn tại
+     */
+    private void handleEmailExists(HttpServletRequest req,
+                                   HttpServletResponse resp,
+                                   Register_dto dto) throws ServletException, IOException {
+        req.setAttribute("errorMessage", "Email này đã được sử dụng. Vui lòng đăng nhập.");
+        req.setAttribute("email", dto.getEmail());
+
+        // Forward về trang đăng nhập
+        req.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(req, resp);
+    }
+
+    /**
+     * Xử lý khi đăng ký thất bại
+     */
+    private void handleRegistrationFailure(HttpServletRequest req,
+                                           HttpServletResponse resp,
+                                           Register_dto dto) throws ServletException, IOException {
+        req.setAttribute("dto", dto);
+        req.setAttribute("errorMessage", "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
+
+        // Forward lại trang đăng ký
+        req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
+    }
+}

@@ -13,7 +13,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- CSS riêng - chứa toàn bộ style cho products -->
+    <!-- CSS riêng -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
 </head>
 <body>
@@ -34,12 +34,78 @@
             <div class="items-header">
                 <h5>Giỏ hàng</h5><i class="bi bi-cart3 fs-4 text-white"></i>
             </div>
-            <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/register'">
-                <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
-            </div>
+
+            <!-- Kiểm tra user đã đăng nhập chưa -->
+            <c:choose>
+                <c:when test="${not empty sessionScope.auth}">
+                    <!-- Đã đăng nhập: Hiển thị tên user -->
+                    <div class="items-header dropdown">
+                        <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i>
+                                ${sessionScope.auth.firstName} ${sessionScope.auth.lastName}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
+                                <i class="bi bi-person"></i> Thông tin cá nhân
+                            </a></li>
+                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">
+                                <i class="bi bi-box"></i> Đơn hàng của tôi
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout">
+                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                            </a></li>
+                        </ul>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <!-- Chưa đăng nhập: Hiển thị nút Đăng nhập -->
+                    <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/register'">
+                        <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </nav>
 </header>
+
+<!-- THÔNG BÁO -->
+<c:if test="${not empty sessionScope.successMessage}">
+    <div class="container mt-3">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>Thành công!</strong> ${sessionScope.successMessage}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    <!-- Xóa message sau khi hiển thị -->
+    <c:remove var="successMessage" scope="session"/>
+</c:if>
+
+<c:if test="${not empty sessionScope.errorMessage}">
+    <div class="container mt-3">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Lỗi!</strong> ${sessionScope.errorMessage}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    <!-- Xóa message sau khi hiển thị -->
+    <c:remove var="errorMessage" scope="session"/>
+</c:if>
+
+<c:if test="${not empty sessionScope.infoMessage}">
+    <div class="container mt-3">
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            <i class="bi bi-info-circle-fill me-2"></i>
+                ${sessionScope.infoMessage}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    <!-- Xóa message sau khi hiển thị -->
+    <c:remove var="infoMessage" scope="session"/>
+</c:if>
 
 <!-- CATEGORY -->
 <section class="categories">
