@@ -24,47 +24,39 @@
         <div class="container">
             <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/">VietTech</a>
 
-            <form class="d-flex w-50 mx-auto" action="search" method="get">
-                <input class="form-control me-2" type="search" name="q" placeholder="Hôm nay bạn muốn tìm gì...">
-                <button class="btn btn-warning" type="submit">
-                    <i class="bi bi-search"></i>
+            <form class="d-flex w-50 mx-3">
+                <input class="form-control me-2" type="search" placeholder="Hôm nay bạn muốn tìm gì...">
+                <button class="btn-search" type="submit">
+                    <i class="bi bi-search text-dark"></i>
                 </button>
             </form>
 
-            <div class="d-flex gap-4">
-                <div class="items-header text-white text-center">
-                    <i class="bi bi-cart3 fs-3"></i>
-                    <h6 class="mb-0">Giỏ hàng</h6>
-                </div>
-                <div class="items-header text-white text-center" onclick="window.location.href='${pageContext.request.contextPath}/register'">
-                    <i class="bi bi-person-circle fs-3"></i>
-                    <h6 class="mb-0">Đăng nhập</h6>
-                </div>
+            <div class="items-header">
+                <h5>Giỏ hàng</h5><i class="bi bi-cart3 fs-4 text-white"></i>
+            </div>
+            <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/register'">
+                <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
             </div>
         </div>
     </nav>
 </header>
 
 <!-- CATEGORY -->
-<section class="categories bg-light py-3 border-bottom">
-    <div class="container">
-        <div class="d-flex justify-content-around flex-wrap gap-3">
-            <div class="category-items text-center">
-                <i class="bi bi-phone fs-3 text-primary"></i> <br><small>Điện thoại</small>
-            </div>
-            <div class="category-items text-center">
-                <i class="bi bi-laptop fs-3 text-primary"></i> <br><small>Laptop</small>
-            </div>
-            <div class="category-items text-center">
-                <i class="bi bi-tablet-landscape fs-3 text-primary"></i> <br><small>Máy tính bảng</small>
-            </div>
-            <div class="category-items text-center">
-                <i class="bi bi-earbuds fs-3 text-primary"></i> <br><small>Tai nghe</small>
-            </div>
-            <div class="category-items text-center">
-                <i class="bi bi-mouse fs-3 text-primary"></i> <br><small>Phụ kiện</small>
-            </div>
-        </div>
+<section class="categories">
+    <div class="category-items">
+        <i class="bi bi-phone fs-5"></i> <h7>Điện thoại</h7>
+    </div>
+    <div class="category-items">
+        <i class="bi bi-laptop fs-5"></i> <h7>Laptop</h7>
+    </div>
+    <div class="category-items">
+        <i class="bi bi-tablet-landscape fs-5"></i> <h7>Máy tính bảng</h7>
+    </div>
+    <div class="category-items">
+        <i class="bi bi-earbuds fs-5"></i> <h7>Tai nghe</h7>
+    </div>
+    <div class="category-items">
+        <i class="bi bi-mouse fs-5"></i> <h7>Phụ kiện điện tử</h7>
     </div>
 </section>
 
