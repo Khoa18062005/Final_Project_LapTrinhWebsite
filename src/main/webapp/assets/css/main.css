@@ -106,3 +106,148 @@ body {
 .category-items:hover::after {
     width: 100%;          /* Kéo dài toàn bộ chiều rộng của item */
 }
+/* ==================== PRODUCTS SECTION ==================== */
+.products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    padding: 40px 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    background-color: #f2f6fc; /* Đồng bộ với body */
+}
+
+.product {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.product:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+}
+
+.product-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    display: flex;
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: white;
+}
+
+.badge.discount {
+    background: #e91e63; /* Màu đỏ giảm giá nổi bật */
+}
+
+.badge.installment {
+    background: var(--primary-color); /* Dùng màu chủ đạo */
+}
+
+.product-image {
+    height: 280px;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.product-image img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.product:hover .product-image img {
+    transform: scale(1.05);
+}
+
+.product-name {
+    font-size: 1rem;
+    margin: 12px 12px 8px;
+    height: 48px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    line-height: 1.4;
+    color: #333;
+}
+
+.product-price {
+    margin: 0 12px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #e91e63; /* Giá nổi bật màu đỏ */
+}
+
+.old-price {
+    font-size: 0.95rem;
+    color: #999;
+    text-decoration: line-through;
+    margin-left: 8px;
+}
+
+.member-discount {
+    background: #e3f2fd;
+    color: var(--primary-dark);
+    padding: 8px 12px;
+    margin: 10px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.installment-info {
+    font-size: 0.85rem;
+    color: #666;
+    margin: 0 12px 10px;
+    line-height: 1.4;
+}
+
+.product-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-top: 1px solid #eee;
+    margin-top: 10px;
+}
+
+.rating .stars {
+    color: #ffb400;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.rating .like {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+    .products {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        padding: 20px 10px;
+    }
+
+    .product-image {
+        height: 240px;
+    }
+}
