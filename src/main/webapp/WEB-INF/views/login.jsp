@@ -45,7 +45,7 @@
             <a href="#">Quên mật khẩu?</a>
         </div>
         <div class="text-center mt-2">
-            Chưa có tài khoản? <a href="register.jsp">Đăng ký ngay</a>
+            Chưa có tài khoản? <a href="${pageContext.request.contextPath}/register">Đăng ký ngay</a>
         </div>
     </div>
 </div>
