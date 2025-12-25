@@ -25,7 +25,7 @@ public class Customer extends User {
 
         this.roleID = 4;
         this.loyaltyPoints = 0;
-        this.membershipTier = "";
+        this.membershipTier = "Bronze";
         this.totalSpent = 0.0;
     }
 
@@ -43,7 +43,7 @@ public class Customer extends User {
 
         this.roleID = 4;
         this.loyaltyPoints = 0;
-        this.membershipTier = "";
+        this.membershipTier = "Bronze";
         this.totalSpent = 0.0;
     }
 

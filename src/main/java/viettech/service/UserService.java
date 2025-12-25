@@ -102,15 +102,6 @@ public class UserService {
             customer.setDateOfBirth(null);
         }
 
-        // Các field mặc định
-        customer.setActive(true); // hoặc false tùy yêu cầu kích hoạt
-        customer.setUpdatedAt(new Date());
-
-        // Các field của Customer
-        customer.setLoyaltyPoints(0);
-        customer.setMembershipTier("Bronze"); // hoặc "" tùy yêu cầu
-        customer.setTotalSpent(0.0);
-
         return customer;
     }
 
