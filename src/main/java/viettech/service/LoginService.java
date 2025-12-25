@@ -68,6 +68,15 @@ public class LoginService {
                 }
             }
         } catch (Exception e) {
+            // In toàn bộ stack trace ra console (rất chi tiết)
+            e.printStackTrace();
+
+            // In thêm thông báo dễ đọc
+            System.err.println("=== LỖI KHI KIỂM TRA ĐĂNG NHẬP ===");
+            System.err.println("DAO đang kiểm tra: " + dao.getClass().getName());
+            System.err.println("Email đang thử: " + email);
+            System.err.println("Lỗi cụ thể: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            System.err.println("=====================================");
             // Nếu lỗi (không có method, không tìm thấy user, v.v.) → bỏ qua
             return null;
         }
