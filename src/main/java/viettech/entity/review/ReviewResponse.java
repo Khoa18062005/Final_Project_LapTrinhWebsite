@@ -34,7 +34,7 @@ public class ReviewResponse {
        ========================= */
 
     @OneToOne
-    @JoinColumn(name = "review_id", nullable = false, unique = true)
+    @JoinColumn(name = "review_id", nullable = false, unique = true, insertable = false, updatable = false)
     private Review review;
 
     /* =========================
