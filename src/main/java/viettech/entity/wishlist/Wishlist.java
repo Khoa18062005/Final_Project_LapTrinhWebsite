@@ -1,5 +1,7 @@
 package viettech.entity.wishlist;
 
+import viettech.entity.user.Customer;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -32,6 +34,13 @@ public class Wishlist {
     @Column(name = "updated_at")
     private Date updatedAt;
 
+    /* ==========================
+       MAPPING
+       ===========================*/
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false)
+    private Customer customer;
     /* =========================
        CONSTRUCTORS
        ========================= */

@@ -26,6 +26,10 @@ public class VariantAttribute {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "varient_id", insertable = false, updatable = false)
+    private Variant variant;
+
     /* =======================
        CONSTRUCTORS
        ======================= */

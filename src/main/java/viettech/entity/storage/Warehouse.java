@@ -1,7 +1,11 @@
 package viettech.entity.storage;
 
+import viettech.entity.user.Vendor;
+import viettech.entity.delivery.Delivery;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "warehouses")
@@ -12,8 +16,22 @@ public class Warehouse {
     @Column(name = "warehouse_id")
     private int warehouseId;
 
-    @Column(name = "vendor_id", nullable = false)
-    private int vendorId;
+    /* =========================
+       RELATIONSHIPS
+       ========================= */
+
+    // Warehouse "*" -- "1" Vendor
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id", nullable = false)
+    private Vendor vendor;
+
+    // Warehouse "1" -- "0..*" Delivery
+    @OneToMany(mappedBy = "warehouse", fetch = FetchType.LAZY)
+    private List<Delivery> deliveries;
+
+    /* =========================
+       FIELDS
+       ========================= */
 
     @Column(nullable = false, length = 150)
     private String name;
@@ -68,59 +86,35 @@ public class Warehouse {
        CONSTRUCTORS
        ========================= */
 
-    // Constructor mặc định (BẮT BUỘC cho JPA)
     public Warehouse() {
         this.name = "";
         this.code = "";
         this.addressLine = "";
-        this.ward = "";
-        this.district = "";
-        this.province = "";
-        this.latitude = 0.0;
-        this.longitude = 0.0;
+        this.latitude = 0;
+        this.longitude = 0;
         this.capacity = 0;
         this.usedCapacity = 0;
-        this.phone = "";
-        this.email = "";
-        this.operatingHours = "";
         this.isActive = true;
         this.createdAt = new Date();
     }
 
-    // Constructor đầy đủ tham số (KHÔNG có warehouseId)
-    public Warehouse(int vendorId,
+    public Warehouse(Vendor vendor,
                      String name,
                      String code,
                      String addressLine,
-                     String ward,
-                     String district,
-                     String province,
                      double latitude,
                      double longitude,
-                     int capacity,
-                     int usedCapacity,
-                     Integer managerId,
-                     String phone,
-                     String email,
-                     String operatingHours,
-                     boolean isActive) {
+                     int capacity) {
 
-        this.vendorId = vendorId;
-        this.name = name != null ? name : "";
-        this.code = code != null ? code : "";
-        this.addressLine = addressLine != null ? addressLine : "";
-        this.ward = ward;
-        this.district = district;
-        this.province = province;
+        this.vendor = vendor;
+        this.name = name;
+        this.code = code;
+        this.addressLine = addressLine;
         this.latitude = latitude;
         this.longitude = longitude;
         this.capacity = capacity;
-        this.usedCapacity = usedCapacity;
-        this.managerId = managerId;
-        this.phone = phone;
-        this.email = email;
-        this.operatingHours = operatingHours;
-        this.isActive = isActive;
+        this.usedCapacity = 0;
+        this.isActive = true;
         this.createdAt = new Date();
     }
 
@@ -132,12 +126,16 @@ public class Warehouse {
         return warehouseId;
     }
 
-    public int getVendorId() {
-        return vendorId;
+    public Vendor getVendor() {
+        return vendor;
     }
 
-    public void setVendorId(int vendorId) {
-        this.vendorId = vendorId;
+    public void setVendor(Vendor vendor) {
+        this.vendor = vendor;
+    }
+
+    public List<Delivery> getDeliveries() {
+        return deliveries;
     }
 
     public String getName() {

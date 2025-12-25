@@ -1,5 +1,8 @@
 package viettech.entity.order;
 
+import viettech.entity.Address;
+import viettech.entity.user.Customer;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -75,6 +78,17 @@ public class Order {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "completed_at")
     private Date completedAt;
+
+    /* =========================
+       MAPPING
+       ========================= */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false)
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "address_id", insertable = false, updatable = false)
+    private Address address;
 
     /* =========================
        CONSTRUCTORS

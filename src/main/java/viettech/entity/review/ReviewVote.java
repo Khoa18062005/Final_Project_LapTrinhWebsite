@@ -26,6 +26,15 @@ public class ReviewVote {
     private Date votedAt;
 
     /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne
+    @JoinColumn(name = "review_id", insertable = false, updatable = false)
+    private Review review;
+
+
+    /* =========================
        CONSTRUCTORS
        ========================= */
 

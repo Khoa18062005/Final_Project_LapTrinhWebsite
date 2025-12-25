@@ -1,5 +1,8 @@
 package viettech.entity.search;
 
+import viettech.entity.product.Product;
+import viettech.entity.user.Customer;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -33,6 +36,17 @@ public class ProductView {
 
     @Column(name = "referrer", length = 500)
     private String referrer;
+
+    /* =========================
+       MAPPING
+       ========================= */
+    @ManyToOne
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false)
+    private Customer customer;
 
     /* =========================
        CONSTRUCTORS

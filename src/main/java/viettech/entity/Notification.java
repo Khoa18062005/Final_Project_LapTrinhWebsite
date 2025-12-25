@@ -1,5 +1,8 @@
 package viettech.entity;
 
+import viettech.entity.user.Customer;
+import viettech.entity.user.User;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -47,6 +50,13 @@ public class Notification {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "expires_at")
     private Date expiresAt;
+
+    /* =========================
+       MAPPING
+       ========================= */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private Customer customer;
 
     /* =========================
        CONSTRUCTORS

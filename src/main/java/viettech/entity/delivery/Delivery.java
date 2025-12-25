@@ -1,5 +1,7 @@
 package viettech.entity.delivery;
 
+import viettech.entity.storage.Warehouse;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -75,6 +77,11 @@ public class Delivery {
 
     @Column(length = 500)
     private String notes;
+
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id", insertable = false, updatable = false)
+    private Warehouse warehouse;
 
     /* =========================
        CONSTRUCTORS

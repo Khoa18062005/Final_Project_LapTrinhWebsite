@@ -1,7 +1,12 @@
 package viettech.entity.product;
 
+import viettech.entity.review.Review;
+import viettech.entity.search.ProductView;
+import viettech.entity.user.Vendor;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -37,7 +42,7 @@ public abstract class Product {
     protected String specifications;
 
     protected String status;
-    protected String condition;
+    protected String conditions;
 
     protected double weight;
     protected String dimensions;
@@ -64,6 +69,36 @@ public abstract class Product {
 
     @Column(name = "is_featured")
     protected boolean isFeatured;
+    /* =========================
+       RELATIONSHIP MAPPINGS
+       ========================= */
+
+    // Product * -- 1 Category
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", insertable = false, updatable = false)
+    protected Category category;
+
+    // Product * -- 1 Vendor
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id", insertable = false, updatable = false)
+    protected Vendor vendor;
+
+    // Product 1 -- 0..* Variant
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    protected List<Variant> variants;
+
+    // Product 1 -- 0..* Review
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    protected List<Review> reviews;
+
+    // Product 1 -- 0..* ProductImage
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    protected List<ProductImage> images;
+
+    // Product 1 -- 0..* ProductView
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    protected List<ProductView> views;
+
 
     /* =========================
        CONSTRUCTORS
@@ -80,7 +115,7 @@ public abstract class Product {
         this.brand = "";
         this.specifications = "";
         this.status = "";
-        this.condition = "";
+        this.conditions = "";
         this.weight = 0.0;
         this.dimensions = "";
         this.createdAt = new Date();
@@ -102,7 +137,7 @@ public abstract class Product {
                       String brand,
                       String specifications,
                       String status,
-                      String condition,
+                      String conditions,
                       double weight,
                       String dimensions,
                       boolean isFeatured) {
@@ -116,7 +151,7 @@ public abstract class Product {
         this.brand = brand != null ? brand : "";
         this.specifications = specifications != null ? specifications : "";
         this.status = status != null ? status : "";
-        this.condition = condition != null ? condition : "";
+        this.conditions = conditions != null ? conditions : "";
         this.weight = weight;
         this.dimensions = dimensions != null ? dimensions : "";
         this.createdAt = new Date();
@@ -209,11 +244,11 @@ public abstract class Product {
     }
 
     public String getCondition() {
-        return condition;
+        return conditions;
     }
 
-    public void setCondition(String condition) {
-        this.condition = condition != null ? condition : "";
+    public void setCondition(String conditions) {
+        this.conditions = conditions != null ? conditions : "";
     }
 
     public double getWeight() {
@@ -232,35 +267,27 @@ public abstract class Product {
         this.dimensions = dimensions != null ? dimensions : "";
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
+    public Category getCategory() {
+        return category;
     }
 
-    public Date getUpdatedAt() {
-        return updatedAt;
+    public Vendor getVendor() {
+        return vendor;
     }
 
-    public double getAverageRating() {
-        return averageRating;
+    public List<Variant> getVariants() {
+        return variants;
     }
 
-    public int getTotalReviews() {
-        return totalReviews;
+    public List<Review> getReviews() {
+        return reviews;
     }
 
-    public int getTotalSold() {
-        return totalSold;
+    public List<ProductImage> getImages() {
+        return images;
     }
 
-    public int getViewCount() {
-        return viewCount;
-    }
-
-    public boolean isFeatured() {
-        return isFeatured;
-    }
-
-    public void setFeatured(boolean featured) {
-        isFeatured = featured;
+    public List<ProductView> getViews() {
+        return views;
     }
 }

@@ -1,5 +1,7 @@
 package viettech.entity.search;
 
+import viettech.entity.user.Customer;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -33,6 +35,13 @@ public class SearchHistory {
 
     @Column(name = "clicked_position")
     private int clickedPosition;
+
+    /* =========================
+       MAPPING
+       ========================= */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false)
+    private Customer customer;
 
     /* =========================
        CONSTRUCTORS
