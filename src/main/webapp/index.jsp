@@ -35,6 +35,11 @@
                 <h5>Giỏ hàng</h5><i class="bi bi-cart3 fs-4 text-white"></i>
             </div>
 
+            <!-- Vendor Dashboard Link -->
+            <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/vendor'" title="Vendor Dashboard">
+                <h5>Vendor</h5><i class="bi bi-shop fs-4 text-white"></i>
+            </div>
+
 <%--            <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/register'">--%>
 <%--                <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>--%>
 <%--            </div>--%>

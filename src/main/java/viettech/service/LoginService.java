@@ -3,13 +3,12 @@ package viettech.service;
 import viettech.dao.AdminDAO;
 import viettech.dao.CustomerDAO;
 import viettech.dao.ShipperDAO;
-import viettech.dao.VendorDAO;
 import viettech.util.PasswordUtil;
 
 public class LoginService {
 
     private final AdminDAO adminDAO = new AdminDAO();
-    private final VendorDAO vendorDAO = new VendorDAO();
+    //private final VendorDAO vendorDAO = new VendorDAO();
     private final ShipperDAO shipperDAO = new ShipperDAO();
     private final CustomerDAO customerDAO = new CustomerDAO();
 
@@ -30,10 +29,10 @@ public class LoginService {
             return new AuthResult(user, "admin");
         }
 
-        user = checkInDAO(vendorDAO, email, plainPassword);
-        if (user != null) {
-            return new AuthResult(user, "vendor");
-        }
+//        user = checkInDAO(vendorDAO, email, plainPassword);
+//        if (user != null) {
+//            return new AuthResult(user, "vendor");
+//        }
 
         user = checkInDAO(shipperDAO, email, plainPassword);
         if (user != null) {
