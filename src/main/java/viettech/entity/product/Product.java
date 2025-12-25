@@ -37,7 +37,7 @@ public abstract class Product {
     protected String specifications;
 
     protected String status;
-    protected String conditions;
+    protected String condition;
 
     protected double weight;
     protected String dimensions;
@@ -80,7 +80,7 @@ public abstract class Product {
         this.brand = "";
         this.specifications = "";
         this.status = "";
-        this.conditions = "";
+        this.condition = "";
         this.weight = 0.0;
         this.dimensions = "";
         this.createdAt = new Date();
@@ -102,7 +102,7 @@ public abstract class Product {
                       String brand,
                       String specifications,
                       String status,
-                      String conditions,
+                      String condition,
                       double weight,
                       String dimensions,
                       boolean isFeatured) {
@@ -116,7 +116,7 @@ public abstract class Product {
         this.brand = brand != null ? brand : "";
         this.specifications = specifications != null ? specifications : "";
         this.status = status != null ? status : "";
-        this.conditions = conditions != null ? conditions : "";
+        this.condition = condition != null ? condition : "";
         this.weight = weight;
         this.dimensions = dimensions != null ? dimensions : "";
         this.createdAt = new Date();
@@ -208,12 +208,12 @@ public abstract class Product {
         this.status = status != null ? status : "";
     }
 
-    public String getConditions() {
-        return conditions;
+    public String getCondition() {
+        return condition;
     }
 
-    public void setConditions(String condition) {
-        this.conditions = condition != null ? condition : "";
+    public void setCondition(String condition) {
+        this.condition = condition != null ? condition : "";
     }
 
     public double getWeight() {
