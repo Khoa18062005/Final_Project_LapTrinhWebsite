@@ -191,8 +191,27 @@
         </c:otherwise>
     </c:choose>
 </section>
-
+<!-- Modal khuyến khích đăng nhập -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="loginModalLabel">Welcome to Viettech!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-5">
+                <i class="bi bi-person-circle fs-1 text-primary mb-3"></i>
+                <p class="fs-5">Để tiếp tục sử dụng tính năng này,<br>bạn vui lòng đăng nhập hoặc đăng ký tài khoản.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <a href="${pageContext.request.contextPath}/login" class="btn btn-primary px-5 py-2">Đăng nhập</a>
+                <a href="${pageContext.request.contextPath}/register" class="btn btn-outline-primary px-5 py-2">Đăng ký</a>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
 </body>
 </html>

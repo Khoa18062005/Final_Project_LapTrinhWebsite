@@ -215,6 +215,7 @@ public abstract class Product {
     public void setConditions(String conditions) {
         this.conditions = conditions != null ? conditions : "";
     }
+    
 
     public double getWeight() {
         return weight;

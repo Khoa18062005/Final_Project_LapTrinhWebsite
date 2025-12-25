@@ -1,0 +1,162 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* ===== RESET & BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif; /* Đổi font sang Poppins cho hiện đại */
+}
+
+body {
+    min-height: 100vh;
+    /* Tạo background gradient động */
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hiệu ứng chuyển động nền */
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* ===== CARD LOGIN ===== */
+.card {
+    background: rgba(255, 255, 255, 0.95); /* Màu trắng hơi trong suốt */
+    border-radius: 20px; /* Bo góc tròn hơn */
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); /* Bóng đổ mềm và sâu hơn */
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    overflow: hidden;
+    animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== HEADER ===== */
+.card-header {
+    background: transparent; /* Bỏ màu nền header cũ */
+    border: none;
+    padding: 30px 20px 10px 20px;
+    text-align: center;
+}
+
+.card-header h3 {
+    color: #333;
+    font-weight: 700;
+    font-size: 28px;
+    margin: 0;
+    background: -webkit-linear-gradient(#23a6d5, #23d5ab);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; /* Hiệu ứng chữ gradient */
+}
+
+/* ===== BODY & FORM ===== */
+.card-body {
+    padding: 20px 30px 40px 30px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.form-control {
+    width: 100%;
+    background-color: #f0f2f5; /* Nền input xám nhạt */
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 12px 15px;
+    font-size: 15px;
+    color: #333;
+    transition: all 0.3s ease;
+    height: 48px;
+}
+
+.form-control:focus {
+    background-color: #fff;
+    border-color: #23a6d5; /* Viền xanh khi focus */
+    box-shadow: 0 4px 15px rgba(35, 166, 213, 0.15);
+    outline: none;
+}
+
+/* Ẩn placeholder khi focus (tùy chọn) */
+.form-control:focus::placeholder {
+    color: transparent;
+    transition: 0.3s;
+}
+
+/* ===== BUTTON ===== */
+.btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 50px; /* Nút bo tròn hình viên thuốc */
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    background: linear-gradient(90deg, #23a6d5, #23d5ab); /* Gradient giống background */
+    color: white;
+    box-shadow: 0 4px 15px rgba(35, 213, 171, 0.4);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(35, 213, 171, 0.6);
+    filter: brightness(1.1);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+/* ===== LINKS ===== */
+.text-center {
+    font-size: 14px;
+    color: #666;
+}
+
+.text-center a {
+    color: #23a6d5;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.text-center a:hover {
+    color: #1a7fa3;
+    text-decoration: underline;
+}
+
+/* Spacing cho các link */
+.mt-4 { margin-top: 1.5rem !important; }
+.mt-2 { margin-top: 0.5rem !important; }
+.mb-4 { margin-bottom: 1.5rem !important; }
+
+/* Responsive Mobile */
+@media (max-width: 576px) {
+    .card {
+        margin: 0 20px;
+        border-radius: 16px;
+    }
+}
