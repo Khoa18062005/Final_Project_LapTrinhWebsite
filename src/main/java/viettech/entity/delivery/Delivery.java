@@ -4,6 +4,7 @@ import viettech.entity.storage.Warehouse;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "deliveries")
@@ -83,6 +84,8 @@ public class Delivery {
     @JoinColumn(name = "warehouse_id", insertable = false, updatable = false)
     private Warehouse warehouse;
 
+    @OneToMany(mappedBy = "delivery")
+    private List<DeliveryAssignment> assignments;
     /* =========================
        CONSTRUCTORS
        ========================= */

@@ -261,4 +261,9 @@ public class Warehouse {
     public Date getCreatedAt() {
         return createdAt;
     }
+
+    public void setDeliveries(List<Delivery> deliveries) {
+        this.deliveries = deliveries;
+    }
+
 }
