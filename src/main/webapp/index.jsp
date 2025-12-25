@@ -34,9 +34,39 @@
             <div class="items-header">
                 <h5>Giỏ hàng</h5><i class="bi bi-cart3 fs-4 text-white"></i>
             </div>
-            <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/register'">
-                <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
+
+<%--            <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/register'">--%>
+<%--                <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>--%>
+<%--            </div>--%>
+<%--            Kiểm tra đã đăng nhập hay chưa--%>
+            <div class="items-header position-relative">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.user}">
+                        <!-- ĐÃ ĐĂNG NHẬP -->
+                        <div class="dropdown">
+                            <a class="d-flex align-items-center text-white text-decoration-none dropdown-toggle"
+                               id="dropdownUser" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                                <h5 class="mb-0 me-2">${sessionScope.user.fullName}</h5>
+                                <i class="bi bi-person-circle fs-4"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser">
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">Thông tin cá nhân</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">Đơn hàng của tôi</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout">Đăng xuất</a></li>
+                            </ul>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <!-- CHƯA ĐĂNG NHẬP -->
+                        <div onclick="showLoginModal()" style="cursor: pointer;">
+                            <h5>Đăng nhập</h5>
+                            <i class="bi bi-person-circle fs-4 text-white"></i>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
             </div>
+
         </div>
     </nav>
 </header>
@@ -121,8 +151,27 @@
         </c:otherwise>
     </c:choose>
 </section>
-
+<!-- Modal khuyến khích đăng nhập -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="loginModalLabel">Welcome to Viettech!</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-5">
+                <i class="bi bi-person-circle fs-1 text-primary mb-3"></i>
+                <p class="fs-5">Để tiếp tục sử dụng tính năng này,<br>bạn vui lòng đăng nhập hoặc đăng ký tài khoản.</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <a href="${pageContext.request.contextPath}/login" class="btn btn-primary px-5 py-2">Đăng nhập</a>
+                <a href="${pageContext.request.contextPath}/register" class="btn btn-outline-primary px-5 py-2">Đăng ký</a>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
 </body>
 </html>
