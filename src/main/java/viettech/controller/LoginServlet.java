@@ -74,7 +74,7 @@ public class LoginServlet extends HttpServlet {
         User user = (User) userObject;
 
         // ✅ Lưu user vào session
-        SessionUtil.setAttribute(request, "auth", user);
+        SessionUtil.setAttribute(request, "user", user);
         SessionUtil.setAttribute(request, "role", role);
 
         // ✅ Đặt flag: user đăng nhập (không phải mới đăng ký)

@@ -7,6 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <title>VietTech | Sàn Thương Mại Điện Tử</title>
+    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/PNG/AVT.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Bootstrap -->
@@ -21,15 +22,23 @@
 <!-- Biến JavaScript để kiểm tra trạng thái đăng nhập (truyền từ server) -->
 <script>
     // Dùng để JS biết có đang login hay không
-    const isLoggedIn = ${not empty sessionScope.auth};
+    const isLoggedIn = ${not empty sessionScope.user};
 </script>
 
+<!-- HEADER -->
 <!-- HEADER -->
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/">VietTech</a>
+            <!-- Logo -->
+            <a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/">
+                <img src="${pageContext.request.contextPath}/assets/PNG/LogoVT.png"
+                     alt="VietTech Logo"
+                     height="60"
+                     class="d-inline-block align-text-top">
+            </a>
 
+            <!-- Ô tìm kiếm -->
             <form class="d-flex w-50 mx-3">
                 <input class="form-control me-2" type="search" placeholder="Hôm nay bạn muốn tìm gì...">
                 <button class="btn-search" type="submit">
@@ -37,41 +46,55 @@
                 </button>
             </form>
 
-            <div class="items-header">
-                <h5>Giỏ hàng</h5><i class="bi bi-cart3 fs-4 text-white"></i>
-            </div>
+            <!-- Nhóm các nút bên phải: Giỏ hàng + Đăng nhập/User -->
+            <div class="header-right-items">
+                <!-- Giỏ hàng -->
+                <div class="items-header">
+                    <i class="bi bi-cart3 fs-4 text-white"></i>
+                    <h5>Giỏ hàng</h5>
+                </div>
 
-            <!-- Kiểm tra user đã đăng nhập chưa -->
-            <c:choose>
-                <c:when test="${not empty sessionScope.user}">
-                    <!-- Đã đăng nhập: Hiển thị tên user -->
-                    <div class="items-header dropdown">
-                        <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown"
-                                data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-person-circle me-1"></i>
-                                ${sessionScope.user.firstName} ${sessionScope.user.lastName}
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
-                                <i class="bi bi-person"></i> Thông tin cá nhân
-                            </a></li>
-                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">
-                                <i class="bi bi-box"></i> Đơn hàng của tôi
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout">
-                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
-                            </a></li>
-                        </ul>
-                    </div>
-                </c:when>
-                <c:otherwise>
-                    <!-- Chưa đăng nhập: Hiển thị nút Đăng nhập -->
-                    <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/login'">
-                        <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
-                    </div>
-                </c:otherwise>
-            </c:choose>
+                <!-- Kiểm tra user đã đăng nhập chưa -->
+                <c:choose>
+                    <c:when test="${not empty sessionScope.user}">
+                        <!-- Đã đăng nhập: Hiển thị tên user với tooltip full name -->
+                        <div class="items-header dropdown"
+                             data-bs-toggle="tooltip"
+                             data-bs-placement="bottom"
+                             title="${sessionScope.user.firstName} ${sessionScope.user.lastName}">
+                            <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown"
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle me-1"></i>
+                                <span class="user-name">
+                                    ${sessionScope.user.firstName} ${sessionScope.user.lastName}
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
+                                    <i class="bi bi-person"></i> Thông tin cá nhân
+                                </a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">
+                                    <i class="bi bi-box"></i> Đơn hàng của tôi
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout">
+                                    <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                                </a></li>
+                            </ul>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Chưa đăng nhập -->
+                        <div class="items-header login-trigger"
+                             data-bs-toggle="modal"
+                             data-bs-target="#smemberModal"
+                             style="cursor: pointer;">
+                            <i class="bi bi-person-circle fs-4 text-white"></i>
+                            <h5>Đăng nhập</h5>
+                        </div>
+                    </c:otherwise>
+                </c:choose>
+            </div>
         </div>
     </nav>
 </header>
@@ -197,45 +220,33 @@
     </c:choose>
 </section>
 
-<!-- Modal khuyến khích đăng nhập / đăng ký (giống Smember) -->
-<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+<!-- Modal Smember - Phiên bản ĐẸP LUNG LINH 2025 -->
+<!-- Modal Smember - Minimalist & Đẹp như CellphoneS -->
+<div class="modal fade" id="smemberModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <!-- Header -->
-            <div class="modal-header border-0 justify-content-center position-relative">
-                <h5 class="modal-title text-danger fw-bold fs-3" id="loginModalLabel">Smember</h5>
-                <button type="button" class="btn-close position-absolute end-0 me-3 top-50 translate-middle-y"
-                        data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
+        <div class="modal-content smember-modal-content">
+            <!-- Nút đóng góc trên PHẢI -->
+            <button type="button" class="btn-close smember-close-btn" data-bs-dismiss="modal" aria-label="Close"></button>
 
-            <!-- Body -->
-            <div class="modal-body text-center py-5">
-                <!-- Bạn có thể thay bằng logo thật của bạn -->
-                <img src="${pageContext.request.contextPath}/assets/images/smember-logo.png"
-                     alt="Smember Logo"
-                     class="mb-4"
-                     style="width: 100px; height: auto;"
-                     onerror="this.style.display='none'">
+            <div class="modal-body text-center py-5 px-4">
+                <!-- Tiêu đề Smember gradient xanh -->
+                <h1 class="smember-title mb-5">Smember</h1>
 
-                <!-- Nếu không có logo, dùng icon thay thế -->
-                <!-- <i class="bi bi-person-hearts fs-1 text-danger mb-4 d-block"></i> -->
-
-                <p class="fs-5 text-dark mb-0">
-                    Vui lòng đăng nhập tài khoản Smember để xem<br>
-                    <strong>ưu đãi và thanh toán dễ dàng hơn.</strong>
+                <!-- Nội dung -->
+                <p class="smember-text mb-5">
+                    Vui lòng đăng nhập tài khoản Smember để<br>
+                    <strong>xem ưu đãi và thanh toán dễ dàng hơn.</strong>
                 </p>
-            </div>
 
-            <!-- Footer: 2 nút -->
-            <div class="modal-footer border-0 justify-content-center gap-3 pb-5">
-                <a href="${pageContext.request.contextPath}/register"
-                   class="btn btn-outline-success btn-lg px-5 py-3 rounded-pill fw-bold">
-                    Đăng ký
-                </a>
-                <a href="${pageContext.request.contextPath}/login"
-                   class="btn btn-danger btn-lg px-5 py-3 rounded-pill fw-bold">
-                    Đăng nhập
-                </a>
+                <!-- Hai nút pill -->
+                <div class="d-flex flex-column flex-sm-row justify-content-center gap-4">
+                    <a href="${pageContext.request.contextPath}/register" class="smember-btn-register">
+                        Đăng ký
+                    </a>
+                    <a href="${pageContext.request.contextPath}/login" class="smember-btn-login">
+                        Đăng nhập
+                    </a>
+                </div>
             </div>
         </div>
     </div>
