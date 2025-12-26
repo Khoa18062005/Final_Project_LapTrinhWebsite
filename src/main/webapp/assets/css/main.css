@@ -91,7 +91,7 @@ body {
     padding: 15px 10px;
     gap: 10px;
     background: white;
-    margin-top: 20px;
+    margin-top: 0px;
 }
 
 .category-items {
@@ -135,4 +135,92 @@ body {
 
 .category-items:hover::after {
     width: 100%;
+}
+/* ===== PHẦN HIỂN THỊ TÊN USER KHI ĐÃ ĐĂNG NHẬP ===== */
+/* Làm đẹp dropdown user để giống items-header (Giỏ hàng) */
+
+.items-header.dropdown {
+    height: 42px; /* Đồng bộ chiều cao với các items-header khác */
+    padding: 0 16px; /* Padding rộng rãi hơn */
+    border-radius: 8px; /* Bo góc mượt hơn */
+    background-color: rgba(255, 255, 255, 0.15); /* Nền trong suốt nhẹ, sang trọng */
+    border: 1px solid rgba(255, 255, 255, 0.3); /* Viền trắng mờ */
+    backdrop-filter: blur(4px); /* Hiệu ứng mờ kính (rất hiện đại) */
+    transition: all 0.3s ease;
+}
+
+/* Nút dropdown (chính là tên user) */
+.items-header.dropdown .dropdown-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 100%;
+    width: 100%;
+    background: transparent !important; /* Bỏ nền trắng của btn-light */
+    border: none !important; /* Bỏ viền mặc định */
+    color: white !important;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0;
+    box-shadow: none !important;
+    border-radius: 8px;
+}
+
+/* Icon người dùng */
+.items-header.dropdown .dropdown-toggle i {
+    font-size: 1.4rem;
+    color: white;
+}
+
+/* Mũi tên dropdown */
+.items-header.dropdown .dropdown-toggle::after {
+    color: white;
+    font-size: 1.2rem;
+    margin-left: 4px;
+}
+
+/* Hover effect: giống hệt items-header khác */
+.items-header.dropdown:hover {
+    background-color: white !important;
+}
+
+.items-header.dropdown:hover .dropdown-toggle,
+.items-header.dropdown:hover .dropdown-toggle i,
+.items-header.dropdown:hover .dropdown-toggle::after {
+    color: var(--primary-color) !important;
+}
+
+/* Khi dropdown mở: giữ nguyên style */
+.items-header.dropdown.show .dropdown-toggle {
+    background: transparent !important;
+    color: white !important;
+}
+
+.items-header.dropdown.show .dropdown-toggle i,
+.items-header.dropdown.show .dropdown-toggle::after {
+    color: white !important;
+}
+
+/* Dropdown menu (menu xổ xuống) */
+.items-header.dropdown .dropdown-menu {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 8px;
+    min-width: 200px;
+}
+
+.items-header.dropdown .dropdown-item {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+}
+
+.items-header.dropdown .dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+.items-header.dropdown .dropdown-toggle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Giới hạn độ rộng tên */
 }
