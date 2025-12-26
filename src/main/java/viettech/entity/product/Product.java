@@ -5,6 +5,7 @@ import viettech.entity.review.Review;
 import viettech.entity.search.ProductView;
 import viettech.entity.user.Vendor;
 import viettech.entity.voucher.FlashSale;
+import viettech.entity.wishlist.WishlistItem;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -107,6 +108,8 @@ public abstract class Product {
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<FlashSale> flashSales;
 
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<WishlistItem> wishlistItems;
 
     /* =========================
        CONSTRUCTORS

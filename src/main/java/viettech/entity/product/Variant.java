@@ -3,6 +3,8 @@ package viettech.entity.product;
 import viettech.entity.order.OrderDetail;
 import viettech.entity.storage.Inventory;
 import viettech.entity.voucher.FlashSale;
+import viettech.entity.wishlist.Wishlist;
+import viettech.entity.wishlist.WishlistItem;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -43,6 +45,9 @@ public class Variant {
 
     @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
     private List<FlashSale> flashSales;
+
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    private List<WishlistItem> wishlistItems;
 
     /* =========================
        FIELDS

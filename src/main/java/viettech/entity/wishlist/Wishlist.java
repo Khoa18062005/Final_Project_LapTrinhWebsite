@@ -4,6 +4,7 @@ import viettech.entity.user.Customer;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "wishlists")
@@ -41,6 +42,10 @@ public class Wishlist {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", insertable = false, updatable = false)
     private Customer customer;
+
+    @OneToMany(mappedBy = "wishlist", fetch = FetchType.LAZY)
+    private List<WishlistItem> wishlistItems;
+
     /* =========================
        CONSTRUCTORS
        ========================= */
