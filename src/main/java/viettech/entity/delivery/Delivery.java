@@ -92,7 +92,7 @@ public class Delivery {
     private List<DeliveryAssignment> assignments;
 
     @OneToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private Order order;
     /* =========================
        CONSTRUCTORS
