@@ -1,5 +1,6 @@
 package viettech.entity.product;
 
+import viettech.entity.order.OrderDetail;
 import viettech.entity.storage.Inventory;
 
 import javax.persistence.*;
@@ -35,6 +36,9 @@ public class Variant {
     // Variant 1 -- 1..* VariantAttribute
     @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
     private List<VariantAttribute> attributes;
+
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    private List<OrderDetail> orderDetails;
 
     /* =========================
        FIELDS

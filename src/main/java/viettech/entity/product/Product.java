@@ -1,5 +1,6 @@
 package viettech.entity.product;
 
+import viettech.entity.order.OrderDetail;
 import viettech.entity.review.Review;
 import viettech.entity.search.ProductView;
 import viettech.entity.user.Vendor;
@@ -98,6 +99,9 @@ public abstract class Product {
     // Product 1 -- 0..* ProductView
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     protected List<ProductView> views;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<OrderDetail> orderDetails;
 
 
     /* =========================
