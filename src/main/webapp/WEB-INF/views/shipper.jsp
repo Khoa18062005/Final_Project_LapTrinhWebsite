@@ -688,6 +688,15 @@
             </div>
           </div>
         </div>
+        <div class="profile-card logout-card">
+          <h3>Quản lý tài khoản</h3>
+          <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">
+            Đăng xuất khỏi thiết bị này để bảo mật tài khoản của bạn.
+          </p>
+          <button type="button" class="btn btn-danger btn-block" onclick="location.href='${pageContext.request.contextPath}/logout'" style="width: 100%; justify-content: center;">
+            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+          </button>
+        </div>
       </div>
     </section>
   </main>

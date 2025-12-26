@@ -1410,3 +1410,60 @@ input:checked + .slider:before {
     width: 100% !important;
     height: 100% !important;
 }
+
+/* Mặc định ẩn nút logout mobile trên máy tính */
+.mobile-logout-btn {
+    display: none;
+    font-size: 1.2rem;
+    color: #e74c3c;
+    margin-right: 15px;
+}
+
+/* Khi màn hình nhỏ hơn 768px */
+@media (max-width: 768px) {
+    /* Hiển thị nút logout ở Header */
+    .mobile-logout-btn {
+        display: block;
+    }
+
+    /* Đảm bảo Sidebar footer không bị che khuất nếu bạn vẫn dùng Sidebar dạng trượt */
+    .sidebar-footer {
+        position: relative;
+        padding: 20px;
+        border-top: 1px solid #eee;
+    }
+}
+.logout-card {
+    border: 1px solid #ffebee; /* Viền đỏ nhạt */
+    background-color: #fff;
+}
+
+.logout-card h3 {
+    color: #d32f2f; /* Tiêu đề màu đỏ */
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+/* Tối ưu cho mobile */
+@media (max-width: 768px) {
+    .logout-card {
+        margin-top: 20px;
+        box-shadow: 0 4px 6px rgba(231, 76, 60, 0.1);
+    }
+}
