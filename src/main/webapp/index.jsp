@@ -43,13 +43,13 @@
 
             <!-- Kiểm tra user đã đăng nhập chưa -->
             <c:choose>
-                <c:when test="${not empty sessionScope.auth}">
+                <c:when test="${not empty sessionScope.user}">
                     <!-- Đã đăng nhập: Hiển thị tên user -->
                     <div class="items-header dropdown">
                         <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown"
                                 data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-person-circle me-1"></i>
-                                ${sessionScope.auth.firstName} ${sessionScope.auth.lastName}
+                                ${sessionScope.user.firstName} ${sessionScope.user.lastName}
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
@@ -246,5 +246,6 @@
 <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
 <!-- Script riêng cho popup login -->
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+
 </body>
 </html>
