@@ -13,10 +13,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- CSS riêng - chứa toàn bộ style cho products -->
+    <!-- CSS riêng -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
 </head>
 <body>
+
+<!-- Biến JavaScript để kiểm tra trạng thái đăng nhập (truyền từ server) -->
+<script>
+    // Dùng để JS biết có đang login hay không
+    const isLoggedIn = ${not empty sessionScope.auth};
+</script>
 
 <!-- HEADER -->
 <header>
@@ -34,12 +40,81 @@
             <div class="items-header">
                 <h5>Giỏ hàng</h5><i class="bi bi-cart3 fs-4 text-white"></i>
             </div>
-            <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/register'">
-                <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
-            </div>
+
+            <!-- Kiểm tra user đã đăng nhập chưa -->
+            <c:choose>
+                <c:when test="${not empty sessionScope.user}">
+                    <!-- Đã đăng nhập: Hiển thị tên user -->
+                    <div class="items-header dropdown">
+                        <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i>
+                                ${sessionScope.user.firstName} ${sessionScope.user.lastName}
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
+                                <i class="bi bi-person"></i> Thông tin cá nhân
+                            </a></li>
+                            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">
+                                <i class="bi bi-box"></i> Đơn hàng của tôi
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout">
+                                <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                            </a></li>
+                        </ul>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <!-- Chưa đăng nhập: Hiển thị nút Đăng nhập -->
+                    <div class="items-header" onclick="window.location.href='${pageContext.request.contextPath}/login'">
+                        <h5>Đăng nhập</h5><i class="bi bi-person-circle fs-4 text-white"></i>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </nav>
 </header>
+
+<!-- THÔNG BÁO -->
+<%
+    String successMessage = (String) session.getAttribute("successMessage");
+    String errorMessage = (String) session.getAttribute("errorMessage");
+    String infoMessage = (String) session.getAttribute("infoMessage");
+%>
+
+<% if (successMessage != null && !successMessage.isEmpty()) { %>
+<div class="container mt-3">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <strong>Thành công!</strong> <%= successMessage %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+<% session.removeAttribute("successMessage"); %>
+<% } %>
+
+<% if (errorMessage != null && !errorMessage.isEmpty()) { %>
+<div class="container mt-3">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Lỗi!</strong> <%= errorMessage %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+<% session.removeAttribute("errorMessage"); %>
+<% } %>
+
+<% if (infoMessage != null && !infoMessage.isEmpty()) { %>
+<div class="container mt-3">
+    <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <%= infoMessage %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+<% session.removeAttribute("infoMessage"); %>
+<% } %>
 
 <!-- CATEGORY -->
 <section class="categories">
@@ -122,7 +197,55 @@
     </c:choose>
 </section>
 
+<!-- Modal khuyến khích đăng nhập / đăng ký (giống Smember) -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <!-- Header -->
+            <div class="modal-header border-0 justify-content-center position-relative">
+                <h5 class="modal-title text-danger fw-bold fs-3" id="loginModalLabel">Smember</h5>
+                <button type="button" class="btn-close position-absolute end-0 me-3 top-50 translate-middle-y"
+                        data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body text-center py-5">
+                <!-- Bạn có thể thay bằng logo thật của bạn -->
+                <img src="${pageContext.request.contextPath}/assets/images/smember-logo.png"
+                     alt="Smember Logo"
+                     class="mb-4"
+                     style="width: 100px; height: auto;"
+                     onerror="this.style.display='none'">
+
+                <!-- Nếu không có logo, dùng icon thay thế -->
+                <!-- <i class="bi bi-person-hearts fs-1 text-danger mb-4 d-block"></i> -->
+
+                <p class="fs-5 text-dark mb-0">
+                    Vui lòng đăng nhập tài khoản Smember để xem<br>
+                    <strong>ưu đãi và thanh toán dễ dàng hơn.</strong>
+                </p>
+            </div>
+
+            <!-- Footer: 2 nút -->
+            <div class="modal-footer border-0 justify-content-center gap-3 pb-5">
+                <a href="${pageContext.request.contextPath}/register"
+                   class="btn btn-outline-success btn-lg px-5 py-3 rounded-pill fw-bold">
+                    Đăng ký
+                </a>
+                <a href="${pageContext.request.contextPath}/login"
+                   class="btn btn-danger btn-lg px-5 py-3 rounded-pill fw-bold">
+                    Đăng nhập
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
+<!-- Script riêng cho popup login -->
+<script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+
 </body>
 </html>

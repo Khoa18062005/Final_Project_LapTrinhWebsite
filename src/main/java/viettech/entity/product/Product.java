@@ -243,13 +243,14 @@ public abstract class Product {
         this.status = status != null ? status : "";
     }
 
-    public String getCondition() {
+    public String getConditions() {
         return conditions;
     }
 
-    public void setCondition(String conditions) {
+    public void setConditions(String conditions) {
         this.conditions = conditions != null ? conditions : "";
     }
+    
 
     public double getWeight() {
         return weight;

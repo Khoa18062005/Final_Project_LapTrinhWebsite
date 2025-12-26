@@ -1,11 +1,37 @@
-<!DOCTYPE web-app PUBLIC
-        "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
-        "http://java.sun.com/dtd/web-app_2_3.dtd" >
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                             http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
 
-<web-app>
-  <display-name>Archetype Created Web Application</display-name>
+  <display-name>VietTech E-Commerce Application</display-name>
+
+  <!-- Đảm bảo servlet default của Tomcat phục vụ file tĩnh đúng cách -->
+  <!-- Dòng này giúp Tomcat ưu tiên phục vụ file tĩnh hơn là fallback về welcome-file -->
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/assets/*</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/uploads/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- Nếu bạn có bất kỳ Servlet nào mapping "/", hãy xóa hoặc đổi lại -->
+  <!-- Ví dụ: nếu có FrontController Servlet, đổi thành /.do hoặc /app/* -->
+
+  <!-- Trang chủ -->
   <welcome-file-list>
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
+
+  <!-- Hỗ trợ tiếng Việt (rất quan trọng) -->
+  <jsp-config>
+    <jsp-property-group>
+      <url-pattern>*.jsp</url-pattern>
+      <page-encoding>UTF-8</page-encoding>
+    </jsp-property-group>
+  </jsp-config>
 
 </web-app>
