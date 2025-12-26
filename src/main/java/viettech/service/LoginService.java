@@ -6,6 +6,7 @@ import viettech.dao.ShipperDAO;
 import viettech.dao.VendorDAO;
 import viettech.util.PasswordUtil;
 import viettech.dto.Login_dto;
+import java.lang.reflect.Method;
 public class LoginService {
 
     private final AdminDAO adminDAO = new AdminDAO();
@@ -55,7 +56,7 @@ public class LoginService {
     private Object checkInDAO(Object dao, String email, String plainPassword) {
         try {
             // Mỗi DAO có phương thức findByEmail(email)
-            java.lang.reflect.Method findByEmailMethod = dao.getClass().getMethod("findByEmail", String.class);
+            Method findByEmailMethod = dao.getClass().getMethod("findByEmail", String.class);
             Object user = findByEmailMethod.invoke(dao, email);
 
             if (user != null) {
