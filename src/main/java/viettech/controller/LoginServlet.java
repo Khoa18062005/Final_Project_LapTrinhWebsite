@@ -65,11 +65,11 @@ public class LoginServlet extends HttpServlet {
         String contextPath = request.getContextPath();
 
         if ("admin".equals(role)) {
-            response.sendRedirect(contextPath + "/admin-dashboard");
+            response.sendRedirect(contextPath + "/admin");
         } else if ("vendor".equals(role)) {
-            response.sendRedirect(contextPath + "/vendor-dashboard");
+            response.sendRedirect(contextPath + "/vendor");
         } else if ("shipper".equals(role)) {
-            response.sendRedirect(contextPath + "/shipper-dashboard");
+            response.sendRedirect(contextPath + "/shipper");
         } else {
             response.sendRedirect(contextPath + "/"); // customer
         }
