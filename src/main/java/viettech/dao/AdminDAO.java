@@ -1,14 +1,23 @@
 package viettech.dao;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import viettech.config.JPAConfig;
 import viettech.entity.user.Admin;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
+import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
+/**
+ * Admin DAO - Data Access Object for Admin entity
+ * @author VietTech Team
+ */
 public class AdminDAO {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdminDAO.class);
 
     // CREATE - Thêm mới admin
     public void insert(Admin admin) {
@@ -18,9 +27,11 @@ public class AdminDAO {
             trans.begin();
             em.persist(admin);
             trans.commit();
+            logger.info("✓ Inserted new admin: {}", admin.getEmail());
         } catch (Exception e) {
             if (trans.isActive()) trans.rollback();
-            throw e;
+            logger.error("✗ Failed to insert admin: {}", admin.getEmail(), e);
+            throw new RuntimeException("Failed to insert admin", e);
         } finally {
             em.close();
         }
@@ -30,7 +41,16 @@ public class AdminDAO {
     public Admin findById(int adminId) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            return em.find(Admin.class, adminId);
+            Admin admin = em.find(Admin.class, adminId);
+            if (admin != null) {
+                logger.debug("✓ Found admin by ID: {}", adminId);
+            } else {
+                logger.warn("✗ Admin not found with ID: {}", adminId);
+            }
+            return admin;
+        } catch (Exception e) {
+            logger.error("✗ Error finding admin by ID: {}", adminId, e);
+            return null;
         } finally {
             em.close();
         }
@@ -43,8 +63,14 @@ public class AdminDAO {
             String jpql = "SELECT a FROM Admin a WHERE a.email = :email";
             TypedQuery<Admin> query = em.createQuery(jpql, Admin.class);
             query.setParameter("email", email);
-            return query.getSingleResult();
+            Admin admin = query.getSingleResult();
+            logger.debug("✓ Found admin by email: {}", email);
+            return admin;
+        } catch (NoResultException e) {
+            logger.debug("✗ Admin not found with email: {}", email);
+            return null;
         } catch (Exception e) {
+            logger.error("✗ Error finding admin by email: {}", email, e);
             return null;
         } finally {
             em.close();
@@ -59,8 +85,14 @@ public class AdminDAO {
             TypedQuery<Admin> query = em.createQuery(jpql, Admin.class);
             query.setParameter("email", email);
             query.setParameter("password", password);
-            return query.getSingleResult();
+            Admin admin = query.getSingleResult();
+            logger.info("✓ Admin login successful: {}", email);
+            return admin;
+        } catch (NoResultException e) {
+            logger.warn("✗ Admin login failed - invalid credentials for email: {}", email);
+            return null;
         } catch (Exception e) {
+            logger.error("✗ Error during admin login for email: {}", email, e);
             return null;
         } finally {
             em.close();
@@ -71,7 +103,12 @@ public class AdminDAO {
     public List<Admin> findAll() {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            return em.createQuery("SELECT a FROM Admin a", Admin.class).getResultList();
+            List<Admin> admins = em.createQuery("SELECT a FROM Admin a", Admin.class).getResultList();
+            logger.debug("✓ Retrieved {} admin(s)", admins.size());
+            return admins;
+        } catch (Exception e) {
+            logger.error("✗ Error retrieving all admins", e);
+            throw new RuntimeException("Failed to retrieve admins", e);
         } finally {
             em.close();
         }
@@ -85,9 +122,11 @@ public class AdminDAO {
             trans.begin();
             em.merge(admin);
             trans.commit();
+            logger.info("✓ Updated admin: {}", admin.getEmail());
         } catch (Exception e) {
             if (trans.isActive()) trans.rollback();
-            throw e;
+            logger.error("✗ Failed to update admin: {}", admin.getEmail(), e);
+            throw new RuntimeException("Failed to update admin", e);
         } finally {
             em.close();
         }
@@ -102,11 +141,15 @@ public class AdminDAO {
             Admin admin = em.find(Admin.class, adminId);
             if (admin != null) {
                 em.remove(admin);
+                logger.info("✓ Deleted admin ID: {} ({})", adminId, admin.getEmail());
+            } else {
+                logger.warn("✗ Cannot delete - admin not found with ID: {}", adminId);
             }
             trans.commit();
         } catch (Exception e) {
             if (trans.isActive()) trans.rollback();
-            throw e;
+            logger.error("✗ Failed to delete admin ID: {}", adminId, e);
+            throw new RuntimeException("Failed to delete admin", e);
         } finally {
             em.close();
         }
