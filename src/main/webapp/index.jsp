@@ -43,7 +43,7 @@
 
             <!-- Kiểm tra user đã đăng nhập chưa -->
             <c:choose>
-                <c:when test="${not empty sessionScope.user}">
+                <c:when test="${not empty sessionScope.auth}">
                     <!-- Đã đăng nhập: Hiển thị tên user -->
                     <div class="items-header dropdown">
                         <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown"
