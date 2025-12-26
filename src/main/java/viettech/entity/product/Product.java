@@ -1,7 +1,12 @@
 package viettech.entity.product;
 
+import viettech.entity.review.Review;
+import viettech.entity.search.ProductView;
+import viettech.entity.user.Vendor;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -64,6 +69,36 @@ public abstract class Product {
 
     @Column(name = "is_featured")
     protected boolean isFeatured;
+    /* =========================
+       RELATIONSHIP MAPPINGS
+       ========================= */
+
+    // Product * -- 1 Category
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", insertable = false, updatable = false)
+    protected Category category;
+
+    // Product * -- 1 Vendor
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id", insertable = false, updatable = false)
+    protected Vendor vendor;
+
+    // Product 1 -- 0..* Variant
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    protected List<Variant> variants;
+
+    // Product 1 -- 0..* Review
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    protected List<Review> reviews;
+
+    // Product 1 -- 0..* ProductImage
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    protected List<ProductImage> images;
+
+    // Product 1 -- 0..* ProductView
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    protected List<ProductView> views;
+
 
     /* =========================
        CONSTRUCTORS
@@ -233,35 +268,27 @@ public abstract class Product {
         this.dimensions = dimensions != null ? dimensions : "";
     }
 
-    public Date getCreatedAt() {
-        return createdAt;
+    public Category getCategory() {
+        return category;
     }
 
-    public Date getUpdatedAt() {
-        return updatedAt;
+    public Vendor getVendor() {
+        return vendor;
     }
 
-    public double getAverageRating() {
-        return averageRating;
+    public List<Variant> getVariants() {
+        return variants;
     }
 
-    public int getTotalReviews() {
-        return totalReviews;
+    public List<Review> getReviews() {
+        return reviews;
     }
 
-    public int getTotalSold() {
-        return totalSold;
+    public List<ProductImage> getImages() {
+        return images;
     }
 
-    public int getViewCount() {
-        return viewCount;
-    }
-
-    public boolean isFeatured() {
-        return isFeatured;
-    }
-
-    public void setFeatured(boolean featured) {
-        isFeatured = featured;
+    public List<ProductView> getViews() {
+        return views;
     }
 }

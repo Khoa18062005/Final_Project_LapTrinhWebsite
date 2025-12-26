@@ -1,7 +1,10 @@
 package viettech.entity.product;
 
+import viettech.entity.storage.Inventory;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "variants")
@@ -16,9 +19,22 @@ public class Variant {
        RELATIONSHIPS
        ========================= */
 
+    // Variant * -- 1 Product
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
+
+    // Variant 1 -- 0..* Inventory
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    private List<Inventory> inventories;
+
+    // Variant 1 -- 0..* ProductImage
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    private List<ProductImage> images;
+
+    // Variant 1 -- 1..* VariantAttribute
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    private List<VariantAttribute> attributes;
 
     /* =========================
        FIELDS
@@ -47,7 +63,6 @@ public class Variant {
        CONSTRUCTORS
        ========================= */
 
-    // Constructor mặc định (BẮT BUỘC cho JPA)
     public Variant() {
         this.sku = "";
         this.basePrice = 0.0;
@@ -57,7 +72,6 @@ public class Variant {
         this.createdAt = new Date();
     }
 
-    // Constructor tạo Variant mới
     public Variant(Product product,
                    String sku,
                    double basePrice,
@@ -66,14 +80,14 @@ public class Variant {
         this.product = product;
         this.sku = sku != null ? sku : "";
         this.basePrice = basePrice;
-        this.finalPrice = basePrice; // mặc định = basePrice
+        this.finalPrice = basePrice;
         this.weight = weight;
         this.isActive = true;
         this.createdAt = new Date();
     }
 
     /* =========================
-       GETTERS & SETTERS
+       GETTERS
        ========================= */
 
     public int getVariantId() {
@@ -84,51 +98,15 @@ public class Variant {
         return product;
     }
 
-    public void setProduct(Product product) {
-        this.product = product;
+    public List<Inventory> getInventories() {
+        return inventories;
     }
 
-    public String getSku() {
-        return sku;
+    public List<ProductImage> getImages() {
+        return images;
     }
 
-    public void setSku(String sku) {
-        this.sku = sku != null ? sku : "";
-    }
-
-    public double getBasePrice() {
-        return basePrice;
-    }
-
-    public void setBasePrice(double basePrice) {
-        this.basePrice = basePrice;
-    }
-
-    public double getFinalPrice() {
-        return finalPrice;
-    }
-
-    public void setFinalPrice(double finalPrice) {
-        this.finalPrice = finalPrice;
-    }
-
-    public double getWeight() {
-        return weight;
-    }
-
-    public void setWeight(double weight) {
-        this.weight = weight;
-    }
-
-    public boolean isActive() {
-        return isActive;
-    }
-
-    public void setActive(boolean active) {
-        isActive = active;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
+    public List<VariantAttribute> getAttributes() {
+        return attributes;
     }
 }

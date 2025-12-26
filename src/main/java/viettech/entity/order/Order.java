@@ -1,7 +1,16 @@
 package viettech.entity.order;
 
+import viettech.entity.Address;
+import viettech.entity.delivery.Delivery;
+import viettech.entity.payment.Payment;
+import viettech.entity.payment.Refund;
+import viettech.entity.transaction.TransactionHistory;
+import viettech.entity.user.Customer;
+import viettech.entity.voucher.Voucher;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -75,6 +84,50 @@ public class Order {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "completed_at")
     private Date completedAt;
+
+    /* =========================
+       MAPPING
+       ========================= */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false)
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "address_id", insertable = false, updatable = false)
+    private Address address;
+
+    /* Order "1" *-- "1..*" OrderDetail : contains */
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<OrderDetail> orderDetails;
+
+    /* Order "1" -- "1..*" OrderStatus : has history */
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<OrderStatus> statuses;
+
+    /* Order "*" -- "0..1" Voucher : applies */
+    @ManyToOne
+    @JoinColumn(name = "voucher_id", insertable = false, updatable = false)
+    private Voucher voucher;
+
+    /* Order "1" -- "1..*" Payment : paid by */
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<Payment> payments;
+
+    /* Order "1" -- "0..1" Delivery : has */
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private Delivery delivery;
+
+    /* Order "1" -- "0..*" Refund : may have */
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<Refund> refunds;
+
+    /* Order "1" -- "0..*" TransactionHistory : logs */
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<TransactionHistory> transactionHistories;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
 
     /* =========================
        CONSTRUCTORS
@@ -293,5 +346,81 @@ public class Order {
 
     public void setCompletedAt(Date completedAt) {
         this.completedAt = completedAt;
+    }
+
+    public void setOrderDate(Date orderDate) {
+        this.orderDate = orderDate;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public List<OrderDetail> getOrderDetails() {
+        return orderDetails;
+    }
+
+    public void setOrderDetails(List<OrderDetail> orderDetails) {
+        this.orderDetails = orderDetails;
+    }
+
+    public List<OrderStatus> getStatuses() {
+        return statuses;
+    }
+
+    public void setStatuses(List<OrderStatus> statuses) {
+        this.statuses = statuses;
+    }
+
+    public Voucher getVoucher() {
+        return voucher;
+    }
+
+    public void setVoucher(Voucher voucher) {
+        this.voucher = voucher;
+    }
+
+    public List<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(List<Payment> payments) {
+        this.payments = payments;
+    }
+
+    public Delivery getDelivery() {
+        return delivery;
+    }
+
+    public void setDelivery(Delivery delivery) {
+        this.delivery = delivery;
+    }
+
+    public List<Refund> getRefunds() {
+        return refunds;
+    }
+
+    public void setRefunds(List<Refund> refunds) {
+        this.refunds = refunds;
+    }
+
+    public List<TransactionHistory> getTransactionHistories() {
+        return transactionHistories;
+    }
+
+    public void setTransactionHistories(List<TransactionHistory> transactionHistories) {
+        this.transactionHistories = transactionHistories;
     }
 }

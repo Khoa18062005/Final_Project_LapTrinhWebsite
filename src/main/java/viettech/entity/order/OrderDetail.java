@@ -42,6 +42,14 @@ public class OrderDetail {
     private String status;
 
     /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    private Order order;
+
+    /* =========================
        CONSTRUCTORS
        ========================= */
 
@@ -166,5 +174,13 @@ public class OrderDetail {
 
     public void setStatus(String status) {
         this.status = status != null ? status : "";
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

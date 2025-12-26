@@ -1,5 +1,7 @@
 package viettech.entity.payment;
 
+import viettech.entity.order.Order;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -69,6 +71,14 @@ public class Refund {
 
     @Column(name = "transaction_id", length = 100)
     private String transactionId;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
 
     /* =========================
        CONSTRUCTORS
@@ -288,5 +298,13 @@ public class Refund {
 
     public void setTransactionId(String transactionId) {
         this.transactionId = transactionId != null ? transactionId : "";
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

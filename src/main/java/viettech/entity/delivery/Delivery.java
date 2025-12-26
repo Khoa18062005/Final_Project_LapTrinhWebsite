@@ -1,7 +1,11 @@
 package viettech.entity.delivery;
 
+import viettech.entity.order.Order;
+import viettech.entity.storage.Warehouse;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "deliveries")
@@ -76,6 +80,20 @@ public class Delivery {
     @Column(length = 500)
     private String notes;
 
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id", insertable = false, updatable = false)
+    private Warehouse warehouse;
+
+    @OneToMany(mappedBy = "delivery")
+    private List<DeliveryAssignment> assignments;
+
+    @OneToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
     /* =========================
        CONSTRUCTORS
        ========================= */
@@ -285,5 +303,29 @@ public class Delivery {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    public Warehouse getWarehouse() {
+        return warehouse;
+    }
+
+    public void setWarehouse(Warehouse warehouse) {
+        this.warehouse = warehouse;
+    }
+
+    public List<DeliveryAssignment> getAssignments() {
+        return assignments;
+    }
+
+    public void setAssignments(List<DeliveryAssignment> assignments) {
+        this.assignments = assignments;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

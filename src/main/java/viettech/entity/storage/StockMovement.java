@@ -41,6 +41,13 @@ public class StockMovement {
     private String referenceId;
 
     /* =========================
+       MAPPING
+       ========================= */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inventory_id", insertable = false, updatable = false)
+    private Inventory inventory;
+
+    /* =========================
        CONSTRUCTORS
        ========================= */
 
@@ -153,5 +160,13 @@ public class StockMovement {
 
     public void setReferenceId(String referenceId) {
         this.referenceId = referenceId;
+    }
+
+    public Inventory getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(Inventory inventory) {
+        this.inventory = inventory;
     }
 }
