@@ -52,6 +52,10 @@ public class RegisterServlet extends HttpServlet {
         if (!EmailUtilBrevo.verifyOTP(inputOTP, savedOTP, otpTime != null ? otpTime : 0)) {
             req.setAttribute("dto", regist_dto);
             req.setAttribute("errorMessage", "Mã OTP không đúng hoặc đã hết hạn!");
+
+            // ✅ QUAN TRỌNG: Giữ lại thời gian OTP trong session
+            // KHÔNG xóa otpTime để frontend tính thời gian còn lại
+
             req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
             return;
         }

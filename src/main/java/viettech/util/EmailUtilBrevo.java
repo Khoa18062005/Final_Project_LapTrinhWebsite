@@ -149,7 +149,7 @@ public class EmailUtilBrevo {
         // Kiểm tra thời gian (5 phút = 300000ms)
         long currentTime = System.currentTimeMillis();
         long otpAge = currentTime - createdTime;
-        if (otpAge > 60000) {
+        if (otpAge > 90000) {
             logger.warn("✗ OTP expired. Age: {} ms", otpAge);
             return false;
         }
@@ -214,7 +214,7 @@ public class EmailUtilBrevo {
                                             </table>
                                             
                                             <p style="margin: 20px 0; font-size: 14px; color: #666666; line-height: 1.6;">
-                                                <strong>⏰ Lưu ý:</strong> Mã OTP có hiệu lực trong <strong>60 giây</strong>.
+                                                <strong>⏰ Lưu ý:</strong> Mã OTP có hiệu lực trong <strong>90 giây</strong>.
                                             </p>
                                             
                                             <p style="margin: 20px 0; font-size: 14px; color: #999999; line-height: 1.6;">

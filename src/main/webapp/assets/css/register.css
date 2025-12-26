@@ -180,3 +180,133 @@ body {
     box-shadow: 0 0 0 0.18rem rgba(13, 110, 253, 0.25);
     outline: none;
 }
+
+/* ===== COUNTDOWN TIMER - BEAUTIFUL STYLE ===== */
+#otpTimer {
+    display: block !important;
+    margin-top: 8px !important;
+    padding: 10px 14px !important;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9) !important;
+    border-radius: 8px !important;
+    border: 1px solid #4caf50 !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+}
+
+#otpTimer * {
+    display: inline !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Icon trong timer */
+#otpTimer i {
+    color: #2e7d32 !important;
+    font-size: 16px !important;
+    margin-right: 6px !important;
+}
+
+/* Số countdown */
+#otpTimer span {
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #2e7d32 !important;
+    background-color: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    display: inline !important;
+    margin-left: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Khi success (xanh lá) */
+#otpTimer.text-success {
+    color: #2e7d32 !important;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9) !important;
+    border-color: #4caf50 !important;
+}
+
+/* Khi hết hạn (đỏ) */
+#otpTimer.text-danger {
+    color: #c62828 !important;
+    background: linear-gradient(135deg, #ffebee, #ffcdd2) !important;
+    border-color: #e53935 !important;
+}
+
+#otpTimer.text-danger i {
+    color: #c62828 !important;
+}
+/* ===== ALERT THÔNG BÁO ===== */
+.alert {
+    border-radius: 10px !important;
+    padding: 14px 18px !important;
+    margin-bottom: 20px !important;
+    font-size: 14px !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.alert i {
+    font-size: 18px !important;
+    vertical-align: middle !important;
+}
+
+/* Alert Success (Xanh lá) */
+.alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
+    color: #155724 !important;
+    border-left: 4px solid #28a745 !important;
+}
+
+.alert-success i {
+    color: #28a745 !important;
+}
+
+/* Alert Danger (Đỏ) */
+.alert-danger {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb) !important;
+    color: #721c24 !important;
+    border-left: 4px solid #dc3545 !important;
+}
+
+.alert-danger i {
+    color: #dc3545 !important;
+}
+
+/* Alert Info (Xanh dương) */
+.alert-info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb) !important;
+    color: #0c5460 !important;
+    border-left: 4px solid #17a2b8 !important;
+}
+
+.alert-info i {
+    color: #17a2b8 !important;
+}
+
+/* Nút close của alert */
+.alert .btn-close {
+    padding: 8px !important;
+    opacity: 0.6 !important;
+    transition: opacity 0.3s ease !important;
+}
+
+.alert .btn-close:hover {
+    opacity: 1 !important;
+}
+
+/* Animation fade in */
+.alert.show {
+    animation: slideDown 0.3s ease-out !important;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
