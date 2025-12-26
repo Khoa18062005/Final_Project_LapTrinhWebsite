@@ -4,7 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Admin Dashboard - VietTech</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -12,47 +15,43 @@
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="logo">
-            <i class="fas fa-store"></i>
-            <h2>Admin Panel</h2>
+            <h2>Viet<span>Tech</span></h2>
         </div>
         <nav class="nav-menu">
-            <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
-                <i class="fas fa-chart-line"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="#products" class="nav-item" onclick="showSection('products')">
-                <i class="fas fa-box"></i>
-                <span>Sản phẩm</span>
-            </a>
-            <a href="#users" class="nav-item" onclick="showSection('users')">
-                <i class="fas fa-users"></i>
-                <span>Người dùng</span>
-            </a>
-            <a href="#orders" class="nav-item" onclick="showSection('orders')">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Đơn hàng</span>
-            </a>
-            <a href="#revenue" class="nav-item" onclick="showSection('revenue')">
-                <i class="fas fa-dollar-sign"></i>
-                <span>Doanh thu</span>
-            </a>
-            <a href="#categories" class="nav-item" onclick="showSection('categories')">
-                <i class="fas fa-tags"></i>
-                <span>Danh mục</span>
-            </a>
-            <a href="#reviews" class="nav-item" onclick="showSection('reviews')">
-                <i class="fas fa-star"></i>
-                <span>Đánh giá</span>
-            </a>
-            <a href="#settings" class="nav-item" onclick="showSection('settings')">
-                <i class="fas fa-cog"></i>
-                <span>Cài đặt</span>
-            </a>
+            <div class="nav-menu-section">
+                <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#products" class="nav-item" onclick="showSection('products')">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Products</span>
+                </a>
+                <a href="#favorites" class="nav-item" onclick="showSection('favorites')">
+                    <i class="fas fa-heart"></i>
+                    <span>Favorites</span>
+                </a>
+                <a href="#inbox" class="nav-item" onclick="showSection('inbox')">
+                    <i class="fas fa-inbox"></i>
+                    <span>Inbox</span>
+                </a>
+            </div>
+            <div class="nav-menu-section">
+                <div class="section-title">PAGES</div>
+                <a href="#orders" class="nav-item" onclick="showSection('orders')">
+                    <i class="fas fa-list-ul"></i>
+                    <span>Order Lists</span>
+                </a>
+                <a href="#stock" class="nav-item" onclick="showSection('stock')">
+                    <i class="fas fa-box"></i>
+                    <span>Product Stock</span>
+                </a>
+            </div>
         </nav>
         <div class="sidebar-footer">
             <a href="#" class="nav-item">
                 <i class="fas fa-sign-out-alt"></i>
-                <span>Đăng xuất</span>
+                <span>Logout</span>
             </a>
         </div>
     </div>
@@ -70,15 +69,24 @@
             <div class="navbar-right">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Tìm kiếm...">
+                    <input type="text" placeholder="Search">
+                </div>
+                <div class="language-selector">
+                    <img src="https://flagcdn.com/w40/gb.png" alt="EN">
+                    <span>Eng</span>
+                    <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="notifications">
                     <i class="fas fa-bell"></i>
-                    <span class="badge">3</span>
+                    <span class="badge">6</span>
                 </div>
                 <div class="user-profile">
-                    <img src="https://via.placeholder.com/40" alt="Admin">
-                    <span>Admin</span>
+                    <img src="https://via.placeholder.com/44" alt="Admin">
+                    <div class="user-profile-info">
+                        <div class="name">Moni Roy</div>
+                        <div class="role">Admin</div>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
                 </div>
             </div>
         </div>
@@ -87,55 +95,109 @@
         <div id="dashboard" class="content-section active">
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon blue">
-                        <i class="fas fa-box"></i>
+                    <div class="stat-card-header">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-users"></i>
+                        </div>
                     </div>
                     <div class="stat-details">
-                        <h3>Tổng sản phẩm</h3>
-                        <p class="stat-number" id="total-products">0</p>
-                        <span class="stat-change positive">+12% so với tháng trước</span>
+                        <h3>Total User</h3>
+                        <p class="stat-number" id="total-users">40,689</p>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>8.5%</span>
+                            <span class="text">Up from yesterday</span>
+                        </div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon green">
-                        <i class="fas fa-users"></i>
+                    <div class="stat-card-header">
+                        <div class="stat-icon green">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
                     </div>
                     <div class="stat-details">
-                        <h3>Người dùng</h3>
-                        <p class="stat-number" id="total-users">0</p>
-                        <span class="stat-change positive">+8% so với tháng trước</span>
+                        <h3>Total Order</h3>
+                        <p class="stat-number" id="total-orders">10,293</p>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>1.3%</span>
+                            <span class="text">Up from past week</span>
+                        </div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon orange">
-                        <i class="fas fa-shopping-cart"></i>
+                    <div class="stat-card-header">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
                     </div>
                     <div class="stat-details">
-                        <h3>Đơn hàng</h3>
-                        <p class="stat-number" id="total-orders">0</p>
-                        <span class="stat-change positive">+23% so với tháng trước</span>
+                        <h3>Total Sales</h3>
+                        <p class="stat-number" id="total-sales">$89,000</p>
+                        <div class="stat-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>4.3%</span>
+                            <span class="text">Down from yesterday</span>
+                        </div>
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon purple">
-                        <i class="fas fa-dollar-sign"></i>
+                    <div class="stat-card-header">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-clock"></i>
+                        </div>
                     </div>
                     <div class="stat-details">
-                        <h3>Doanh thu</h3>
-                        <p class="stat-number" id="total-revenue">0</p>
-                        <span class="stat-change positive">+15% so với tháng trước</span>
+                        <h3>Total Pending</h3>
+                        <p class="stat-number" id="total-pending">2,040</p>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>1.8%</span>
+                            <span class="text">Up from yesterday</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="charts-grid">
                 <div class="chart-card">
-                    <h3>Doanh thu theo tháng</h3>
+                    <div class="chart-header">
+                        <h3>Sales Details</h3>
+                        <select class="chart-filter">
+                            <option>October</option>
+                            <option>November</option>
+                            <option>December</option>
+                        </select>
+                    </div>
                     <canvas id="revenueChart"></canvas>
                 </div>
                 <div class="chart-card">
-                    <h3>Top sản phẩm bán chạy</h3>
-                    <div id="topProducts"></div>
+                    <h3>Deals Details</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><img src="https://via.placeholder.com/36" alt="Product"> Apple Watch</td>
+                                    <td><span class="status-badge delivered">Delivered</span></td>
+                                </tr>
+                                <tr>
+                                    <td><img src="https://via.placeholder.com/36" alt="Product"> Mac Book Pro</td>
+                                    <td><span class="status-badge pending">Pending</span></td>
+                                </tr>
+                                <tr>
+                                    <td><img src="https://via.placeholder.com/36" alt="Product"> IPhone 13 Pro</td>
+                                    <td><span class="status-badge rejected">Rejected</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
