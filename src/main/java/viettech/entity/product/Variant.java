@@ -1,6 +1,10 @@
 package viettech.entity.product;
 
+import viettech.entity.order.OrderDetail;
 import viettech.entity.storage.Inventory;
+import viettech.entity.voucher.FlashSale;
+import viettech.entity.wishlist.Wishlist;
+import viettech.entity.wishlist.WishlistItem;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -35,6 +39,15 @@ public class Variant {
     // Variant 1 -- 1..* VariantAttribute
     @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
     private List<VariantAttribute> attributes;
+
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    private List<OrderDetail> orderDetails;
+
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    private List<FlashSale> flashSales;
+
+    @OneToMany(mappedBy = "variant", fetch = FetchType.LAZY)
+    private List<WishlistItem> wishlistItems;
 
     /* =========================
        FIELDS
@@ -108,5 +121,85 @@ public class Variant {
 
     public List<VariantAttribute> getAttributes() {
         return attributes;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public void setInventories(List<Inventory> inventories) {
+        this.inventories = inventories;
+    }
+
+    public void setImages(List<ProductImage> images) {
+        this.images = images;
+    }
+
+    public List<OrderDetail> getOrderDetails() {
+        return orderDetails;
+    }
+
+    public void setOrderDetails(List<OrderDetail> orderDetails) {
+        this.orderDetails = orderDetails;
+    }
+
+    public void setAttributes(List<VariantAttribute> attributes) {
+        this.attributes = attributes;
+    }
+
+    public List<FlashSale> getFlashSales() {
+        return flashSales;
+    }
+
+    public void setFlashSales(List<FlashSale> flashSales) {
+        this.flashSales = flashSales;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku;
+    }
+
+    public double getFinalPrice() {
+        return finalPrice;
+    }
+
+    public void setFinalPrice(double finalPrice) {
+        this.finalPrice = finalPrice;
+    }
+
+    public double getBasePrice() {
+        return basePrice;
+    }
+
+    public void setBasePrice(double basePrice) {
+        this.basePrice = basePrice;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }

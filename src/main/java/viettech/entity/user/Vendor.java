@@ -1,9 +1,9 @@
 package viettech.entity.user;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.Table;
+import viettech.entity.transaction.Statistic;
+
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "vendors")
@@ -27,6 +27,13 @@ public class Vendor extends User {
 
     @Column(name = "bank_account", nullable = false)
     private String bankAccount;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @OneToMany(mappedBy = "vendor", fetch = FetchType.LAZY)
+    private List<Statistic> statistics;
 
     /* =========================
        CONSTRUCTORS

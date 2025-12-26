@@ -7,6 +7,7 @@ import viettech.entity.payment.Refund;
 import viettech.entity.transaction.TransactionHistory;
 import viettech.entity.user.Customer;
 import viettech.entity.voucher.Voucher;
+import viettech.entity.voucher.VoucherUsage;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -125,9 +126,8 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<TransactionHistory> transactionHistories;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id")
-    private Order order;
+    @OneToMany(mappedBy = "order")
+    private List<VoucherUsage> voucherUsages;
 
     /* =========================
        CONSTRUCTORS
@@ -422,5 +422,13 @@ public class Order {
 
     public void setTransactionHistories(List<TransactionHistory> transactionHistories) {
         this.transactionHistories = transactionHistories;
+    }
+
+    public List<VoucherUsage> getVoucherUsages() {
+        return voucherUsages;
+    }
+
+    public void setVoucherUsages(List<VoucherUsage> voucherUsages) {
+        this.voucherUsages = voucherUsages;
     }
 }

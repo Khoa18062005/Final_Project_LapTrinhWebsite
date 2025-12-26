@@ -77,8 +77,12 @@ public class Refund {
        ========================= */
 
     @ManyToOne
-    @JoinColumn(name = "order_id")
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "payment_id", insertable = false, updatable = false)
+    private Payment payment;
 
     /* =========================
        CONSTRUCTORS

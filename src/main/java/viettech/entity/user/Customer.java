@@ -3,6 +3,7 @@ package viettech.entity.user;
 import viettech.entity.cart.Cart;
 import viettech.entity.order.Order;
 import viettech.entity.review.Review;
+import viettech.entity.voucher.VoucherUsage;
 import viettech.entity.wishlist.Wishlist;
 import viettech.entity.Address;
 import viettech.entity.Notification;
@@ -62,6 +63,9 @@ public class Customer extends User {
     // Customer 1 — 0..* ProductView
     @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
     private List<ProductView> productViews = new ArrayList<>();
+
+    @OneToMany(mappedBy = "customer", fetch = FetchType.LAZY)
+    private List<VoucherUsage> voucherUsages = new ArrayList<>();
 
     /* =========================
        CONSTRUCTORS
@@ -149,5 +153,45 @@ public class Customer extends User {
 
     public List<ProductView> getProductViews() {
         return productViews;
+    }
+
+    public void setWishlists(List<Wishlist> wishlists) {
+        this.wishlists = wishlists;
+    }
+
+    public void setAddresses(List<Address> addresses) {
+        this.addresses = addresses;
+    }
+
+    public void setOrders(List<Order> orders) {
+        this.orders = orders;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public void setNotifications(List<Notification> notifications) {
+        this.notifications = notifications;
+    }
+
+    public void setSearchHistories(List<SearchHistory> searchHistories) {
+        this.searchHistories = searchHistories;
+    }
+
+    public void setProductViews(List<ProductView> productViews) {
+        this.productViews = productViews;
+    }
+
+    public List<VoucherUsage> getVoucherUsages() {
+        return voucherUsages;
+    }
+
+    public void setVoucherUsages(List<VoucherUsage> voucherUsages) {
+        this.voucherUsages = voucherUsages;
+    }
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
     }
 }

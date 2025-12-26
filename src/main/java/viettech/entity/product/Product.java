@@ -1,8 +1,11 @@
 package viettech.entity.product;
 
+import viettech.entity.order.OrderDetail;
 import viettech.entity.review.Review;
 import viettech.entity.search.ProductView;
 import viettech.entity.user.Vendor;
+import viettech.entity.voucher.FlashSale;
+import viettech.entity.wishlist.WishlistItem;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -99,6 +102,14 @@ public abstract class Product {
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     protected List<ProductView> views;
 
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<OrderDetail> orderDetails;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<FlashSale> flashSales;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<WishlistItem> wishlistItems;
 
     /* =========================
        CONSTRUCTORS
@@ -268,27 +279,115 @@ public abstract class Product {
         this.dimensions = dimensions != null ? dimensions : "";
     }
 
+    public double getAverageRating() {
+        return averageRating;
+    }
+
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public int getTotalReviews() {
+        return totalReviews;
+    }
+
+    public void setTotalReviews(int totalReviews) {
+        this.totalReviews = totalReviews;
+    }
+
+    public int getTotalSold() {
+        return totalSold;
+    }
+
+    public void setTotalSold(int totalSold) {
+        this.totalSold = totalSold;
+    }
+
+    public int getViewCount() {
+        return viewCount;
+    }
+
+    public void setViewCount(int viewCount) {
+        this.viewCount = viewCount;
+    }
+
+    public boolean isFeatured() {
+        return isFeatured;
+    }
+
+    public void setFeatured(boolean featured) {
+        isFeatured = featured;
+    }
+
     public Category getCategory() {
         return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     public Vendor getVendor() {
         return vendor;
     }
 
+    public void setVendor(Vendor vendor) {
+        this.vendor = vendor;
+    }
+
     public List<Variant> getVariants() {
         return variants;
+    }
+
+    public void setVariants(List<Variant> variants) {
+        this.variants = variants;
     }
 
     public List<Review> getReviews() {
         return reviews;
     }
 
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
     public List<ProductImage> getImages() {
         return images;
     }
 
+    public void setImages(List<ProductImage> images) {
+        this.images = images;
+    }
+
     public List<ProductView> getViews() {
         return views;
+    }
+
+    public void setViews(List<ProductView> views) {
+        this.views = views;
+    }
+
+    public List<OrderDetail> getOrderDetails() {
+        return orderDetails;
+    }
+
+    public void setOrderDetails(List<OrderDetail> orderDetails) {
+        this.orderDetails = orderDetails;
+    }
+
+    public List<FlashSale> getFlashSales() {
+        return flashSales;
+    }
+
+    public void setFlashSales(List<FlashSale> flashSales) {
+        this.flashSales = flashSales;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

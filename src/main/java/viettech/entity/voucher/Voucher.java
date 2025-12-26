@@ -84,6 +84,9 @@ public class Voucher {
     @OneToMany(mappedBy = "voucher")
     private List<Order> order;
 
+    @OneToMany(mappedBy = "voucher")
+    private List<VoucherUsage> voucherUsage;
+
     /* =========================
        CONSTRUCTORS
        ========================= */
@@ -327,5 +330,17 @@ public class Voucher {
 
     public void setOrder(List<Order> order) {
         this.order = order;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public List<VoucherUsage> getVoucherUsage() {
+        return voucherUsage;
+    }
+
+    public void setVoucherUsage(List<VoucherUsage> voucherUsage) {
+        this.voucherUsage = voucherUsage;
     }
 }

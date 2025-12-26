@@ -1,5 +1,8 @@
 package viettech.entity.order;
 
+import viettech.entity.product.Product;
+import viettech.entity.product.Variant;
+
 import javax.persistence.*;
 
 @Entity
@@ -48,6 +51,14 @@ public class OrderDetail {
     @ManyToOne
     @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "varient_id", insertable = false, updatable = false)
+    private Variant variant;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
 
     /* =========================
        CONSTRUCTORS

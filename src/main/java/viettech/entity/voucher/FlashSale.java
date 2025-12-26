@@ -1,5 +1,8 @@
 package viettech.entity.voucher;
 
+import viettech.entity.product.Product;
+import viettech.entity.product.Variant;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -56,6 +59,18 @@ public class FlashSale {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", insertable = false, updatable = false)
+    private Variant variant;
 
     /* =========================
        CONSTRUCTORS
@@ -226,5 +241,21 @@ public class FlashSale {
 
     public Date getCreatedAt() {
         return createdAt;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public Variant getVariant() {
+        return variant;
+    }
+
+    public void setVariant(Variant variant) {
+        this.variant = variant;
     }
 }
