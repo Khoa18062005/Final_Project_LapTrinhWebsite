@@ -80,7 +80,7 @@ public abstract class User {
 
         this.createdAt = new Date();
         this.updatedAt = new Date();
-        this.isActive = false;
+        this.isActive = true;
     }
 
     // Constructor truyền đầy đủ
@@ -133,7 +133,7 @@ public abstract class User {
         this.gender = gender;
 
         this.dateOfBirth = null;
-        this.isActive = false;
+        this.isActive = true;
         this.createdAt = new Date();
         this.updatedAt = new Date();
         this.lastLoginAt = null;
