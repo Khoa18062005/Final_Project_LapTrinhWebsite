@@ -35,6 +35,14 @@ public class OrderStatus {
     private String images;
 
     /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    private Order order;
+
+    /* =========================
        CONSTRUCTORS
        ========================= */
 
@@ -127,5 +135,13 @@ public class OrderStatus {
 
     public void setImages(String images) {
         this.images = images;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

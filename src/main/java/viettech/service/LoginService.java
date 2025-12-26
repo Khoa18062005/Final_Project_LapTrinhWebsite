@@ -1,12 +1,24 @@
 package viettech.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import viettech.dao.AdminDAO;
 import viettech.dao.CustomerDAO;
 import viettech.dao.ShipperDAO;
 import viettech.dao.VendorDAO;
+import viettech.dto.Login_dto;
+import viettech.entity.user.User;
 import viettech.util.PasswordUtil;
 
+import java.lang.reflect.Method;
+
+/**
+ * Login Service - Xử lý xác thực người dùng
+ * @author VietTech Team
+ */
 public class LoginService {
+
+    private static final Logger logger = LoggerFactory.getLogger(LoginService.class);
 
     private final AdminDAO adminDAO = new AdminDAO();
     private final VendorDAO vendorDAO = new VendorDAO();
@@ -15,87 +27,91 @@ public class LoginService {
 
     /**
      * Xác thực người dùng theo email và password
-     * @param email email người dùng nhập
-     * @param plainPassword mật khẩu người dùng nhập (plain text)
-     * @return Object là Admin/Vendor/Shipper/Customer nếu thành công, null nếu thất bại
+     * @param dto cặp dữ liệu email và password
+     * @return AuthResult chứa User và role nếu thành công, null nếu thất bại
      */
-    public AuthResult authenticate(String email, String plainPassword) {
+    public AuthResult authenticate(Login_dto dto) {
+        String email = dto.getEmail();
+        String plainPassword = dto.getPassword();
+
+        // Validate input
         if (email == null || plainPassword == null || email.isEmpty() || plainPassword.isEmpty()) {
+            logger.warn("✗ Authentication failed: email or password is empty");
             return null;
         }
 
-        // Kiểm tra lần lượt theo thứ tự ưu tiên: Admin → Vendor → Shipper → Customer
-        Object user = checkInDAO(adminDAO, email, plainPassword);
+        logger.debug("Authenticating user: {}", email);
+
+        // Kiểm tra lần lượt: Admin → Vendor → Shipper → Customer
+        User user = checkInDAO(adminDAO, email, plainPassword);
         if (user != null) {
+            logger.info("✓ User authenticated as Admin: {}", email);
             return new AuthResult(user, "admin");
         }
 
         user = checkInDAO(vendorDAO, email, plainPassword);
         if (user != null) {
+            logger.info("✓ User authenticated as Vendor: {}", email);
             return new AuthResult(user, "vendor");
         }
 
         user = checkInDAO(shipperDAO, email, plainPassword);
         if (user != null) {
+            logger.info("✓ User authenticated as Shipper: {}", email);
             return new AuthResult(user, "shipper");
         }
 
         user = checkInDAO(customerDAO, email, plainPassword);
         if (user != null) {
+            logger.info("✓ User authenticated as Customer: {}", email);
             return new AuthResult(user, "customer");
         }
 
-        return null; // Không tìm thấy hoặc sai mật khẩu
+        logger.warn("✗ Authentication failed for email: {} - Invalid credentials", email);
+        return null;
     }
 
     /**
      * Kiểm tra trong một DAO cụ thể: lấy user theo email → so sánh password bằng BCrypt
      */
-    private Object checkInDAO(Object dao, String email, String plainPassword) {
+    private User checkInDAO(Object dao, String email, String plainPassword) {
         try {
-            // Mỗi DAO có phương thức findByEmail(email)
-            java.lang.reflect.Method findByEmailMethod = dao.getClass().getMethod("findByEmail", String.class);
-            Object user = findByEmailMethod.invoke(dao, email);
+            // Gọi method findByEmail() của DAO
+            Method findByEmailMethod = dao.getClass().getMethod("findByEmail", String.class);
+            Object userObject = findByEmailMethod.invoke(dao, email);
 
-            if (user != null) {
-                // Lấy trường password từ entity (giả sử tất cả entity đều có getPassword())
-                java.lang.reflect.Method getPasswordMethod = user.getClass().getMethod("getPassword");
-                String hashedPassword = (String) getPasswordMethod.invoke(user);
+            if (userObject != null) {
+                // Cast về User (vì tất cả entity đều extends User)
+                User user = (User) userObject;
 
-                // So sánh bằng BCrypt
-                if (PasswordUtil.verifyPassword(plainPassword, hashedPassword)) {
+                // So sánh password bằng BCrypt
+                if (PasswordUtil.verifyPassword(plainPassword, user.getPassword())) {
+                    logger.debug("✓ Password verified for user: {} in {}", email, dao.getClass().getSimpleName());
                     return user;
+                } else {
+                    logger.debug("✗ Password mismatch for user: {} in {}", email, dao.getClass().getSimpleName());
                 }
             }
         } catch (Exception e) {
-            // In toàn bộ stack trace ra console (rất chi tiết)
-            e.printStackTrace();
-
-            // In thêm thông báo dễ đọc
-            System.err.println("=== LỖI KHI KIỂM TRA ĐĂNG NHẬP ===");
-            System.err.println("DAO đang kiểm tra: " + dao.getClass().getName());
-            System.err.println("Email đang thử: " + email);
-            System.err.println("Lỗi cụ thể: " + e.getClass().getSimpleName() + " - " + e.getMessage());
-            System.err.println("=====================================");
-            // Nếu lỗi (không có method, không tìm thấy user, v.v.) → bỏ qua
-            return null;
+            logger.error("✗ Error checking login in DAO: {} for email: {}",
+                    dao.getClass().getSimpleName(), email, e);
         }
         return null;
     }
 
     /**
-     * Class nội bộ để trả về kết quả xác thực
+     * Class để trả về kết quả xác thực
      */
     public static class AuthResult {
-        private final Object user;
+        private final User user;
         private final String role;
 
-        public AuthResult(Object user, String role) {
+        public AuthResult(User user, String role) {
             this.user = user;
             this.role = role;
         }
 
-        public Object getUser() {
+        public User getUser() {
             return user;
         }
 

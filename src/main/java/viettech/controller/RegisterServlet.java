@@ -67,7 +67,7 @@ public class RegisterServlet extends HttpServlet {
         Customer newCustomer = userService.findCustomerByEmail(dto.getEmail());
 
         // ✅ Lưu user vào session
-        SessionUtil.setAttribute(req, "auth", newCustomer);
+        SessionUtil.setAttribute(req, "user", newCustomer);
 
         // ✅ Đặt flag: user mới đăng ký (để hiển thị welcome message)
         SessionUtil.setAttribute(req, "isNewUser", true);

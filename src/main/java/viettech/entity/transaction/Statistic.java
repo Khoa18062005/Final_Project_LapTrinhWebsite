@@ -1,5 +1,7 @@
 package viettech.entity.transaction;
 
+import viettech.entity.user.Vendor;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -65,6 +67,14 @@ public class Statistic {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "generated_at", nullable = false)
     private Date generatedAt;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vendor_id", insertable = false, updatable = false)
+    private Vendor vendor;
 
     /* =========================
        CONSTRUCTORS

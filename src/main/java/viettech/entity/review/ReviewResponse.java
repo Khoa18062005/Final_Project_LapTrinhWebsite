@@ -30,6 +30,14 @@ public class ReviewResponse {
     private Date updatedAt;
 
     /* =========================
+       MAPPING
+       ========================= */
+
+    @OneToOne
+    @JoinColumn(name = "review_id", nullable = false, unique = true, insertable = false, updatable = false)
+    private Review review;
+
+    /* =========================
        CONSTRUCTORS
        ========================= */
 

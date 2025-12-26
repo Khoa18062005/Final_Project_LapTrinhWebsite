@@ -1,10 +1,18 @@
 package viettech.entity.storage;
 
+import viettech.entity.product.Variant;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
-@Table(name = "inventories")
+@Table(
+        name = "inventories",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"warehouse_id", "variant_id"})
+        }
+)
 public class Inventory {
 
     @Id
@@ -12,11 +20,31 @@ public class Inventory {
     @Column(name = "inventory_id")
     private int inventoryId;
 
-    @Column(name = "warehouse_id", nullable = false)
-    private int warehouseId;
+    /* =========================
+       RELATIONSHIPS
+       ========================= */
 
-    @Column(name = "variant_id", nullable = false)
-    private int variantId;
+    // Inventory "*" -- "1" Warehouse
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "warehouse_id", nullable = false)
+    private Warehouse warehouse;
+
+    // Inventory "*" -- "1" Variant
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", nullable = false)
+    private Variant variant;
+
+    // Inventory "1" -- "0..*" StockMovement
+    @OneToMany(
+            mappedBy = "inventory",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<StockMovement> stockMovements;
+
+    /* =========================
+       FIELDS
+       ========================= */
 
     @Column(name = "stock_quantity", nullable = false)
     private int stockQuantity;
@@ -51,7 +79,7 @@ public class Inventory {
        CONSTRUCTORS
        ========================= */
 
-    // Constructor mặc định (BẮT BUỘC cho JPA)
+    // BẮT BUỘC cho JPA
     public Inventory() {
         this.stockQuantity = 0;
         this.reservedQuantity = 0;
@@ -63,23 +91,20 @@ public class Inventory {
         this.lastUpdated = new Date();
     }
 
-    // Constructor đầy đủ tham số (KHÔNG có inventoryId)
-    public Inventory(int warehouseId,
-                     int variantId,
+    // Constructor tạo Inventory mới
+    public Inventory(Warehouse warehouse,
+                     Variant variant,
                      int stockQuantity,
-                     int reservedQuantity,
-                     int availableQuantity,
-                     int damagedQuantity,
                      int reorderLevel,
                      int reorderQuantity,
                      String location) {
 
-        this.warehouseId = warehouseId;
-        this.variantId = variantId;
+        this.warehouse = warehouse;
+        this.variant = variant;
         this.stockQuantity = stockQuantity;
-        this.reservedQuantity = reservedQuantity;
-        this.availableQuantity = availableQuantity;
-        this.damagedQuantity = damagedQuantity;
+        this.availableQuantity = stockQuantity;
+        this.reservedQuantity = 0;
+        this.damagedQuantity = 0;
         this.reorderLevel = reorderLevel;
         this.reorderQuantity = reorderQuantity;
         this.location = location != null ? location : "";
@@ -94,20 +119,24 @@ public class Inventory {
         return inventoryId;
     }
 
-    public int getWarehouseId() {
-        return warehouseId;
+    public Warehouse getWarehouse() {
+        return warehouse;
     }
 
-    public void setWarehouseId(int warehouseId) {
-        this.warehouseId = warehouseId;
+    public void setWarehouse(Warehouse warehouse) {
+        this.warehouse = warehouse;
     }
 
-    public int getVariantId() {
-        return variantId;
+    public Variant getVariant() {
+        return variant;
     }
 
-    public void setVariantId(int variantId) {
-        this.variantId = variantId;
+    public void setVariant(Variant variant) {
+        this.variant = variant;
+    }
+
+    public List<StockMovement> getStockMovements() {
+        return stockMovements;
     }
 
     public int getStockQuantity() {
