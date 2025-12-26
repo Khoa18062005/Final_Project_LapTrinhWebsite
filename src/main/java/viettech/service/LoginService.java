@@ -5,7 +5,7 @@ import viettech.dao.CustomerDAO;
 import viettech.dao.ShipperDAO;
 import viettech.dao.VendorDAO;
 import viettech.util.PasswordUtil;
-
+import viettech.dto.Login_dto;
 public class LoginService {
 
     private final AdminDAO adminDAO = new AdminDAO();
@@ -15,11 +15,12 @@ public class LoginService {
 
     /**
      * Xác thực người dùng theo email và password
-     * @param email email người dùng nhập
-     * @param plainPassword mật khẩu người dùng nhập (plain text)
+     * @param dto cặp dữ liệu truyền và xử lí
      * @return Object là Admin/Vendor/Shipper/Customer nếu thành công, null nếu thất bại
      */
-    public AuthResult authenticate(String email, String plainPassword) {
+    public AuthResult authenticate(Login_dto dto) {
+        String email = dto.getEmail();
+        String plainPassword = dto.getPassword();
         if (email == null || plainPassword == null || email.isEmpty() || plainPassword.isEmpty()) {
             return null;
         }

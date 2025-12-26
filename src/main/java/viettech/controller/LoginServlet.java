@@ -53,7 +53,7 @@ public class LoginServlet extends HttpServlet {
         logger.debug("Login attempt for email: {}", dto.getEmail());
 
         // Gọi service để xác thực
-        AuthResult authResult = loginService.authenticate(dto.getEmail(), dto.getPassword());
+        AuthResult authResult = loginService.authenticate(dto);
 
         if (authResult != null) {
             // ✅ Đăng nhập thành công
