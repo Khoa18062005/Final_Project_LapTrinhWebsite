@@ -27,13 +27,13 @@
                     <i class="fas fa-shopping-bag"></i>
                     <span>Products</span>
                 </a>
-                <a href="#favorites" class="nav-item" onclick="showSection('favorites')">
+                <a href="#Voucher" class="nav-item" onclick="showSection('Voucher')">
                     <i class="fas fa-heart"></i>
-                    <span>Favorites</span>
+                    <span>Voucher</span>
                 </a>
-                <a href="#inbox" class="nav-item" onclick="showSection('inbox')">
-                    <i class="fas fa-inbox"></i>
-                    <span>Inbox</span>
+                <a href="#issue" class="nav-item" onclick="showSection('issue')">
+                    <i class="fas fa-issue"></i>
+                    <span>Issue</span>
                 </a>
             </div>
             <div class="nav-menu-section">
@@ -70,11 +70,6 @@
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" placeholder="Search">
-                </div>
-                <div class="language-selector">
-                    <img src="https://flagcdn.com/w40/gb.png" alt="EN">
-                    <span>Eng</span>
-                    <i class="fas fa-chevron-down"></i>
                 </div>
                 <div class="notifications">
                     <i class="fas fa-bell"></i>
