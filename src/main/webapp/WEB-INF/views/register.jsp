@@ -6,9 +6,10 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="context-path" content="${pageContext.request.contextPath}">
   <title>Đăng ký tài khoản | VietTech</title>
   <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/PNG/AVT.png">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -18,6 +19,11 @@
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/register.css">
 </head>
 <body>
+
+<!-- Hidden input để JavaScript đọc otpTime -->
+<c:if test="${not empty sessionScope.otpTime and not empty errorMessage}">
+  <input type="hidden" id="otpTimeData" value="${sessionScope.otpTime}">
+</c:if>
 
 <div class="container mt-5">
   <div class="row justify-content-center">
@@ -76,7 +82,7 @@
               <small class="text-muted">Nhấn "Gửi OTP" để nhận mã xác thực qua email</small>
             </div>
 
-            <!-- Ô nhập OTP (ẩn mặc định, nhưng giữ lại khi có lỗi) -->
+            <!-- Ô nhập OTP -->
             <div class="mb-3" id="otpSection" style="display: ${not empty errorMessage and not empty dto.email ? 'block' : 'none'};">
               <label class="form-label">Mã OTP</label>
               <input type="text" name="otp" id="otpInput" class="form-control"
@@ -159,188 +165,8 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Script xử lý OTP -->
-<script>
-  let otpVerified = false;
-  let countdownTimer = null;
-  const OTP_DURATION = 90;
-
-  // ✅ Kiểm tra xem có OTP đang chạy không (khi reload sau khi nhập sai)
-  <c:if test="${not empty errorMessage and not empty dto.email and not empty sessionScope.otpTime}">
-  (function() {
-    const otpTime = ${sessionScope.otpTime};
-    const currentTime = Date.now();
-    const elapsed = Math.floor((currentTime - otpTime) / 1000); // Thời gian đã trôi qua (giây)
-    const timeLeft = OTP_DURATION - elapsed;
-
-    if (timeLeft > 0) {
-      // Còn thời gian → Tiếp tục countdown
-      const btn = document.getElementById('sendOtpBtn');
-      const btnText = document.getElementById('btnText');
-      startCountdown(timeLeft, btn, btnText);
-    } else {
-      // Hết thời gian → Hiển thị thông báo hết hạn
-      const timerEl = document.getElementById('otpTimer');
-      timerEl.innerHTML = '';
-      const icon = document.createElement('i');
-      icon.className = 'bi bi-exclamation-triangle';
-      const text = document.createTextNode('Mã OTP đã hết hạn! Vui lòng gửi lại.');
-      timerEl.appendChild(icon);
-      timerEl.appendChild(text);
-      timerEl.className = 'text-danger';
-    }
-  })();
-  </c:if>
-
-  document.getElementById('sendOtpBtn').addEventListener('click', function() {
-    const email = document.getElementById('email').value;
-    const btn = this;
-    const btnText = document.getElementById('btnText');
-
-    if (!email) {
-      alert('Vui lòng nhập email!');
-      return;
-    }
-
-    btn.disabled = true;
-    btnText.textContent = 'Đang gửi...';
-
-    fetch('${pageContext.request.contextPath}/send-otp', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: 'email=' + encodeURIComponent(email)
-    })
-            .then(response => response.json())
-            .then(data => {
-              if (data.success) {
-                document.getElementById('otpSection').style.display = 'block';
-                document.getElementById('otpInput').value = '';
-                document.getElementById('otpInput').focus();
-
-                startCountdown(OTP_DURATION, btn, btnText);
-                showAlert('success', 'Mã OTP đã được gửi đến email của bạn!');
-              } else {
-                alert('✗ Gửi OTP thất bại: ' + data.message);
-                btn.disabled = false;
-                btnText.textContent = 'Gửi OTP';
-              }
-            })
-            .catch(error => {
-              alert('✗ Lỗi kết nối server!');
-              btn.disabled = false;
-              btnText.textContent = 'Gửi OTP';
-            });
-  });
-
-  function startCountdown(duration, btn, btnText) {
-    const timerEl = document.getElementById('otpTimer');
-    let timeLeft = duration;
-
-    if (countdownTimer) {
-      clearInterval(countdownTimer);
-    }
-
-    function updateDisplay() {
-      timerEl.innerHTML = '';
-
-      const icon = document.createElement('i');
-      icon.className = 'bi bi-clock';
-
-      const text = document.createTextNode('Mã có hiệu lực trong ');
-
-      const num = document.createElement('span');
-      num.textContent = timeLeft + 's';
-
-      timerEl.appendChild(icon);
-      timerEl.appendChild(text);
-      timerEl.appendChild(num);
-      timerEl.className = 'text-success';
-
-      btn.disabled = true;
-      btnText.textContent = timeLeft + 's';
-    }
-
-    updateDisplay();
-
-    countdownTimer = setInterval(() => {
-      timeLeft--;
-
-      if (timeLeft > 0) {
-        updateDisplay();
-      } else {
-        clearInterval(countdownTimer);
-
-        timerEl.innerHTML = '';
-        const icon = document.createElement('i');
-        icon.className = 'bi bi-exclamation-triangle';
-        const text = document.createTextNode('Mã OTP đã hết hạn! Vui lòng gửi lại.');
-        timerEl.appendChild(icon);
-        timerEl.appendChild(text);
-        timerEl.className = 'text-danger';
-
-        btn.disabled = false;
-        btnText.textContent = 'Gửi lại OTP';
-
-        document.getElementById('registerBtn').disabled = true;
-        otpVerified = false;
-      }
-    }, 1000);
-  }
-
-  document.getElementById('otpInput').addEventListener('input', function() {
-    const otp = this.value;
-    const registerBtn = document.getElementById('registerBtn');
-
-    if (otp.length === 6 && /^\d{6}$/.test(otp)) {
-      registerBtn.disabled = false;
-      otpVerified = true;
-      this.classList.remove('is-invalid');
-      this.classList.add('is-valid');
-    } else {
-      registerBtn.disabled = true;
-      otpVerified = false;
-      if (otp.length > 0) {
-        this.classList.add('is-invalid');
-        this.classList.remove('is-valid');
-      } else {
-        this.classList.remove('is-invalid', 'is-valid');
-      }
-    }
-  });
-
-  document.getElementById('registerForm').addEventListener('submit', function(e) {
-    if (!otpVerified) {
-      e.preventDefault();
-      alert('Vui lòng nhập đúng mã OTP (6 số) trước khi đăng ký!');
-      document.getElementById('otpInput').focus();
-    }
-  });
-
-  function showAlert(type, message) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.setAttribute('role', 'alert');
-
-    const icon = document.createElement('i');
-    icon.className = type === 'success' ? 'bi bi-check-circle-fill me-2' : 'bi bi-exclamation-triangle-fill me-2';
-
-    const textNode = document.createTextNode(message);
-
-    const closeBtn = document.createElement('button');
-    closeBtn.type = 'button';
-    closeBtn.className = 'btn-close';
-    closeBtn.setAttribute('data-bs-dismiss', 'alert');
-    closeBtn.setAttribute('aria-label', 'Close');
-
-    alertDiv.appendChild(icon);
-    alertDiv.appendChild(textNode);
-    alertDiv.appendChild(closeBtn);
-
-    document.querySelector('.card-body').insertBefore(alertDiv, document.querySelector('form'));
-
-    setTimeout(() => alertDiv.remove(), 5000);
-  }
-</script>
+<!-- Script riêng -->
+<script src="${pageContext.request.contextPath}/assets/js/register.js"></script>
 
 </body>
 </html>
