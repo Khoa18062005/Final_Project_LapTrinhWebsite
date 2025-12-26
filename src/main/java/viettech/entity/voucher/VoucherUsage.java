@@ -1,5 +1,8 @@
 package viettech.entity.voucher;
 
+import viettech.entity.order.Order;
+import viettech.entity.user.Customer;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -30,6 +33,22 @@ public class VoucherUsage {
 
     @Column(name = "discount_applied", precision = 12, scale = 2, nullable = false)
     private double discountApplied;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voucher_id", insertable = false, updatable = false)
+    private Voucher voucher;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false)
+    private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    private Order order;
 
     /* =========================
        CONSTRUCTORS
@@ -116,5 +135,29 @@ public class VoucherUsage {
 
     public void setDiscountApplied(double discountApplied) {
         this.discountApplied = discountApplied;
+    }
+
+    public Voucher getVoucher() {
+        return voucher;
+    }
+
+    public void setVoucher(Voucher voucher) {
+        this.voucher = voucher;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }
