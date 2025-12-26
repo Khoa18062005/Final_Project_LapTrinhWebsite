@@ -3,6 +3,7 @@ package viettech.controller;
 import viettech.dto.Register_dto;
 import viettech.entity.user.Customer;
 import viettech.service.UserService;
+import viettech.util.EmailUtilBrevo;
 import viettech.util.SessionUtil;
 import viettech.util.CookieUtil;
 
@@ -41,19 +42,41 @@ public class RegisterServlet extends HttpServlet {
         regist_dto.setDateOfBirth(req.getParameter("dateOfBirth"));
         regist_dto.setGender(req.getParameter("gender"));
 
+        String inputOTP = req.getParameter("otp");
+
+        // ✅ XÁC THỰC OTP
+        String savedOTP = (String) SessionUtil.getAttribute(req, "otp");
+        String otpEmail = (String) SessionUtil.getAttribute(req, "otpEmail");
+        Long otpTime = (Long) SessionUtil.getAttribute(req, "otpTime");
+
+        if (!EmailUtilBrevo.verifyOTP(inputOTP, savedOTP, otpTime != null ? otpTime : 0)) {
+            req.setAttribute("dto", regist_dto);
+            req.setAttribute("errorMessage", "Mã OTP không đúng hoặc đã hết hạn!");
+            req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
+            return;
+        }
+
+        // Kiểm tra email khớp
+        if (!regist_dto.getEmail().equals(otpEmail)) {
+            req.setAttribute("dto", regist_dto);
+            req.setAttribute("errorMessage", "Email không khớp với email đã gửi OTP!");
+            req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
+            return;
+        }
+
+        // Xóa OTP khỏi session
+        SessionUtil.removeAttribute(req, "otp");
+        SessionUtil.removeAttribute(req, "otpEmail");
+        SessionUtil.removeAttribute(req, "otpTime");
+
         // Xử lý đăng ký
         int checkUser = userService.register(regist_dto);
 
         if (checkUser == 1) {
-            // ✅ Đăng ký thành công
             handleSuccessfulRegistration(req, resp, regist_dto);
-
         } else if (checkUser == 2) {
-            // ⚠️ Email đã tồn tại
             handleEmailExists(req, resp, regist_dto);
-
         } else {
-            // ❌ Đăng ký thất bại
             handleRegistrationFailure(req, resp, regist_dto);
         }
     }
