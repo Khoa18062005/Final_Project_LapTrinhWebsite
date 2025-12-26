@@ -1,5 +1,7 @@
 package viettech.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import viettech.dao.CustomerDAO;
 import viettech.dto.Register_dto;
 import viettech.entity.user.Customer;
@@ -9,8 +11,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * User Service - Xử lý đăng ký và quản lý user
+ * @author VietTech Team
+ */
 public class UserService {
 
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final CustomerDAO customerDAO;
 
     public UserService() {
@@ -21,44 +28,49 @@ public class UserService {
      * Đăng ký khách hàng mới
      *
      * @param dto DTO chứa thông tin từ form đăng ký
-     * @return 1 - Thành công tạo tài khoản mới (email chưa tồn tại)
+     * @return 1 - Thành công tạo tài khoản mới
      *         2 - Email đã tồn tại
-     *         3 - Các trường hợp khác (email null, lỗi insert, v.v.) - vẫn cố gắng tạo nếu có thể
+     *         3 - Lỗi (thiếu thông tin hoặc lỗi DB)
      */
     public int register(Register_dto dto) {
+        // Validate DTO
         if (dto == null) {
+            logger.error("✗ Registration failed: DTO is null");
             return 3;
         }
 
         String email = dto.getEmail();
         String password = dto.getPassword();
 
-        // Trường hợp email null hoặc rỗng → coi như lỗi, trả về 3
+        // Validate email và password
         if (email == null || email.trim().isEmpty()) {
-            // Vẫn cố gắng tạo tài khoản nếu các field khác hợp lệ
-            return createCustomerIfPossible(dto);
+            logger.warn("✗ Registration failed: Email is empty");
+            return 3;
         }
+
+        if (password == null || password.trim().isEmpty()) {
+            logger.warn("✗ Registration failed: Password is empty for email: {}", email);
+            return 3;
+        }
+
+        logger.debug("Processing registration for email: {}", email);
 
         // Kiểm tra email đã tồn tại chưa
         if (customerDAO.findByEmail(email.trim()) != null) {
-            return 2; // Đã có tài khoản
+            logger.warn("✗ Registration failed: Email already exists: {}", email);
+            return 2; // Email đã tồn tại
         }
 
-        // Email chưa tồn tại → tạo mới
-        if (password == null || password.isEmpty()) {
-            return 3; // Không có mật khẩu → lỗi
-        }
-
+        // Tạo customer mới
         try {
             Customer customer = dtoToCustomer(dto);
-            // Hash mật khẩu bằng BCrypt trong PasswordUtil
             customer.setPassword(PasswordUtil.hashPassword(password));
 
             customerDAO.insert(customer);
-            return 1; // Thành công tạo mới
+            logger.info("✓ Registration successful for email: {}", email);
+            return 1; // Thành công
         } catch (Exception e) {
-            // Lỗi khi insert (constraint, DB error, v.v.)
-            e.printStackTrace();
+            logger.error("✗ Registration failed for email: {} - Database error", email, e);
             return 3;
         }
     }
@@ -69,62 +81,81 @@ public class UserService {
     private Customer dtoToCustomer(Register_dto dto) {
         Customer customer = new Customer();
 
-        customer.setFirstName(dto.getFirstName() != null ? dto.getFirstName().trim() : "");
-        customer.setLastName(dto.getLastName() != null ? dto.getLastName().trim() : "");
-        customer.setEmail(dto.getEmail() != null ? dto.getEmail().trim() : "");
-        customer.setPhone(dto.getPhone() != null ? dto.getPhone().trim() : "");
-        customer.setGender(dto.getGender() != null ? dto.getGender().trim() : "");
+        // Set basic info
+        customer.setFirstName(trimOrEmpty(dto.getFirstName()));
+        customer.setLastName(trimOrEmpty(dto.getLastName()));
+        customer.setEmail(trimOrEmpty(dto.getEmail()));
+        customer.setPhone(trimOrEmpty(dto.getPhone()));
+        customer.setGender(trimOrEmpty(dto.getGender()));
 
-        // Username: nếu không có thì dùng email làm username (có thể tùy chỉnh sau)
-        String username = dto.getEmail();
-        if (username == null || username.isEmpty()) {
-            username = dto.getPhone(); // fallback
-        }
-        if (username == null || username.isEmpty()) {
-            username = "user_" + System.currentTimeMillis();
-        }
-        customer.setUsername(username);
+        // Set username (dùng email làm username)
+        customer.setUsername(generateUsername(dto));
 
-        // Avatar mặc định
+        // Set avatar mặc định
         customer.setAvatar("");
 
-        // Date of Birth: chuyển từ String (yyyy-MM-dd) sang Date
-        if (dto.getDateOfBirth() != null && !dto.getDateOfBirth().trim().isEmpty()) {
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                sdf.setLenient(false);
-                Date dob = sdf.parse(dto.getDateOfBirth().trim());
-                customer.setDateOfBirth(dob);
-            } catch (ParseException e) {
-                customer.setDateOfBirth(null); // nếu format sai → để null
-            }
-        } else {
-            customer.setDateOfBirth(null);
-        }
+        // Parse date of birth
+        customer.setDateOfBirth(parseDateOfBirth(dto.getDateOfBirth()));
 
         return customer;
     }
 
     /**
-     * Dùng khi email null/rỗng hoặc các case lỗi → vẫn cố gắng tạo nếu có dữ liệu cơ bản
+     * Trim string hoặc trả về empty string
      */
-    private int createCustomerIfPossible(Register_dto dto) {
-        try {
-            Customer customer = dtoToCustomer(dto);
-            if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
-                customer.setPassword(PasswordUtil.hashPassword(dto.getPassword()));
-            } else {
-                customer.setPassword(""); // hoặc throw exception tùy yêu cầu
-            }
-            customerDAO.insert(customer);
-            return 1;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return 3;
-        }
+    private String trimOrEmpty(String value) {
+        return (value != null) ? value.trim() : "";
     }
 
+    /**
+     * Generate username từ email hoặc phone
+     */
+    private String generateUsername(Register_dto dto) {
+        String email = dto.getEmail();
+        if (email != null && !email.trim().isEmpty()) {
+            return email.trim();
+        }
+
+        String phone = dto.getPhone();
+        if (phone != null && !phone.trim().isEmpty()) {
+            return phone.trim();
+        }
+
+        return "user_" + System.currentTimeMillis();
+    }
+    /**
+     * Parse date of birth từ String (yyyy-MM-dd) sang Date
+     */
+    private Date parseDateOfBirth(String dateString) {
+        if (dateString == null || dateString.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            sdf.setLenient(false);
+            return sdf.parse(dateString.trim());
+        } catch (ParseException e) {
+            logger.warn("✗ Failed to parse date of birth: {}", dateString);
+            return null;
+        }
+    }
+    /**
+     * Tìm customer theo email
+     */
     public Customer findCustomerByEmail(String email) {
-        return customerDAO.findByEmail(email);
+        if (email == null || email.trim().isEmpty()) {
+            logger.warn("✗ findCustomerByEmail: email is empty");
+            return null;
+        }
+        logger.debug("Finding customer by email: {}", email);
+        Customer customer = customerDAO.findByEmail(email.trim());
+
+        if (customer != null) {
+            logger.debug("✓ Customer found: {}", email);
+        } else {
+            logger.debug("✗ Customer not found: {}", email);
+        }
+        return customer;
     }
 }
