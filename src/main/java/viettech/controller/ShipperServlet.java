@@ -44,11 +44,15 @@ public class ShipperServlet extends HttpServlet {
 
         // 4. Lấy dữ liệu Dashboard
         int shipperId = user.getUserId();
+        System.out.println("Fetching dashboard for Shipper ID: " + shipperId); // Debug log
+
         Shipper_dto data = service.getDashboardData(shipperId);
 
         // 5. Xử lý trường hợp Shipper mới tinh chưa có dữ liệu (tránh lỗi null bên JSP)
         if (data == null) {
             data = new Shipper_dto(); // Tạo đối tượng rỗng để hiển thị số 0
+            System.out.println("No data found for Shipper ID: "); // Debug log
+
         }
 
         // 6. Đẩy dữ liệu và chuyển hướng
