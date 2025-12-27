@@ -49,8 +49,7 @@ public class LoginServlet extends HttpServlet {
         Login_dto dto = new Login_dto();
         dto.setEmail(request.getParameter("email"));
         dto.setPassword(request.getParameter("password"));
-
-        logger.debug("Login attempt for email: {}", dto.getEmail());
+            logger.debug("Login attempt for email: {}", dto.getEmail());
 
         // Gọi service để xác thực
         AuthResult authResult = loginService.authenticate(dto);

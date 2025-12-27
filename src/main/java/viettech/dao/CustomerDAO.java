@@ -109,6 +109,11 @@ public class CustomerDAO {
             em.close();
         }
     }
+    public Integer count() {
+        return 0;
+
+
+    }
 
     // DELETE - Xóa khách hàng theo ID
     public void delete(int userId) {
