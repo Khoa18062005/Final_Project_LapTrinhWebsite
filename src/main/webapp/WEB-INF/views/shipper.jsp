@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -27,7 +28,7 @@
       <span class="status-text" id="statusText">${data.shipperInfo.available ? 'Đang hoạt động' : 'Tạm nghỉ'}</span>
     </div>
     <div class="shipper-profile">
-      <img src="${data.shipperInfo.avatar != null && !data.shipperInfo.avatar.isEmpty() ? data.shipperInfo.avatar : 'https://via.placeholder.com/40'}" alt="Shipper">
+      <img src="${not empty data.shipperInfo.avatar ? data.shipperInfo.avatar : 'https://via.placeholder.com/40'}" alt="Shipper">
       <div class="profile-info">
         <span class="name">${data.shipperInfo.firstName} ${data.shipperInfo.lastName}</span>
         <span class="rating">⭐ ${data.shipperInfo.rating} (${data.shipperInfo.totalDeliveries} đơn)</span>
@@ -44,7 +45,7 @@
       </a>
       <a href="#orders" class="nav-item" onclick="showSection('orders')">
         <i class="fas fa-box"></i> <span>Đơn hàng</span>
-        <span class="count-badge">${data.pendingOrders.size() + data.ongoingOrders.size()}</span>
+        <span class="count-badge">${fn:length(data.pendingOrders) + fn:length(data.ongoingOrders)}</span>
       </a>
       <a href="#income" class="nav-item" onclick="showSection('income')"><i class="fas fa-wallet"></i> <span>Thu nhập</span></a>
       <a href="#history" class="nav-item" onclick="showSection('history')"><i class="fas fa-history"></i> <span>Lịch sử</span></a>
@@ -111,7 +112,11 @@
                   <i class="fas fa-map-marker-alt"></i>
                   <div>
                     <strong>Địa chỉ nhận:</strong>
-                    <p>${current.delivery.order.address.street}, ${current.delivery.order.address.ward}, ${current.delivery.order.address.district}, ${current.delivery.order.address.city}</p>
+                    <p>
+                      <c:if test="${not empty current.delivery.order.address}">
+                        ${current.delivery.order.address.street}, ${current.delivery.order.address.ward}, ${current.delivery.order.address.district}
+                      </c:if>
+                    </p>
                   </div>
                 </div>
                 <div class="delivery-details">
@@ -120,8 +125,14 @@
                 </div>
               </div>
               <div class="delivery-actions">
-                <button class="btn btn-outline"><i class="fas fa-phone"></i> Gọi khách</button>
-                <button class="btn btn-primary"><i class="fas fa-check"></i> Hoàn thành</button>
+                  <%-- Đã xóa nút Gọi khách --%>
+                <form action="${pageContext.request.contextPath}/shipper" method="post" style="width: 100%;">
+                  <input type="hidden" name="action" value="complete">
+                  <input type="hidden" name="id" value="${current.assignmentId}">
+                  <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-check"></i> Hoàn thành
+                  </button>
+                </form>
               </div>
             </div>
           </c:when>
@@ -138,61 +149,118 @@
       </div>
 
       <div class="orders-list">
-        <c:forEach var="item" items="${data.pendingOrders}">
-          <div class="order-card pending">
-            <div class="order-header">
-              <div class="order-id">#${item.delivery.order.orderNumber}</div>
-              <div class="order-status pending">Chờ nhận</div>
-            </div>
-            <div class="order-info">
-              <div class="info-row"><i class="fas fa-map-marker-alt"></i> <span>Lấy hàng: ${item.delivery.warehouse.addressLine}</span></div>
-              <div class="info-row"><i class="fas fa-map-pin"></i> <span>Giao đến: ${item.delivery.order.address.street}, ${item.delivery.order.address.district}</span></div>
-              <div class="info-row"><i class="fas fa-money-bill"></i> <span>Tiền công: <fmt:formatNumber value="${item.earnings}" type="number"/> ₫</span></div>
-            </div>
-            <div class="order-actions">
-              <button class="btn btn-success"><i class="fas fa-check"></i> Nhận đơn</button>
-            </div>
-          </div>
-        </c:forEach>
 
-        <c:forEach var="item" items="${data.ongoingOrders}">
-          <div class="order-card ongoing">
-            <div class="order-header">
-              <div class="order-id">#${item.delivery.order.orderNumber}</div>
-              <div class="order-status ongoing">Đang giao</div>
-            </div>
-            <div class="order-info">
-              <div class="info-row"><i class="fas fa-user"></i> <span>${item.delivery.order.customer.lastName}</span></div>
-              <div class="info-row"><i class="fas fa-map-pin"></i> <span>${item.delivery.order.address.street}</span></div>
-            </div>
-          </div>
-        </c:forEach>
+        <%-- KHỐI 1: ĐƠN HÀNG CHỜ NHẬN (PENDING) --%>
+        <h4 style="margin: 20px 0 10px; color: #f39c12;"><i class="fas fa-clock"></i> Đơn chờ nhận (${fn:length(data.pendingOrders)})</h4>
+
+        <c:choose>
+          <c:when test="${not empty data.pendingOrders}">
+            <c:forEach var="item" items="${data.pendingOrders}">
+              <div class="order-card pending">
+                <div class="order-header">
+                  <div class="order-id">#${item.delivery.order.orderNumber}</div>
+                  <div class="order-status pending">Chờ xác nhận</div>
+                </div>
+                <div class="order-info">
+                  <div class="info-row"><i class="fas fa-warehouse" style="color: #e67e22;"></i> <span><strong>Lấy tại:</strong> ${item.delivery.warehouse.name}</span></div>
+                  <div class="info-row" style="padding-left: 25px; font-size: 0.9em; color: #666;"><span>${item.delivery.warehouse.addressLine}, ${item.delivery.warehouse.district}</span></div>
+                  <div class="info-row" style="margin-top: 5px;"><i class="fas fa-map-pin" style="color: #e74c3c;"></i>
+                    <span><strong>Giao đến:</strong> <c:if test="${not empty item.delivery.order.address}">${item.delivery.order.address.street}, ${item.delivery.order.address.district}</c:if></span>
+                  </div>
+                  <div class="info-row" style="margin-top: 5px;"><i class="fas fa-money-bill-wave" style="color: #27ae60;"></i> <span>Tiền công: <strong><fmt:formatNumber value="${item.earnings}" type="number"/> ₫</strong></span></div>
+                </div>
+                <div class="order-actions">
+                    <%-- NÚT NHẬN ĐƠN (Form POST) --%>
+                  <form action="${pageContext.request.contextPath}/shipper" method="post" style="width: 100%;">
+                    <input type="hidden" name="action" value="accept">
+                    <input type="hidden" name="id" value="${item.assignmentId}">
+                    <button type="submit" class="btn btn-success" style="width: 100%;">
+                      <i class="fas fa-check"></i> Nhận đơn ngay
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </c:forEach>
+          </c:when>
+          <c:otherwise>
+            <div class="empty-state" style="text-align: center; padding: 20px; color: #999;"><i class="fas fa-clipboard-check" style="font-size: 2rem; margin-bottom: 10px;"></i><p>Hiện không có đơn hàng nào chờ nhận.</p></div>
+          </c:otherwise>
+        </c:choose>
+
+        <%-- KHỐI 2: ĐƠN HÀNG ĐANG GIAO (ONGOING) --%>
+        <h4 style="margin: 30px 0 10px; color: #3498db;"><i class="fas fa-motorcycle"></i> Đơn đang thực hiện (${fn:length(data.ongoingOrders)})</h4>
+
+        <c:choose>
+          <c:when test="${not empty data.ongoingOrders}">
+            <c:forEach var="item" items="${data.ongoingOrders}">
+              <div class="order-card ongoing">
+                <div class="order-header">
+                  <div class="order-id">#${item.delivery.order.orderNumber}</div>
+                  <div class="order-status ongoing">
+                    <c:choose>
+                      <c:when test="${item.status == 'In Transit'}">Đang giao hàng</c:when>
+                      <c:when test="${item.status == 'Picking Up'}">Đang lấy hàng</c:when>
+                      <c:when test="${item.status == 'Accepted'}">Đã nhận đơn</c:when>
+                      <c:otherwise>${item.status}</c:otherwise>
+                    </c:choose>
+                  </div>
+                </div>
+                <div class="order-info">
+                  <div class="info-row"><i class="fas fa-user"></i> <span>${item.delivery.order.customer.lastName} ${item.delivery.order.customer.firstName}</span></div>
+                  <div class="info-row"><i class="fas fa-map-pin"></i> <span><c:if test="${not empty item.delivery.order.address}">${item.delivery.order.address.street}</c:if></span></div>
+                  <div class="info-row"><i class="fas fa-hand-holding-usd" style="color: #2980b9;"></i> <span>Thu: <fmt:formatNumber value="${item.delivery.order.totalPrice}" type="number"/> ₫</span></div>
+                </div>
+
+                  <%-- NÚT HOÀN THÀNH CHO DANH SÁCH --%>
+                <div class="order-actions">
+                  <form action="${pageContext.request.contextPath}/shipper" method="post" style="width: 100%;">
+                    <input type="hidden" name="action" value="complete">
+                    <input type="hidden" name="id" value="${item.assignmentId}">
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                      <i class="fas fa-check"></i> Hoàn thành
+                    </button>
+                  </form>
+                </div>
+              </div>
+            </c:forEach>
+          </c:when>
+          <c:otherwise>
+            <div class="empty-state" style="text-align: center; padding: 20px; color: #999;"><p>Bạn đang rảnh rỗi.</p></div>
+          </c:otherwise>
+        </c:choose>
       </div>
     </section>
 
     <section id="history" class="content-section">
-      <div class="section-title"><h2>Lịch sử hoàn thành</h2></div>
+      <div class="section-title"><h2>Lịch sử giao hàng</h2></div>
       <div class="history-table">
-        <table>
-          <thead>
-          <tr>
-            <th>Mã đơn</th>
-            <th>Ngày hoàn thành</th>
-            <th>Thu nhập</th>
-            <th>Trạng thái</th>
-          </tr>
-          </thead>
-          <tbody>
-          <c:forEach var="h" items="${data.historyOrders}">
-            <tr>
-              <td>#${h.delivery.order.orderNumber}</td>
-              <td><fmt:formatDate value="${h.completedAt}" pattern="dd/MM/yyyy HH:mm"/></td>
-              <td><fmt:formatNumber value="${h.earnings}" type="number"/> ₫</td>
-              <td><span class="status-badge completed">${h.status}</span></td>
-            </tr>
-          </c:forEach>
-          </tbody>
-        </table>
+        <c:choose>
+          <c:when test="${not empty data.historyOrders}">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+              <tr style="background: #f8f9fa; text-align: left;">
+                <th style="padding: 12px;">Mã đơn</th>
+                <th style="padding: 12px;">Thời gian</th>
+                <th style="padding: 12px;">Thu nhập</th>
+                <th style="padding: 12px;">Trạng thái</th>
+              </tr>
+              </thead>
+              <tbody>
+              <c:forEach var="h" items="${data.historyOrders}">
+                <tr style="border-bottom: 1px solid #eee;">
+                  <td style="padding: 12px; font-weight: bold; color: #2c3e50;">#${h.delivery.order.orderNumber}</td>
+                  <td style="padding: 12px; color: #666;"><fmt:formatDate value="${h.completedAt}" pattern="dd/MM/yyyy HH:mm"/></td>
+                  <td style="padding: 12px; color: #27ae60; font-weight: bold;">+<fmt:formatNumber value="${h.earnings}" type="number"/> ₫</td>
+                  <td style="padding: 12px;"><span class="status-badge completed" style="background: #e8f5e9; color: #2ecc71; padding: 5px 10px; border-radius: 15px;">Hoàn thành</span></td>
+                </tr>
+              </c:forEach>
+              </tbody>
+            </table>
+          </c:when>
+          <c:otherwise>
+            <div class="empty-state" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-history" style="font-size: 3rem; margin-bottom: 15px; color: #ddd;"></i><p>Chưa có lịch sử giao hàng nào.</p></div>
+          </c:otherwise>
+        </c:choose>
       </div>
     </section>
 
@@ -201,11 +269,9 @@
 
 <script src="${pageContext.request.contextPath}/assets/js/shipper.js"></script>
 <script>
-  // JS đơn giản để chuyển Tab (nếu shipper.js chưa có)
   function showSection(sectionId) {
     document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
     document.getElementById(sectionId).classList.add('active');
     document.querySelector('a[href="#' + sectionId + '"]').classList.add('active');
   }
