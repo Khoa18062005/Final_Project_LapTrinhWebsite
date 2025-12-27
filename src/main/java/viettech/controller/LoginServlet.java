@@ -81,7 +81,7 @@ public class LoginServlet extends HttpServlet {
 
         // ✅ Set success message - GIỜ ĐÃ LẤY ĐƯỢC firstName!
         SessionUtil.setSuccessMessage(request,
-                "Chào mừng quay trở lại, " + user.getFirstName() + "! 👋");
+                "Chào mừng quay trở lại, " + user.getFirstName() + " " + user.getLastName() +  "! 👋");
 
         // ✅ Lưu cookie
         CookieUtil.addCookie(response, "userEmail", user.getEmail(), COOKIE_MAX_AGE);
