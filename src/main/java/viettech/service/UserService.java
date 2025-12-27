@@ -158,4 +158,12 @@ public class UserService {
         }
         return customer;
     }
+
+    /**
+     * Kiểm tra email đã tồn tại chưa
+     */
+    public boolean isEmailExist(String email) {
+        Customer customer = customerDAO.findByEmail(email);
+        return customer != null;
+    }
 }
