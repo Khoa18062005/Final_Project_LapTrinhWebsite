@@ -344,11 +344,11 @@ function showSection(sectionId) {
 function toggleSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const mainContent = document.querySelector('.main-content');
-    sidebar.classList.toggle('show');
-    mainContent.classList.toggle('expanded');
+    sidebar.classList.toggle('collapsed');
+    mainContent.classList.toggle('collapsed');
 }
 
-// Modal Functions
+// Modal Funct4ions
 function openAddProductModal() {
     const modal = document.getElementById('productModal');
     modal.classList.add('show');

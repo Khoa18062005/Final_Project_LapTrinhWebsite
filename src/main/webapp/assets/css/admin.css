@@ -1023,3 +1023,260 @@ textarea.form-control {
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
+/* Badge Type */
+.badge-type {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: white;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.badge-type.phone {
+    background-color: #3498db;
+}
+
+.badge-type.laptop {
+    background-color: #e67e22;
+}
+
+.badge-type.tablet {
+    background-color: #9b59b6;
+}
+
+.badge-type.accessory {
+    background-color: #2ecc71;
+}
+
+/* Product Detail Modal */
+.spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.spec-table th,
+.spec-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    vertical-align: top;
+}
+
+.spec-table th {
+    width: 35%;
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+}
+
+.spec-title {
+    margin: 20px 0 10px 0;
+    color: #2c3e50;
+    border-left: 4px solid #007bff;
+    padding-left: 10px;
+    font-size: 1.1rem;
+}
+
+.product-detail-header {
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+#viewDetailModal .modal-content {
+    max-width: 900px;
+    width: 90%;
+}
+
+/* Filter Section */
+.filter-section {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-section select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    min-width: 200px;
+}
+
+.filter-section form {
+    margin: 0;
+}
+
+/* Sidebar Collapsed Mode - Ẩn chữ, giữ icon */
+.sidebar.collapsed {
+    width: 70px;
+    transform: translateX(0);
+}
+
+.sidebar.collapsed .logo h2 {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item span {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 12px;
+}
+
+.sidebar.collapsed .nav-item i {
+    margin: 0;
+}
+
+.sidebar.collapsed .sidebar-footer .nav-item span {
+    display: none;
+}
+
+.main-content.collapsed {
+    margin-left: 70px;
+}
+
+/* Alert Messages */
+.alert {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert i {
+    font-size: 16px;
+}
+
+/* Product Table Styles */
+.product-slug {
+    color: #888;
+}
+
+.vendor-code {
+    font-family: monospace;
+    background: #f1f1f1;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+/* Button Icon Styles */
+.btn-icon {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.btn-icon.view {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-icon.edit {
+    background: #3498db;
+    color: white;
+}
+
+.btn-icon.delete {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Product Detail Hidden */
+.product-detail-hidden {
+    display: none;
+}
+
+/* Spec Table Group Header */
+.spec-table th[colspan="2"] {
+    background: #e9ecef !important;
+}
+
+/* Empty Table State */
+.empty-state {
+    text-align: center;
+    padding: 20px;
+}
+
+.empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* In Progress Message */
+.in-progress {
+    padding: 15px;
+}
+
+/* Form Row */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Required Field */
+.required {
+    color: red;
+}
+
+/* Delete Form Inline */
+.delete-form {
+    display: inline;
+}
+
+/* Modal Footer Styles */
+.modal-footer-actions {
+    border-top: 1px solid #dee2e6;
+}
+
+.modal-header.modal-footer-actions {
+    border-top: none;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Modal Body Scroll */
+.modal-body-scroll {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
