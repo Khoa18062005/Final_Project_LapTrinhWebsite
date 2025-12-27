@@ -69,7 +69,7 @@ public class LoginServlet extends HttpServlet {
         } else if ("vendor".equals(role)) {
             response.sendRedirect(contextPath + "/vendor-dashboard");
         } else if ("shipper".equals(role)) {
-            response.sendRedirect(contextPath + "/shipper-dashboard");
+            response.sendRedirect(contextPath + "/shipper");
         } else {
             response.sendRedirect(contextPath + "/"); // customer
         }

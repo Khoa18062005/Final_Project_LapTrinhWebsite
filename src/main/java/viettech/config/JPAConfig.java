@@ -3,11 +3,11 @@ package viettech.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.HashMap;
 import java.util.Map;
-
 /**
  * JPA Configuration
  * Quản lý EntityManagerFactory và JPA configuration
@@ -20,6 +20,10 @@ public class JPAConfig {
 
     private static EntityManagerFactory emf;
     private static final String PERSISTENCE_UNIT_NAME = "VietTech"; // ✅ Khớp với persistence.xml
+
+    public static EntityManager getEntityManager() {
+        return getEntityManagerFactory().createEntityManager();
+    }
 
     public static synchronized EntityManagerFactory getEntityManagerFactory() {
         if (emf == null) {
