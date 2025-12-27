@@ -475,8 +475,36 @@ function filterRevenue() {
 
 // Close modal when clicking outside
 window.onclick = function(event) {
+    // Handle all modals with the 'modal' class
     if (event.target.classList.contains('modal')) {
         event.target.classList.remove('show');
+        event.target.style.display = 'none';
     }
 }
+
+/**
+ * Show product details in modal
+ * @param {string} sourceId - ID of hidden div containing details (e.g., 'detail-101')
+ */
+function showProductDetails(sourceId) {
+    // 1. Find the hidden div containing detail data
+    var sourceContent = document.getElementById(sourceId);
+
+    // 2. Find the display area in Modal
+    var targetContent = document.getElementById('viewDetailContent');
+    var modal = document.getElementById('viewDetailModal');
+
+    // 3. Check and copy data
+    if (sourceContent && targetContent && modal) {
+        // Copy all HTML from hidden div to Modal div
+        targetContent.innerHTML = sourceContent.innerHTML;
+
+        // Show Modal
+        modal.style.display = "block";
+        modal.classList.add("show");
+    } else {
+        console.error("Error: Cannot find detail data or Modal. ID:", sourceId);
+    }
+}
+
 
