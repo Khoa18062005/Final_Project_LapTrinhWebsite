@@ -9,24 +9,11 @@ import java.io.IOException;
 
 @WebServlet("/vendor")
 public class VendorServlet extends HttpServlet {
-
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Forward to vendor dashboard page
-        req.getRequestDispatcher("/WEB-INF/views/vendor.jsp")
-                .forward(req, resp);
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-        req.setCharacterEncoding("UTF-8");
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("text/html; charset=UTF-8");
-
-        // Handle vendor actions in future
-        doGet(req, resp);
+        // Điều hướng từ Servlet vào thư mục WEB-INF
+        request.getRequestDispatcher("/WEB-INF/views/vendor.jsp")
+                .forward(request, response);
     }
 }
-
