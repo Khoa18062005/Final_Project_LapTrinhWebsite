@@ -9,8 +9,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ShipperService {
 
@@ -24,52 +26,60 @@ public class ShipperService {
             if (shipper == null) return null;
             dto.setShipperInfo(shipper);
 
-            // 2. Lấy danh sách nhiệm vụ giao hàng (Assignments)
-            // Lấy tất cả đơn hàng được phân công cho shipper này
+            // 2. QUERY QUAN TRỌNG: Dùng LEFT JOIN FETCH để lấy đầy đủ thông tin liên quan
+            // Lưu ý: Đã thêm 'o.address' vào để JSP hiển thị được địa chỉ
             String jpql = "SELECT da FROM DeliveryAssignment da " +
-                    "JOIN FETCH da.delivery d " +
-                    "JOIN FETCH d.order o " +
-                    "JOIN FETCH o.customer c " +
-                    "JOIN FETCH d.warehouse w " +
-                    "WHERE da.shipperId = :sid ORDER BY da.assignedAt DESC";
+                    "LEFT JOIN FETCH da.delivery d " +
+                    "LEFT JOIN FETCH d.order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +  // <-- THÊM DÒNG NÀY
+                    "LEFT JOIN FETCH d.warehouse w " +
+                    "WHERE da.shipperId = :sid " +
+                    "ORDER BY da.assignedAt DESC";
 
             TypedQuery<DeliveryAssignment> query = em.createQuery(jpql, DeliveryAssignment.class);
             query.setParameter("sid", shipperId);
+
             List<DeliveryAssignment> allAssignments = query.getResultList();
 
-            // 3. Phân loại đơn hàng & Tính toán
-            // Lấy ngày hôm nay (để tính thu nhập trong ngày)
-            LocalDate today = LocalDate.now();
-            Date startOfDay = Date.from(today.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            // Debug: In ra log để kiểm tra xem có lấy được dữ liệu không
+            System.out.println("Shipper ID: " + shipperId + " - Tổng đơn tìm thấy: " + allAssignments.size());
 
+            // 3. Phân loại đơn hàng (Dùng String check đơn giản cho chắc chắn)
+            List<DeliveryAssignment> pending = new ArrayList<>();
+            List<DeliveryAssignment> ongoing = new ArrayList<>();
+            List<DeliveryAssignment> history = new ArrayList<>();
+
+            for (DeliveryAssignment da : allAssignments) {
+                String status = da.getStatus() != null ? da.getStatus().trim() : "";
+
+                if (status.equalsIgnoreCase("Assigned") || status.equalsIgnoreCase("Pending")) {
+                    pending.add(da);
+                } else if (status.equalsIgnoreCase("In Transit") || status.equalsIgnoreCase("Accepted") || status.equalsIgnoreCase("Picking Up")) {
+                    ongoing.add(da);
+                } else if (status.equalsIgnoreCase("Completed") || status.equalsIgnoreCase("Delivered")) {
+                    history.add(da);
+                }
+            }
+
+            dto.setPendingOrders(pending);
+            dto.setOngoingOrders(ongoing);
+            dto.setHistoryOrders(history);
+
+            // 4. Tính toán thống kê đơn giản
             double dailyIncome = 0;
             long todayCount = 0;
             long successCount = 0;
 
-            // Stream API để lọc danh sách (Java 8+)
-            // a. Đơn chờ nhận (Pending)
-            dto.setPendingOrders(allAssignments.stream()
-                    .filter(a -> "Assigned".equalsIgnoreCase(a.getStatus()) || "Pending".equalsIgnoreCase(a.getStatus()))
-                    .toList()); // Hoặc .collect(Collectors.toList()) nếu Java < 16
+            // Lấy mốc thời gian bắt đầu ngày hôm nay
+            Date startOfDay = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-            // b. Đơn đang giao (Accepted/In Transit)
-            dto.setOngoingOrders(allAssignments.stream()
-                    .filter(a -> "Accepted".equalsIgnoreCase(a.getStatus()) || "In Transit".equalsIgnoreCase(a.getStatus()) || "Picking Up".equalsIgnoreCase(a.getStatus()))
-                    .toList());
-
-            // c. Lịch sử / Hoàn thành
-            dto.setHistoryOrders(allAssignments.stream()
-                    .filter(a -> "Completed".equalsIgnoreCase(a.getStatus()) || "Delivered".equalsIgnoreCase(a.getStatus()))
-                    .toList());
-
-            // 4. Tính toán thống kê
             for (DeliveryAssignment da : allAssignments) {
-                // Nếu đơn được phân công hôm nay
+                // Đếm đơn hôm nay
                 if (da.getAssignedAt() != null && da.getAssignedAt().after(startOfDay)) {
                     todayCount++;
                 }
-
-                // Nếu hoàn thành hôm nay
+                // Tính tiền đơn hoàn thành hôm nay
                 if ("Completed".equalsIgnoreCase(da.getStatus()) && da.getCompletedAt() != null && da.getCompletedAt().after(startOfDay)) {
                     successCount++;
                     dailyIncome += da.getEarnings();
