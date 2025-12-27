@@ -12,24 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* CSS Badge, Spec Table, v.v... Copy từ file cũ sang hoặc để vào admin.css */
-        .badge-type { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; color: white; font-weight: 600; display: inline-block; margin-top: 4px;}
-        .badge-type.phone { background-color: #3498db; }
-        .badge-type.laptop { background-color: #e67e22; }
-        .badge-type.tablet { background-color: #9b59b6; }
-        .badge-type.accessory { background-color: #2ecc71; }
-        .spec-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.9rem; }
-        .spec-table th, .spec-table td { padding: 8px 12px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
-        .spec-table th { width: 35%; background-color: #f8f9fa; color: #495057; font-weight: 600; }
-        .spec-group-header { background-color: #e9ecef !important; font-weight: 700 !important; color: #2c3e50 !important; text-transform: uppercase; font-size: 0.85rem; }
-        .text-success { color: #28a745; }
-        .text-danger { color: #dc3545; }
-        .text-muted { color: #6c757d; }
-        #viewDetailModal .modal-content { max-width: 900px; width: 95%; }
-        .filter-section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; }
-        .filter-section select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; min-width: 200px; }
-    </style>
 </head>
 <body>
 <div class="sidebar">
@@ -102,31 +84,5 @@
 </div>
 
 <script src="${pageContext.request.contextPath}/assets/js/admin.js"></script>
-<script>
-    // Code JS inline nếu cần thiết
-    // Lưu ý: Các hàm showProductDetails, closeModal phải đảm bảo có trong admin.js hoặc định nghĩa ở đây
-    if (typeof closeModal !== 'function') {
-        window.closeModal = function(modalId) {
-            document.getElementById(modalId).style.display = "none";
-        }
-    }
-
-    // Logic modal click outside
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = "none";
-        }
-    }
-
-    // Logic riêng cho Products page cần được load
-    function showProductDetails(sourceId) {
-        // Lấy nội dung từ div ẩn và gán vào modal
-        var sourceContent = document.getElementById(sourceId);
-        if(sourceContent) {
-            document.getElementById('viewDetailContent').innerHTML = sourceContent.innerHTML;
-            document.getElementById('viewDetailModal').style.display = "block";
-        }
-    }
-</script>
 </body>
 </html>

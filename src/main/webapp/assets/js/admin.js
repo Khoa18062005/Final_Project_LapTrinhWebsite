@@ -480,3 +480,11 @@ window.onclick = function(event) {
     }
 }
 
+// Show Product Details Modal (used in products.jsp)
+function showProductDetails(sourceId) {
+    var sourceContent = document.getElementById(sourceId);
+    if(sourceContent) {
+        document.getElementById('viewDetailContent').innerHTML = sourceContent.innerHTML;
+        document.getElementById('viewDetailModal').classList.add('show');
+    }
+}
