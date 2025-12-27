@@ -400,3 +400,32 @@ body {
     position: relative;
     z-index: 1;                    /* Thấp hơn nhiều */
 }
+
+/* ===== FIX ALERT MESSAGE KHÔNG ĐỂ LẠI KHOẢNG TRẮNG ===== */
+.alert-container {
+    padding: 12px 0;
+    margin: 0 !important;
+}
+
+.alert-container .alert {
+    margin-bottom: 0 !important;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Categories không có margin-top mặc định */
+.categories {
+    margin-top: 0px !important;
+}
+
+/* Khi có alert, categories tự động cách xuống */
+body:has(.alert-container) .categories {
+    margin-top: 12px;
+}
+
+/* Ẩn hoàn toàn container khi alert đã đóng */
+.alert-container:not(:has(.alert.show)) {
+    display: none !important;
+    padding: 0 !important;
+    height: 0 !important;
+}
