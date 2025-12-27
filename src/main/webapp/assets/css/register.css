@@ -1,47 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* ===== RESET ===== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: "Roboto", sans-serif;
 }
 
-/* ===== MÀU CHỦ ĐẠO ===== */
+/* ===== MÀU CHỦ ĐẠO - MODERN PALETTE ===== */
 :root {
-    --primary-color: #0d6efd;     /* xanh bootstrap */
-    --primary-light: #3b82f6;
-    --primary-dark: #0a58ca;
+    --primary: #2563eb;           /* Blue 600 */
+    --primary-hover: #1d4ed8;     /* Blue 700 */
+    --primary-light: #dbeafe;     /* Blue 100 */
+    --success: #16a34a;           /* Green 600 */
+    --success-light: #dcfce7;     /* Green 100 */
+    --error: #dc2626;             /* Red 600 */
+    --error-light: #fee2e2;       /* Red 100 */
+    --text-primary: #111827;      /* Gray 900 */
+    --text-secondary: #6b7280;    /* Gray 500 */
+    --border: #e5e7eb;            /* Gray 200 */
+    --bg-main: #f9fafb;           /* Gray 50 */
 }
 
-/* ===== BACKGROUND XANH DƯƠNG DỊU ===== */
+/* ===== BACKGROUND ===== */
 body {
     min-height: 100vh;
-    background: linear-gradient(
-            135deg,
-            #0d6efd,
-            #1e40af
-    );
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
     align-items: center;
     justify-content: center;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 40px 20px;
 }
 
 /* ===== CARD ===== */
 .card {
     background: #ffffff;
     border-radius: 16px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
     overflow: hidden;
-    animation: fadeIn 0.6s ease;
+    max-width: 520px;
+    width: 100%;
+    animation: fadeIn 0.4s ease;
 }
 
-/* hiệu ứng xuất hiện */
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -51,132 +57,310 @@ body {
 
 /* ===== HEADER ===== */
 .card-header {
-    background: linear-gradient(
-            135deg,
-            var(--primary-color),
-            var(--primary-light)
-    ) !important;
-    padding: 18px;
-    border-bottom: none;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%) !important;
+    padding: 32px 24px !important;
+    border-bottom: none !important;
 }
 
 .card-header h3 {
     font-weight: 700;
-    letter-spacing: 1px;
+    font-size: 24px;
+    letter-spacing: -0.5px;
+    margin: 0;
 }
 
 /* ===== BODY ===== */
 .card-body {
-    background-color: #f8faff;
-    padding: 26px;
+    background-color: #ffffff;
+    padding: 32px 24px;
 }
 
 /* ===== LABEL ===== */
 .form-label {
     font-weight: 600;
-    color: #333;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    display: block;
 }
 
 /* ===== INPUT ===== */
-.form-control,
-.control {
-    border-radius: 10px;
-    padding: 11px 14px;
-    border: 1px solid #d0d7e2;
-    transition: all 0.25s ease;
-}
-
-.form-control:focus,
-.control:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.18rem rgba(13, 110, 253, 0.25);
+.form-control {
+    border-radius: 8px;
+    padding: 12px 16px;
+    border: 1.5px solid var(--border);
+    transition: all 0.2s ease;
+    font-size: 15px;
+    color: var(--text-primary);
     background-color: #ffffff;
 }
 
-/* ===== RADIO ===== */
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    outline: none;
+    background-color: #ffffff;
+}
+
+.form-control::placeholder {
+    color: var(--text-secondary);
+}
+
+/* ===== INPUT GROUP (Email + Button) ===== */
+.input-group {
+    display: flex;
+    gap: 8px;
+}
+
+.input-group .form-control {
+    flex: 1;
+}
+
+.input-group .btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* ===== VALIDATION STATES ===== */
+.form-control.is-valid {
+    border-color: var(--success);
+    background-color: #ffffff;
+}
+
+.form-control.is-valid:focus {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px var(--success-light);
+}
+
+.form-control.is-invalid {
+    border-color: var(--error);
+    background-color: #ffffff;
+}
+
+.form-control.is-invalid:focus {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px var(--error-light);
+}
+
+.invalid-feedback {
+    color: var(--error);
+    font-size: 13px;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+/* ===== RADIO BUTTONS ===== */
 .form-check-input {
     cursor: pointer;
+    width: 20px;
+    height: 20px;
+    margin-top: 0;
+    border: 2px solid var(--border);
 }
 
 .form-check-input:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+    background-color: var(--primary);
+    border-color: var(--primary);
 }
 
-/* ===== BUTTON ===== */
+.form-check-input:focus {
+    box-shadow: 0 0 0 3px var(--primary-light);
+    border-color: var(--primary);
+}
+
+.form-check-label {
+    font-size: 15px;
+    color: var(--text-primary);
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+/* ===== BUTTONS ===== */
 .btn {
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 8px;
+    padding: 12px 24px;
     font-weight: 600;
-    transition: all 0.25s ease;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
 }
 
-/* nút đăng ký */
 .btn-primary {
-    background: linear-gradient(
-            135deg,
-            var(--primary-color),
-            var(--primary-dark)
-    );
-    border: none;
+    background: var(--primary);
+    color: white;
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(13, 110, 253, 0.4);
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
-/* nút reset */
+.btn-primary:disabled {
+    background: var(--border);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
+.btn-outline-primary {
+    background: transparent;
+    color: var(--primary);
+    border: 1.5px solid var(--primary);
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-outline-primary:disabled {
+    border-color: var(--border);
+    color: var(--text-secondary);
+    cursor: not-allowed;
+}
+
 .btn-secondary {
-    background-color: #6c757d;
-    border: none;
+    background: #f3f4f6;
+    color: var(--text-primary);
 }
 
 .btn-secondary:hover {
-    background-color: #5a6268;
+    background: #e5e7eb;
 }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 576px) {
-    .card-body {
-        padding: 20px;
-    }
-
-    .card-header h3 {
-        font-size: 18px;
-    }
-}
-/* ===== FIX ROW HỌ & TÊN ===== */
+/* ===== ROW HỌ & TÊN ===== */
 .row.mb-3 {
     display: flex;
     gap: 16px;
 }
 
-/* mỗi cột */
 .row.mb-3 .col {
-    display: flex;
-    flex-direction: column;
+    flex: 1;
 }
 
-/* label 2 bên thẳng hàng */
-.row.mb-3 .form-label {
+/* ===== SMALL TEXT (Helper) ===== */
+small.text-muted {
+    color: var(--text-secondary);
+    font-size: 13px;
+    display: block;
+    margin-top: 6px;
+}
+
+/* ===== OTP TIMER ===== */
+#otpTimer {
+    display: block;
+    margin-top: 8px;
+    padding: 12px 16px;
+    background: var(--success-light);
+    border-radius: 8px;
+    border: 1.5px solid var(--success);
+    font-size: 14px;
     font-weight: 600;
-    margin-bottom: 6px;
-    min-height: 24px; /* giữ label cùng cao */
+    color: var(--success);
 }
 
-/* input họ & tên */
-.row.mb-3 input {
-    height: 46px;                /* CHUẨN HOÁ chiều cao */
-    border-radius: 12px;
-    padding: 10px 14px;
-    border: 1px solid #d0d7e2;
-    font-size: 15px;
+#otpTimer span {
+    font-weight: 700;
+    color: var(--success);
 }
 
-/* focus */
-.row.mb-3 input:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.18rem rgba(13, 110, 253, 0.25);
-    outline: none;
+#otpTimer.text-danger {
+    background: var(--error-light);
+    border-color: var(--error);
+    color: var(--error);
+}
+
+#otpTimer.text-danger span {
+    color: var(--error);
+}
+
+/* ===== ALERTS ===== */
+.alert {
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    border: none;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: var(--success-light);
+    color: var(--success);
+    border-left: 4px solid var(--success);
+}
+
+.alert-danger {
+    background: var(--error-light);
+    color: var(--error);
+    border-left: 4px solid var(--error);
+}
+
+.alert .btn-close {
+    padding: 8px;
+    opacity: 0.5;
+}
+
+.alert .btn-close:hover {
+    opacity: 1;
+}
+
+/* ===== LINKS ===== */
+a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--primary-hover);
+    text-decoration: underline;
+}
+
+.text-muted a {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.text-muted a:hover {
+    color: var(--text-primary);
+}
+
+/* ===== SPACING ===== */
+.mb-3 {
+    margin-bottom: 20px;
+}
+
+.mt-3 {
+    margin-top: 24px;
+}
+
+.mt-2 {
+    margin-top: 16px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 576px) {
+    body {
+        padding: 20px 16px;
+    }
+
+    .card-header {
+        padding: 24px 20px !important;
+    }
+
+    .card-header h3 {
+        font-size: 20px;
+    }
+
+    .card-body {
+        padding: 24px 20px;
+    }
+
+    .row.mb-3 {
+        flex-direction: column;
+        gap: 20px;
+    }
 }

@@ -1,5 +1,8 @@
 package viettech.entity.delivery;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import viettech.entity.user.Shipper;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -45,6 +48,18 @@ public class DeliveryAssignment {
 
     @Column(name = "feedback")
     private String feedback;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "shipper_id", insertable = false, updatable = false)
+    private Shipper shipper;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "delivery_id", insertable = false, updatable = false)
+    private Delivery delivery;
 
     /* =========================
        CONSTRUCTORS
@@ -176,5 +191,21 @@ public class DeliveryAssignment {
 
     public void setFeedback(String feedback) {
         this.feedback = feedback != null ? feedback : "";
+    }
+
+    public Shipper getShipper() {
+        return shipper;
+    }
+
+    public void setShipper(Shipper shipper) {
+        this.shipper = shipper;
+    }
+
+    public Delivery getDelivery() {
+        return delivery;
+    }
+
+    public void setDelivery(Delivery delivery) {
+        this.delivery = delivery;
     }
 }

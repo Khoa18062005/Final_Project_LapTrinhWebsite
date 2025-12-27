@@ -1,9 +1,9 @@
 package viettech.entity.user;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.PrimaryKeyJoinColumn;
-import javax.persistence.Table;
+import viettech.entity.delivery.DeliveryAssignment;
+
+import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "shippers")
@@ -33,6 +33,13 @@ public class Shipper extends User {
 
     @Column(name = "total_deliveries", nullable = false)
     private int totalDeliveries;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @OneToMany(mappedBy = "shipper")
+    private List<DeliveryAssignment> assignments;
 
     /* =========================
        CONSTRUCTORS
@@ -149,5 +156,13 @@ public class Shipper extends User {
 
     public void setTotalDeliveries(int totalDeliveries) {
         this.totalDeliveries = totalDeliveries;
+    }
+
+    public List<DeliveryAssignment> getAssignments() {
+        return assignments;
+    }
+
+    public void setAssignments(List<DeliveryAssignment> assignments) {
+        this.assignments = assignments;
     }
 }

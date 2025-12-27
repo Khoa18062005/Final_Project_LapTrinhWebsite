@@ -1,7 +1,10 @@
 package viettech.entity.voucher;
 
+import viettech.entity.order.Order;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "vouchers")
@@ -74,6 +77,15 @@ public class Voucher {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at", nullable = false)
     private Date createdAt;
+
+    /* =========================
+       MAPPING
+       ========================= */
+    @OneToMany(mappedBy = "voucher")
+    private List<Order> order;
+
+    @OneToMany(mappedBy = "voucher")
+    private List<VoucherUsage> voucherUsage;
 
     /* =========================
        CONSTRUCTORS
@@ -310,5 +322,25 @@ public class Voucher {
 
     public Date getCreatedAt() {
         return createdAt;
+    }
+
+    public List<Order> getOrder() {
+        return order;
+    }
+
+    public void setOrder(List<Order> order) {
+        this.order = order;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public List<VoucherUsage> getVoucherUsage() {
+        return voucherUsage;
+    }
+
+    public void setVoucherUsage(List<VoucherUsage> voucherUsage) {
+        this.voucherUsage = voucherUsage;
     }
 }

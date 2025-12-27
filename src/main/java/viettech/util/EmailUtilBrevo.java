@@ -1,0 +1,249 @@
+package viettech.util;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.Random;
+
+/**
+ * Email Utility using Brevo API (formerly Sendinblue)
+ * @author VietTech Team
+ */
+public class EmailUtilBrevo {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmailUtilBrevo.class);
+    private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+    private static final String SENDER_EMAIL = "huyalex009@gmail.com"; // ← Email gửi đi
+    private static final String SENDER_NAME = "VietTech";
+
+    /**
+     * Tạo mã OTP ngẫu nhiên 6 số
+     */
+    public static String generateOTP() {
+        Random random = new Random();
+        int otp = 100000 + random.nextInt(900000); // 100000 - 999999
+        return String.valueOf(otp);
+    }
+
+    /**
+     * Gửi OTP qua email bằng Brevo API
+     * @param toEmail Email người nhận
+     * @param otp Mã OTP
+     * @return true nếu gửi thành công, false nếu thất bại
+     */
+    public static boolean sendOTP(String toEmail, String otp) {
+        String subject = "Mã OTP xác thực tài khoản VietTech";
+        String htmlContent = buildOTPEmailTemplate(otp);
+        
+        try {
+            sendMail(toEmail, SENDER_EMAIL, subject, htmlContent, true);
+            logger.info("✓ OTP sent successfully to: {}", toEmail);
+            return true;
+        } catch (IOException e) {
+            logger.error("✗ Failed to send OTP to: {}", toEmail, e);
+            return false;
+        }
+    }
+
+    /**
+     * Gửi email thông thường
+     */
+    public static void sendMail(String to, String from, String subject, String body, boolean bodyIsHTML)
+            throws IOException {
+
+        try {
+            // 1. Lấy API Key
+            String apiKey = System.getenv("BREVO_API_KEY");
+            if (apiKey == null || apiKey.isEmpty()) {
+                logger.error("✗ Missing BREVO_API_KEY environment variable");
+                throw new IOException("Missing BREVO_API_KEY environment variable");
+            }
+
+            // 2. Tạo JSON Body
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode rootNode = mapper.createObjectNode();
+
+            // Sender
+            ObjectNode senderNode = mapper.createObjectNode();
+            senderNode.put("name", SENDER_NAME);
+            senderNode.put("email", from);
+            rootNode.set("sender", senderNode);
+
+            // Receiver
+            ArrayNode toArray = mapper.createArrayNode();
+            ObjectNode toItem = mapper.createObjectNode();
+            toItem.put("email", to);
+            toArray.add(toItem);
+            rootNode.set("to", toArray);
+
+            // Subject & Body
+            rootNode.put("subject", subject);
+            if (bodyIsHTML) {
+                rootNode.put("htmlContent", body);
+            } else {
+                rootNode.put("textContent", body);
+            }
+
+            String jsonString = mapper.writeValueAsString(rootNode);
+
+            // 3. Gửi HTTP Request
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(10))
+                    .build();
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BREVO_API_URL))
+                    .header("api-key", apiKey)
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonString))
+                    .build();
+
+            // 4. Nhận response
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            int statusCode = response.statusCode();
+            String responseBody = response.body();
+
+            // 5. Kiểm tra kết quả
+            if (statusCode >= 200 && statusCode < 300) {
+                logger.info("✓ Email sent successfully via Brevo API to: {}", to);
+            } else {
+                logger.error("✗ Failed to send email via Brevo. Status: {}", statusCode);
+                logger.error("Response Body: {}", responseBody);
+                throw new IOException("Brevo API Error: " + responseBody);
+            }
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logger.error("✗ Sending email interrupted", e);
+            throw new IOException("Sending email interrupted", e);
+        } catch (Exception e) {
+            logger.error("✗ Error sending email via Brevo API", e);
+            throw new IOException("Error sending email via Brevo API: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Kiểm tra OTP có hợp lệ không
+     */
+    public static boolean verifyOTP(String inputOTP, String savedOTP, long createdTime) {
+        if (inputOTP == null || savedOTP == null) {
+            return false;
+        }
+
+        if (!inputOTP.trim().equals(savedOTP)) {
+            logger.warn("✗ OTP mismatch: input={}, saved={}", inputOTP, savedOTP);
+            return false;
+        }
+
+        // Kiểm tra thời gian (5 phút = 300000ms)
+        long currentTime = System.currentTimeMillis();
+        long otpAge = currentTime - createdTime;
+        if (otpAge > 90000) {
+            logger.warn("✗ OTP expired. Age: {} ms", otpAge);
+            return false;
+        }
+
+        logger.info("✓ OTP verified successfully");
+        return true;
+    }
+
+    /**
+     * Template email OTP đẹp
+     */
+    private static String buildOTPEmailTemplate(String otp) {
+        return String.format("""
+                <!DOCTYPE html>
+                <html lang="vi">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Mã OTP VietTech</title>
+                </head>
+                <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+                    <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f4; padding: 40px 0;">
+                        <tr>
+                            <td align="center">
+                                <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                    <!-- Header -->
+                                    <tr>
+                                        <td align="center" style="padding: 30px 20px; background: linear-gradient(135deg, #0d6efd, #1e40af); border-radius: 10px 10px 0 0;">
+                                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                                🎉 Chào mừng đến với VietTech!
+                                            </h1>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Body -->
+                                    <tr>
+                                        <td style="padding: 40px 30px;">
+                                            <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                                Cảm ơn bạn đã đăng ký tài khoản tại <strong>VietTech</strong>. 
+                                                Để hoàn tất đăng ký, vui lòng nhập mã OTP bên dưới:
+                                            </p>
+                                            
+                                            <!-- OTP Box -->
+                                            <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="margin: 30px 0;">
+                                                <tr>
+                                                    <td align="center">
+                                                        <div style="background: linear-gradient(135deg, #f0f8ff, #e6f3ff); 
+                                                                    border: 2px dashed #0d6efd; 
+                                                                    border-radius: 8px; 
+                                                                    padding: 25px; 
+                                                                    text-align: center;">
+                                                            <div style="font-size: 36px; 
+                                                                        font-weight: bold; 
+                                                                        color: #0d6efd; 
+                                                                        letter-spacing: 8px; 
+                                                                        font-family: 'Courier New', monospace;">
+                                                                %s
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                            
+                                            <p style="margin: 20px 0; font-size: 14px; color: #666666; line-height: 1.6;">
+                                                <strong>⏰ Lưu ý:</strong> Mã OTP có hiệu lực trong <strong>90 giây</strong>.
+                                            </p>
+                                            
+                                            <p style="margin: 20px 0; font-size: 14px; color: #999999; line-height: 1.6;">
+                                                Nếu bạn không yêu cầu đăng ký tài khoản, vui lòng bỏ qua email này.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                    
+                                    <!-- Footer -->
+                                    <tr>
+                                        <td align="center" style="padding: 20px; background-color: #f8f9fa; border-radius: 0 0 10px 10px;">
+                                            <p style="margin: 0; font-size: 12px; color: #999999;">
+                                                © 2025 <strong>VietTech</strong> - Sàn Thương Mại Điện Tử
+                                            </p>
+                                            <p style="margin: 5px 0 0; font-size: 12px; color: #999999;">
+                                                📧 Email này được gửi tự động, vui lòng không trả lời.
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+                """, otp);
+    }
+
+    private EmailUtilBrevo() {
+        throw new AssertionError("Cannot instantiate utility class");
+    }
+}

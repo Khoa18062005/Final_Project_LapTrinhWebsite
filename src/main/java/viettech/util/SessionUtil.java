@@ -92,14 +92,14 @@ public class SessionUtil {
      * Kiểm tra user đã đăng nhập chưa
      */
     public static boolean isAuthenticated(HttpServletRequest request) {
-        return getAttribute(request, "auth") != null;
+        return getAttribute(request, "user") != null;
     }
 
     /**
      * Lấy user hiện tại
      */
     public static <T> T getCurrentUser(HttpServletRequest request, Class<T> type) {
-        return getAttribute(request, "auth", type);
+        return getAttribute(request, "user", type);
     }
 
     private SessionUtil() {

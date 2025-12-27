@@ -1,7 +1,10 @@
 package viettech.entity.wishlist;
 
+import viettech.entity.user.Customer;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "wishlists")
@@ -31,6 +34,17 @@ public class Wishlist {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
     private Date updatedAt;
+
+    /* ==========================
+       MAPPING
+       ===========================*/
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false)
+    private Customer customer;
+
+    @OneToMany(mappedBy = "wishlist", fetch = FetchType.LAZY)
+    private List<WishlistItem> wishlistItems;
 
     /* =========================
        CONSTRUCTORS

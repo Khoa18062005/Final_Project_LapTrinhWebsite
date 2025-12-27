@@ -35,6 +35,18 @@ public class ProductImage {
     private Date uploadedAt;
 
     /* =======================
+       MAPPING
+       ======================= */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
+
+    @ManyToOne
+    @JoinColumn(name = "varient_id", insertable = false, updatable = false)
+    private Variant variant;
+
+    /* =======================
        CONSTRUCTORS
        ======================= */
 
@@ -126,6 +138,14 @@ public class ProductImage {
 
     public void setUploadedAt(Date uploadedAt) {
         this.uploadedAt = uploadedAt;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
 }

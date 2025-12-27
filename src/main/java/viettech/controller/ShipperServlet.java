@@ -21,6 +21,7 @@ public class ShipperServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+
         // 1. Lấy Session hiện tại (false: không tạo mới nếu chưa có)
         HttpSession session = request.getSession(false);
 

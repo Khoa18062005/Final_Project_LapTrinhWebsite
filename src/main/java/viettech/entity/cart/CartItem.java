@@ -4,7 +4,12 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "cart_items")
+@Table(
+        name = "cart_items",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"cart_id", "variant_id"})
+        }
+)
 public class CartItem {
 
     @Id
@@ -12,8 +17,18 @@ public class CartItem {
     @Column(name = "cart_item_id")
     private int cartItemId;
 
+    // GIỮ cartId
     @Column(name = "cart_id", nullable = false)
     private int cartId;
+
+    // ➕ CartItem * — 1 Cart
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "cart_id",
+            insertable = false,
+            updatable = false
+    )
+    private Cart cart;
 
     @Column(name = "variant_id", nullable = false)
     private int variantId;
@@ -35,7 +50,6 @@ public class CartItem {
        CONSTRUCTORS
        ========================= */
 
-    // Constructor mặc định (BẮT BUỘC cho JPA)
     public CartItem() {
         this.cartId = 0;
         this.variantId = 0;
@@ -45,7 +59,6 @@ public class CartItem {
         this.addedAt = new Date();
     }
 
-    // Constructor dùng khi tạo CartItem mới
     public CartItem(int cartId,
                     int variantId,
                     int quantity,
@@ -71,16 +84,12 @@ public class CartItem {
         return cartId;
     }
 
-    public void setCartId(int cartId) {
-        this.cartId = cartId;
+    public Cart getCart() {
+        return cart;
     }
 
     public int getVariantId() {
         return variantId;
-    }
-
-    public void setVariantId(int variantId) {
-        this.variantId = variantId;
     }
 
     public int getQuantity() {
@@ -107,10 +116,6 @@ public class CartItem {
 
     public Date getAddedAt() {
         return addedAt;
-    }
-
-    public void setAddedAt(Date addedAt) {
-        this.addedAt = addedAt != null ? addedAt : new Date();
     }
 
     /* =========================

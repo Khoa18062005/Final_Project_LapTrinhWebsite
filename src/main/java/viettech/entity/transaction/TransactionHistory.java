@@ -1,5 +1,7 @@
 package viettech.entity.transaction;
 
+import viettech.entity.order.Order;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -42,6 +44,14 @@ public class TransactionHistory {
 
     @Column(name = "details", columnDefinition = "TEXT")
     private String details;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
 
     /* =========================
        CONSTRUCTORS
@@ -171,5 +181,13 @@ public class TransactionHistory {
 
     public void setDetails(String details) {
         this.details = details != null ? details : "";
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

@@ -1,7 +1,10 @@
 package viettech.entity;
 
+import viettech.entity.order.Order;
+import viettech.entity.user.Customer;
 import javax.persistence.*;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "addresses")
@@ -10,125 +13,106 @@ public class Address {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id")
-    private Long addressId;
+    private int addressId;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    /* =========================
+       RELATIONSHIPS
+       ========================= */
 
-    @Column(nullable = false)
-    private String type;
+    // Address * — 1 Customer
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
 
-    @Column(name = "recipient_name", nullable = false)
-    private String recipientName;
+    // Address 1 — 0..* Order
+    @OneToMany(mappedBy = "address", fetch = FetchType.LAZY)
+    private List<Order> orders = new ArrayList<>();
 
-    @Column(nullable = false)
+    /* =========================
+       ADDRESS FIELDS
+       ========================= */
+
+    @Column(name = "receiver_name", nullable = false)
+    private String receiverName;
+
+    @Column(name = "phone", nullable = false)
     private String phone;
 
-    @Column(name = "address_line", nullable = false)
-    private String addressLine;
+    @Column(name = "street", nullable = false)
+    private String street;
 
-    @Column(nullable = false)
-    private String province;
-
-    @Column(nullable = false)
-    private String district;
-
-    @Column(nullable = false)
+    @Column(name = "ward", nullable = false)
     private String ward;
 
-    private double latitude;
-    private double longitude;
+    @Column(name = "district", nullable = false)
+    private String district;
+
+    @Column(name = "city", nullable = false)
+    private String city;
 
     @Column(name = "is_default", nullable = false)
     private boolean isDefault;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at", nullable = false)
-    private Date createdAt;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "updated_at", nullable = false)
-    private Date updatedAt;
 
     /* =========================
        CONSTRUCTORS
        ========================= */
 
-    // Constructor mặc định (BẮT BUỘC cho JPA)
+    // BẮT BUỘC cho JPA
     public Address() {
-        this.userId = "";
-        this.type = "";
-        this.recipientName = "";
+        this.receiverName = "";
         this.phone = "";
-        this.addressLine = "";
-        this.province = "";
-        this.district = "";
+        this.street = "";
         this.ward = "";
-        this.latitude = 0.0;
-        this.longitude = 0.0;
+        this.district = "";
+        this.city = "";
         this.isDefault = false;
-        this.createdAt = new Date();
-        this.updatedAt = new Date();
     }
 
-    // Constructor dùng khi tạo Address mới
-    public Address(String userId,
-                   String type,
-                   String recipientName,
+    public Address(Customer customer,
+                   String receiverName,
                    String phone,
-                   String addressLine,
-                   String province,
-                   String district,
+                   String street,
                    String ward,
-                   double latitude,
-                   double longitude,
+                   String district,
+                   String city,
                    boolean isDefault) {
 
-        this.userId = userId != null ? userId : "";
-        this.type = type != null ? type : "";
-        this.recipientName = recipientName != null ? recipientName : "";
-        this.phone = phone != null ? phone : "";
-        this.addressLine = addressLine != null ? addressLine : "";
-        this.province = province != null ? province : "";
-        this.district = district != null ? district : "";
-        this.ward = ward != null ? ward : "";
-        this.latitude = latitude;
-        this.longitude = longitude;
+        this.customer = customer;
+        this.receiverName = receiverName;
+        this.phone = phone;
+        this.street = street;
+        this.ward = ward;
+        this.district = district;
+        this.city = city;
         this.isDefault = isDefault;
-        this.createdAt = new Date();
-        this.updatedAt = new Date();
     }
 
     /* =========================
        GETTERS & SETTERS
        ========================= */
 
-    public Long getAddressId() {
+    public int getAddressId() {
         return addressId;
     }
 
-    public String getUserId() {
-        return userId;
+    public Customer getCustomer() {
+        return customer;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId != null ? userId : "";
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 
-    public String getType() {
-        return type;
+    public List<Order> getOrders() {
+        return orders;
     }
 
-    public void setType(String type) {
-        this.type = type != null ? type : "";
+    public String getReceiverName() {
+        return receiverName;
     }
 
-    public String getRecipientName() {
-        return recipientName;
-    }
-
-    public void setRecipientName(String recipientName) {
-        this.recipientName = recipientName != null ? recipientName : "";
+    public void setReceiverName(String receiverName) {
+        this.receiverName = receiverName != null ? receiverName : "";
     }
 
     public String getPhone() {
@@ -139,28 +123,12 @@ public class Address {
         this.phone = phone != null ? phone : "";
     }
 
-    public String getAddressLine() {
-        return addressLine;
+    public String getStreet() {
+        return street;
     }
 
-    public void setAddressLine(String addressLine) {
-        this.addressLine = addressLine != null ? addressLine : "";
-    }
-
-    public String getProvince() {
-        return province;
-    }
-
-    public void setProvince(String province) {
-        this.province = province != null ? province : "";
-    }
-
-    public String getDistrict() {
-        return district;
-    }
-
-    public void setDistrict(String district) {
-        this.district = district != null ? district : "";
+    public void setStreet(String street) {
+        this.street = street != null ? street : "";
     }
 
     public String getWard() {
@@ -171,43 +139,27 @@ public class Address {
         this.ward = ward != null ? ward : "";
     }
 
-    public double getLatitude() {
-        return latitude;
+    public String getDistrict() {
+        return district;
     }
 
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
+    public void setDistrict(String district) {
+        this.district = district != null ? district : "";
     }
 
-    public double getLongitude() {
-        return longitude;
+    public String getCity() {
+        return city;
     }
 
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
+    public void setCity(String city) {
+        this.city = city != null ? city : "";
     }
 
     public boolean isDefault() {
         return isDefault;
     }
 
-    public void setDefault(boolean isDefault) {
-        this.isDefault = isDefault;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt != null ? createdAt : new Date();
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt != null ? updatedAt : new Date();
+    public void setDefault(boolean aDefault) {
+        isDefault = aDefault;
     }
 }

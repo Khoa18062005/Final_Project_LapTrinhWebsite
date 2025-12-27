@@ -1,7 +1,14 @@
 package viettech.entity.review;
 
+import viettech.entity.order.OrderDetail;
+import viettech.entity.product.Product;
+import viettech.entity.product.Variant;
+import viettech.entity.user.Customer;
+import viettech.entity.user.User;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "reviews")
@@ -24,6 +31,42 @@ public class Review {
     @Column(name = "order_detail_id", nullable = false)
     private int orderDetailId;
 
+    /* =========================
+       RELATIONSHIP MAPPINGS
+       ========================= */
+
+    // Review * -- 1 Product
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
+
+    // Review * -- 0..1 Variant
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", insertable = false, updatable = false)
+    private Variant variant;
+
+    // Review * -- 0..1 OrderDetail
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_detail_id", insertable = false, updatable = false)
+    private OrderDetail orderDetail;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", insertable = false, updatable = false)
+    private Customer customer;
+
+    // Review * -- 0..1 ReviewResponse
+    @OneToOne(mappedBy = "review", fetch = FetchType.LAZY)
+    private ReviewResponse response;
+
+    // Review 1 -- 0..* ReviewVote
+    @OneToMany(mappedBy = "review", fetch = FetchType.LAZY)
+    private List<ReviewVote> votes;
+
+
+    /* =========================
+       REVIEW DATA
+       ========================= */
+
     @Column(name = "rating", nullable = false)
     private int rating;
 
@@ -41,12 +84,6 @@ public class Review {
     @Column(name = "updated_at")
     private Date updatedAt;
 
-    @Column(name = "images", columnDefinition = "TEXT")
-    private String images;
-
-    @Column(name = "videos", columnDefinition = "TEXT")
-    private String videos;
-
     @Column(name = "likes", nullable = false)
     private int likes;
 
@@ -59,231 +96,39 @@ public class Review {
     @Column(name = "is_verified_purchase", nullable = false)
     private boolean isVerifiedPurchase;
 
-    @Column(name = "status", length = 50, nullable = false)
+    @Column(name = "status", nullable = false)
     private String status;
 
-    @Column(name = "moderated_by", length = 100)
-    private String moderatedBy;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "moderated_at")
-    private Date moderatedAt;
-
     /* =========================
-       CONSTRUCTORS
+       CONSTRUCTOR
        ========================= */
 
-    // Constructor mặc định (BẮT BUỘC cho JPA)
     public Review() {
-        this.productId = 0;
-        this.variantId = 0;
-        this.customerId = 0;
-        this.orderDetailId = 0;
-        this.rating = 0;
-        this.likes = 0;
-        this.dislikes = 0;
-        this.helpfulCount = 0;
-        this.isVerifiedPurchase = false;
-
-        this.title = "";
-        this.comment = "";
-        this.images = "";
-        this.videos = "";
-        this.status = "";
-        this.moderatedBy = "";
-
         this.reviewDate = new Date();
-        this.updatedAt = new Date();
-        this.moderatedAt = new Date();
-    }
-
-    // Constructor đầy đủ tham số (KHÔNG có reviewId)
-    public Review(int productId,
-                  int variantId,
-                  int customerId,
-                  int orderDetailId,
-                  int rating,
-                  String title,
-                  String comment,
-                  Date reviewDate,
-                  String images,
-                  String videos,
-                  int likes,
-                  int dislikes,
-                  int helpfulCount,
-                  boolean isVerifiedPurchase,
-                  String status,
-                  String moderatedBy,
-                  Date moderatedAt) {
-
-        this.productId = productId;
-        this.variantId = variantId;
-        this.customerId = customerId;
-        this.orderDetailId = orderDetailId;
-        this.rating = rating;
-        this.title = title != null ? title : "";
-        this.comment = comment != null ? comment : "";
-        this.reviewDate = reviewDate;
-        this.images = images != null ? images : "";
-        this.videos = videos != null ? videos : "";
-        this.likes = likes;
-        this.dislikes = dislikes;
-        this.helpfulCount = helpfulCount;
-        this.isVerifiedPurchase = isVerifiedPurchase;
-        this.status = status != null ? status : "";
-        this.moderatedBy = moderatedBy != null ? moderatedBy : "";
-        this.moderatedAt = moderatedAt;
         this.updatedAt = new Date();
     }
 
     /* =========================
-       GETTERS & SETTERS
+       GETTERS
        ========================= */
 
     public int getReviewId() {
         return reviewId;
     }
 
-    public int getProductId() {
-        return productId;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setProductId(int productId) {
-        this.productId = productId;
+    public Variant getVariant() {
+        return variant;
     }
 
-    public int getVariantId() {
-        return variantId;
+    public ReviewResponse getResponse() {
+        return response;
     }
 
-    public void setVariantId(int variantId) {
-        this.variantId = variantId;
-    }
-
-    public int getCustomerId() {
-        return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
-
-    public int getOrderDetailId() {
-        return orderDetailId;
-    }
-
-    public void setOrderDetailId(int orderDetailId) {
-        this.orderDetailId = orderDetailId;
-    }
-
-    public int getRating() {
-        return rating;
-    }
-
-    public void setRating(int rating) {
-        this.rating = rating;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title != null ? title : "";
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment != null ? comment : "";
-        this.updatedAt = new Date();
-    }
-
-    public Date getReviewDate() {
-        return reviewDate;
-    }
-
-    public void setReviewDate(Date reviewDate) {
-        this.reviewDate = reviewDate;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public String getImages() {
-        return images;
-    }
-
-    public void setImages(String images) {
-        this.images = images != null ? images : "";
-        this.updatedAt = new Date();
-    }
-
-    public String getVideos() {
-        return videos;
-    }
-
-    public void setVideos(String videos) {
-        this.videos = videos != null ? videos : "";
-        this.updatedAt = new Date();
-    }
-
-    public int getLikes() {
-        return likes;
-    }
-
-    public void setLikes(int likes) {
-        this.likes = likes;
-    }
-
-    public int getDislikes() {
-        return dislikes;
-    }
-
-    public void setDislikes(int dislikes) {
-        this.dislikes = dislikes;
-    }
-
-    public int getHelpfulCount() {
-        return helpfulCount;
-    }
-
-    public void setHelpfulCount(int helpfulCount) {
-        this.helpfulCount = helpfulCount;
-    }
-
-    public boolean isVerifiedPurchase() {
-        return isVerifiedPurchase;
-    }
-
-    public void setVerifiedPurchase(boolean verifiedPurchase) {
-        isVerifiedPurchase = verifiedPurchase;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status != null ? status : "";
-    }
-
-    public String getModeratedBy() {
-        return moderatedBy;
-    }
-
-    public void setModeratedBy(String moderatedBy) {
-        this.moderatedBy = moderatedBy != null ? moderatedBy : "";
-    }
-
-    public Date getModeratedAt() {
-        return moderatedAt;
-    }
-
-    public void setModeratedAt(Date moderatedAt) {
-        this.moderatedAt = moderatedAt;
+    public List<ReviewVote> getVotes() {
+        return votes;
     }
 }

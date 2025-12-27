@@ -1,5 +1,8 @@
 package viettech.entity.wishlist;
 
+import viettech.entity.product.Product;
+import viettech.entity.product.Variant;
+
 import javax.persistence.*;
 import java.util.Date;
 
@@ -36,6 +39,22 @@ public class WishlistItem {
 
     @Column(name = "notes")
     private String notes;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "wishlist_id", insertable = false, updatable = false)
+    private Wishlist wishlist;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", insertable = false, updatable = false)
+    private Variant variant;
 
     /* =========================
        CONSTRUCTORS

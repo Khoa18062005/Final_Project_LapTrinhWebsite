@@ -1,5 +1,8 @@
 package viettech.entity.order;
 
+import viettech.entity.product.Product;
+import viettech.entity.product.Variant;
+
 import javax.persistence.*;
 
 @Entity
@@ -40,6 +43,22 @@ public class OrderDetail {
 
     @Column(nullable = false, length = 50)
     private String status;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    private Order order;
+
+    @ManyToOne
+    @JoinColumn(name = "varient_id", insertable = false, updatable = false)
+    private Variant variant;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
 
     /* =========================
        CONSTRUCTORS
@@ -166,5 +185,13 @@ public class OrderDetail {
 
     public void setStatus(String status) {
         this.status = status != null ? status : "";
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

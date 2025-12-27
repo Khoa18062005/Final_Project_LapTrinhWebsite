@@ -1,7 +1,10 @@
 package viettech.entity.payment;
 
+import viettech.entity.order.Order;
+
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "payments")
@@ -55,6 +58,17 @@ public class Payment {
 
     @Column(name = "metadata")
     private String metadata;
+
+    /* =========================
+       MAPPING
+       ========================= */
+
+    @ManyToOne
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    private Order order;
+
+    @OneToMany(mappedBy = "payment", fetch = FetchType.LAZY)
+    private List<Refund> refunds;
 
     /* =========================
        CONSTRUCTORS
@@ -230,5 +244,13 @@ public class Payment {
 
     public void setMetadata(String metadata) {
         this.metadata = metadata != null ? metadata : "";
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

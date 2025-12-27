@@ -15,21 +15,14 @@
     </appender>
 
     <!-- ========================================
-         File Appender (for Production)
+         File Appender (GHI ĐÈ mỗi lần khởi động)
          ======================================== -->
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
         <!-- ✅ Sử dụng property -->
         <file>${LOG_DIR}/viettech.log</file>
 
-        <!-- Rolling Policy: Daily rotation -->
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <!-- Daily rollover -->
-            <fileNamePattern>${LOG_DIR}/viettech-%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- Keep 30 days worth of history -->
-            <maxHistory>30</maxHistory>
-            <!-- Max total size of all log files: 1GB -->
-            <totalSizeCap>1GB</totalSizeCap>
-        </rollingPolicy>
+        <!-- ✅ QUAN TRỌNG: append=false để ghi đè -->
+        <append>false</append>
 
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n</pattern>
@@ -38,11 +31,14 @@
     </appender>
 
     <!-- ========================================
-         Error File Appender (Only Errors)
+         Error File Appender (GHI ĐÈ mỗi lần khởi động)
          ======================================== -->
-    <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <appender name="ERROR_FILE" class="ch.qos.logback.core.FileAppender">
         <!-- ✅ Sử dụng property -->
         <file>${LOG_DIR}/error.log</file>
+
+        <!-- ✅ QUAN TRỌNG: append=false để ghi đè -->
+        <append>false</append>
 
         <!-- Only log ERROR level -->
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -50,13 +46,6 @@
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
-
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/error-%d{yyyy-MM-dd}.log</fileNamePattern>
-            <!-- Keep error logs for 90 days -->
-            <maxHistory>90</maxHistory>
-            <totalSizeCap>500MB</totalSizeCap>
-        </rollingPolicy>
 
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n%ex{full}</pattern>
@@ -86,8 +75,8 @@
 
     <!-- Hibernate: Only WARN and above -->
     <logger name="org.hibernate" level="WARN" />
-    <logger name="org.hibernate.SQL" level="DEBUG" />  <!-- See SQL queries -->
-    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />  <!-- See SQL parameters -->
+    <logger name="org.hibernate.SQL" level="DEBUG" />
+    <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
 
     <!-- HikariCP: INFO level -->
     <logger name="com.zaxxer.hikari" level="INFO" />
