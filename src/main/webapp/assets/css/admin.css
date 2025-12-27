@@ -1023,3 +1023,609 @@ textarea.form-control {
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
+/* Badge Type */
+.badge-type {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: white;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.badge-type.phone {
+    background-color: #3498db;
+}
+
+.badge-type.laptop {
+    background-color: #e67e22;
+}
+
+.badge-type.tablet {
+    background-color: #9b59b6;
+}
+
+.badge-type.accessory {
+    background-color: #2ecc71;
+}
+
+/* Product Detail Modal */
+.spec-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+}
+
+.spec-table th,
+.spec-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    vertical-align: top;
+}
+
+.spec-table th {
+    width: 35%;
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+}
+
+.spec-title {
+    margin: 20px 0 10px 0;
+    color: #2c3e50;
+    border-left: 4px solid #007bff;
+    padding-left: 10px;
+    font-size: 1.1rem;
+}
+
+.product-detail-header {
+    border-bottom: 2px solid #f1f1f1;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+#viewDetailModal .modal-content {
+    max-width: 900px;
+    width: 90%;
+}
+
+/* Filter Section */
+.filter-section {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-section select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    min-width: 200px;
+}
+
+.filter-section form {
+    margin: 0;
+}
+
+/* Sidebar Collapsed Mode - Ẩn chữ, giữ icon */
+.sidebar.collapsed {
+    width: 70px;
+    transform: translateX(0);
+}
+
+.sidebar.collapsed .logo h2 {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item span {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 12px;
+}
+
+.sidebar.collapsed .nav-item i {
+    margin: 0;
+}
+
+.sidebar.collapsed .sidebar-footer .nav-item span {
+    display: none;
+}
+
+.main-content.collapsed {
+    margin-left: 70px;
+}
+
+/* Alert Messages */
+.alert {
+    padding: 10px 15px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert i {
+    font-size: 16px;
+}
+
+/* Product Table Styles */
+.product-slug {
+    color: #888;
+}
+
+.vendor-code {
+    font-family: monospace;
+    background: #f1f1f1;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+/* Button Icon Styles */
+.btn-icon {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.btn-icon.view {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-icon.edit {
+    background: #3498db;
+    color: white;
+}
+
+.btn-icon.delete {
+    background: #e74c3c;
+    color: white;
+}
+
+.btn-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Product Detail Hidden */
+.product-detail-hidden {
+    display: none;
+}
+
+/* Spec Table Group Header */
+.spec-table th[colspan="2"] {
+    background: #e9ecef !important;
+}
+
+/* Empty Table State */
+.empty-state {
+    text-align: center;
+    padding: 20px;
+}
+
+.empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* In Progress Message */
+.in-progress {
+    padding: 15px;
+}
+
+/* Form Row */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Required Field */
+.required {
+    color: red;
+}
+
+/* Delete Form Inline */
+.delete-form {
+    display: inline;
+}
+
+/* Modal Footer Styles */
+.modal-footer-actions {
+    border-top: 1px solid #dee2e6;
+}
+
+.modal-header.modal-footer-actions {
+    border-top: none;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Modal Body Scroll */
+.modal-body-scroll {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+/* =============================================
+   ENHANCED ADMIN UI STYLES
+   ============================================= */
+
+/* Enhanced Badge Type Styles */
+.badge-type i {
+    margin-right: 4px;
+}
+
+/* Enhanced Spec Table Styles */
+.spec-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.spec-group-header {
+    background-color: #e9ecef !important;
+    font-weight: 700 !important;
+    color: #2c3e50 !important;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+/* Utility Classes */
+.text-success {
+    color: #28a745;
+}
+
+.text-danger {
+    color: #dc3545;
+}
+
+.text-muted {
+    color: #6c757d;
+}
+
+/* Enhanced Modal Styles for View Detail */
+#viewDetailModal .modal-content {
+    max-width: 900px;
+    width: 95%;
+}
+
+/* Enhanced Filter Section */
+.filter-section label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #495057;
+    font-weight: 600;
+}
+
+.filter-section label i {
+    color: #4880ff;
+}
+
+/* Custom Modal Scrollbar */
+.modal .modal-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal .modal-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.modal .modal-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.modal .modal-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Spec Table Header Centered */
+.spec-table th.centered {
+    text-align: center;
+    background-color: #f1f3f5;
+    color: #333;
+}
+
+/* Enhanced Stat Cards with Gradient Effects */
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    border-radius: 14px 14px 0 0;
+    background: linear-gradient(90deg, #4880ff, #00b69b);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+/* Enhanced Table Row Hover Effect */
+.data-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.data-table tbody tr:hover {
+    background: linear-gradient(90deg, rgba(72, 128, 255, 0.05) 0%, rgba(72, 128, 255, 0) 100%);
+    transform: translateX(2px);
+}
+
+/* Enhanced Button Effects */
+.btn-primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s;
+}
+
+.btn-primary:hover::after {
+    width: 200px;
+    height: 200px;
+}
+
+/* Enhanced Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-icon i {
+    font-size: 14px;
+}
+
+/* Enhanced Status Badge Animation */
+.status-badge {
+    position: relative;
+    overflow: hidden;
+}
+
+.status-badge::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.status-badge:hover::after {
+    left: 100%;
+}
+
+/* Enhanced Modal Animation */
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal.show .modal-content {
+    animation: modalSlideIn 0.3s ease;
+}
+
+/* Enhanced Sidebar Navigation */
+.nav-item {
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: #4880ff;
+    transition: width 0.3s, left 0.3s;
+}
+
+.nav-item:hover::after {
+    width: 80%;
+    left: 10%;
+}
+
+.nav-item.active::after {
+    display: none;
+}
+
+/* Enhanced Card Shadows */
+.chart-card,
+.table-container,
+.settings-card,
+.category-card,
+.review-card {
+    transition: all 0.3s ease;
+}
+
+.chart-card:hover,
+.settings-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhanced Form Controls */
+.form-control {
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #4880ff;
+    box-shadow: 0 0 0 3px rgba(72, 128, 255, 0.15);
+}
+
+/* Product Detail Header Enhancement */
+.product-detail-header h3 {
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.product-detail-header p {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+/* Spec Title Enhancement */
+.spec-title {
+    position: relative;
+    padding-left: 15px;
+    margin: 25px 0 15px;
+    font-weight: 700;
+}
+
+/* Alert Enhancement */
+.alert {
+    animation: slideInAlert 0.3s ease;
+}
+
+@keyframes slideInAlert {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Filter Section Enhancement */
+.filter-section {
+    transition: all 0.3s ease;
+}
+
+.filter-section:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.filter-section select {
+    transition: all 0.3s ease;
+}
+
+.filter-section select:focus {
+    border-color: #4880ff;
+    box-shadow: 0 0 0 3px rgba(72, 128, 255, 0.15);
+}
+
+/* Loading Spinner for Future Use */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #4880ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Page Loading Overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* Responsive Enhancements */
+@media (max-width: 768px) {
+    .filter-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .filter-section select {
+        width: 100%;
+    }
+    
+    .action-buttons {
+        flex-wrap: wrap;
+    }
+    
+    .btn-icon {
+        width: 28px;
+        height: 28px;
+    }
+}
+
