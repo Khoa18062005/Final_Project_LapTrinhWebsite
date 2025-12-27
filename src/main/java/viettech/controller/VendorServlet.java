@@ -1,6 +1,10 @@
 package viettech.controller;
 
+import viettech.dto.Vendor_dto;
+import viettech.dto.Vendor_dto;
 import viettech.entity.user.User;
+import viettech.service.VendorService;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -12,33 +16,36 @@ import java.io.IOException;
 @WebServlet("/vendor")
 public class VendorServlet extends HttpServlet {
 
+    private final VendorService vendorService = new VendorService();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // 1. Lấy Session
+        // 1. Kiểm tra Session
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
-        // 2. Kiểm tra bảo mật (Chặn truy cập trái phép)
+        // 2. Bảo mật: Chỉ Vendor (Role = 2) được vào
         if (user == null) {
-            // Chưa đăng nhập -> Đá về trang login
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-
         if (user.getRoleID() != 2) {
-            // Đã đăng nhập nhưng không phải Vendor (ví dụ là Customer hoặc Shipper)
-            // Đá về trang chủ
             response.sendRedirect(request.getContextPath() + "/");
             return;
         }
 
-        // 3. (Tùy chọn) Tại đây bạn có thể gọi VendorService để lấy số liệu doanh thu
-        // ví dụ: request.setAttribute("data", vendorService.getDashboardData(user.getUserId()));
+        // 3. Lấy dữ liệu từ Service
+        int vendorId = user.getUserId();
+        Vendor_dto data = vendorService.getDashboardData(vendorId);
 
-        // 4. Chuyển hướng vào trang giao diện
-        request.getRequestDispatcher("/WEB-INF/views/vendor.jsp")
-                .forward(request, response);
+        if (data == null) {
+            data = new Vendor_dto(); // Tránh null pointer bên JSP
+        }
+
+        // 4. Đẩy dữ liệu sang View
+        request.setAttribute("data", data);
+        request.getRequestDispatcher("/WEB-INF/views/vendor.jsp").forward(request, response);
     }
 }
