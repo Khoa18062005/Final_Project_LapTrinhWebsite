@@ -44,7 +44,8 @@ public class SendOtpServlet extends HttpServlet {
             logger.info("Generated OTP for {}: {}", email, otp);
 
             // Gửi OTP qua email bằng Brevo
-            boolean sent = EmailUtilBrevo.sendOTP(email, otp);
+            boolean sent = EmailUtilBrevo.sendRegistrationOTP(email, otp);
+
 
             if (sent) {
                 // Lưu OTP vào session

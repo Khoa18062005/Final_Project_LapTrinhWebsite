@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('🔧 Profile.js loaded');
 
+    // ✅ THÊM ĐOẠN NÀY
+    const CONTEXT_PATH = document.querySelector('meta[name="context-path"]')?.content || '';
+    console.log('📍 Context Path:', CONTEXT_PATH);
+
     // ===== VARIABLES =====
     const avatarInput = document.getElementById('avatarInput');
     const avatarPreview = document.getElementById('avatarPreview');
@@ -237,6 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ===== EMAIL: GỬI OTP =====
+    // ===== EMAIL: GỬI OTP =====
     if (sendOtpBtn) {
         sendOtpBtn.addEventListener('click', function() {
             const newEmail = emailInput.value.trim();
@@ -251,25 +256,49 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // TODO: Gọi API gửi OTP
+            // Gọi servlet gửi OTP
             console.log('📧 Sending OTP to:', newEmail);
-            showAlert('Mã OTP đã được gửi đến email mới!', 'success');
-
-            // Disable button và countdown
             sendOtpBtn.disabled = true;
-            let countdown = 60;
-            sendOtpBtn.innerHTML = `<i class="bi bi-hourglass me-1"></i> ${countdown}s`;
+            sendOtpBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi...';
+            const contextPath = document.querySelector('meta[name="context-path"]')?.content || '';
 
-            const timer = setInterval(() => {
-                countdown--;
-                if (countdown > 0) {
-                    sendOtpBtn.innerHTML = `<i class="bi bi-hourglass me-1"></i> ${countdown}s`;
-                } else {
-                    clearInterval(timer);
+
+            fetch(contextPath + '/send-email-otp', {  // ← Servlet mới
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'email=' + encodeURIComponent(newEmail)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('Mã OTP đã được gửi đến email mới!', 'success');
+
+                        // Countdown
+                        let countdown = 90;
+                        sendOtpBtn.innerHTML = `<i class="bi bi-hourglass me-1"></i> ${countdown}s`;
+
+                        const timer = setInterval(() => {
+                            countdown--;
+                            if (countdown > 0) {
+                                sendOtpBtn.innerHTML = `<i class="bi bi-hourglass me-1"></i> ${countdown}s`;
+                            } else {
+                                clearInterval(timer);
+                                sendOtpBtn.disabled = false;
+                                sendOtpBtn.innerHTML = '<i class="bi bi-send me-1"></i> Gửi lại OTP';
+                            }
+                        }, 1000);
+                    } else {
+                        showAlert(data.message || 'Gửi OTP thất bại!', 'error');
+                        sendOtpBtn.disabled = false;
+                        sendOtpBtn.innerHTML = '<i class="bi bi-send me-1"></i> Gửi OTP';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('Lỗi kết nối!', 'error');
                     sendOtpBtn.disabled = false;
-                    sendOtpBtn.innerHTML = '<i class="bi bi-send me-1"></i> Gửi lại OTP';
-                }
-            }, 1000);
+                    sendOtpBtn.innerHTML = '<i class="bi bi-send me-1"></i> Gửi OTP';
+                });
         });
     }
 
