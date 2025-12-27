@@ -1,45 +1,42 @@
 package viettech.dto;
 
 import viettech.entity.delivery.DeliveryAssignment;
-import viettech.entity.review.Review;
 import viettech.entity.user.Shipper;
 import java.util.List;
 
 public class Shipper_dto {
-    private Shipper shipper;
-    private long todayOrdersCount;
-    private long successOrdersCount;
-    private double todayIncome;
-    private String avgTime; // Ví dụ: "28 phút"
-    private DeliveryAssignment activeDelivery; // Đơn đang đi giao
-    private List<DeliveryAssignment> pendingOrders; // Đơn chờ xác nhận nhận đơn
-    private List<Review> recentReviews;
+    // Thông tin Shipper
+    private Shipper shipperInfo;
 
-    // Constructors
-    public Shipper_dto() {}
+    // Thống kê hôm nay
+    private long todayOrderCount;
+    private long successOrderCount;
+    private double todayIncome;
+
+    // Danh sách đơn hàng
+    private List<DeliveryAssignment> pendingOrders;   // Chờ nhận
+    private List<DeliveryAssignment> ongoingOrders;   // Đang giao
+    private List<DeliveryAssignment> historyOrders;   // Lịch sử hoàn thành
 
     // Getters & Setters
-    public Shipper getShipper() { return shipper; }
-    public void setShipper(Shipper shipper) { this.shipper = shipper; }
+    public Shipper getShipperInfo() { return shipperInfo; }
+    public void setShipperInfo(Shipper shipperInfo) { this.shipperInfo = shipperInfo; }
 
-    public long getTodayOrdersCount() { return todayOrdersCount; }
-    public void setTodayOrdersCount(long todayOrdersCount) { this.todayOrdersCount = todayOrdersCount; }
+    public long getTodayOrderCount() { return todayOrderCount; }
+    public void setTodayOrderCount(long todayOrderCount) { this.todayOrderCount = todayOrderCount; }
 
-    public long getSuccessOrdersCount() { return successOrdersCount; }
-    public void setSuccessOrdersCount(long successOrdersCount) { this.successOrdersCount = successOrdersCount; }
+    public long getSuccessOrderCount() { return successOrderCount; }
+    public void setSuccessOrderCount(long successOrderCount) { this.successOrderCount = successOrderCount; }
 
     public double getTodayIncome() { return todayIncome; }
     public void setTodayIncome(double todayIncome) { this.todayIncome = todayIncome; }
 
-    public String getAvgTime() { return avgTime; }
-    public void setAvgTime(String avgTime) { this.avgTime = avgTime; }
-
-    public DeliveryAssignment getActiveDelivery() { return activeDelivery; }
-    public void setActiveDelivery(DeliveryAssignment activeDelivery) { this.activeDelivery = activeDelivery; }
-
     public List<DeliveryAssignment> getPendingOrders() { return pendingOrders; }
     public void setPendingOrders(List<DeliveryAssignment> pendingOrders) { this.pendingOrders = pendingOrders; }
 
-    public List<Review> getRecentReviews() { return recentReviews; }
-    public void setRecentReviews(List<Review> recentReviews) { this.recentReviews = recentReviews; }
+    public List<DeliveryAssignment> getOngoingOrders() { return ongoingOrders; }
+    public void setOngoingOrders(List<DeliveryAssignment> ongoingOrders) { this.ongoingOrders = ongoingOrders; }
+
+    public List<DeliveryAssignment> getHistoryOrders() { return historyOrders; }
+    public void setHistoryOrders(List<DeliveryAssignment> historyOrders) { this.historyOrders = historyOrders; }
 }

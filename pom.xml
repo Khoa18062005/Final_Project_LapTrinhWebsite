@@ -39,6 +39,13 @@
       <scope>provided</scope>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/com.cloudinary/cloudinary-http44 -->
+    <dependency>
+      <groupId>com.cloudinary</groupId>
+      <artifactId>cloudinary-http44</artifactId>
+      <version>1.39.0</version>
+    </dependency>
+
     <!-- ========== JSTL (QUAN TRỌNG) ========== -->
     <!-- Chỉ dùng javax.servlet JSTL 1.2 - CHUẨN cho Tomcat 8.5 -->
     <dependency>
