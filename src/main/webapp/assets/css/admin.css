@@ -1280,3 +1280,44 @@ textarea.form-control {
     overflow-y: auto;
 }
 
+/* Spec Group Header */
+.spec-group-header {
+    background-color: #e9ecef !important;
+    font-weight: 700 !important;
+    color: #2c3e50 !important;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+/* Text Utility Classes */
+.text-success {
+    color: #28a745;
+}
+
+.text-danger {
+    color: #dc3545;
+}
+
+.text-muted {
+    color: #6c757d;
+}
+
+/* Product Detail Title */
+.product-detail-title {
+    margin-top: 20px;
+    color: #2c3e50;
+}
+
+/* Filter Form Inline */
+.filter-form {
+    margin: 0;
+}
+
+/* Modal Header/Footer with borders */
+.modal-header-bordered {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer-bordered {
+    border-top: 1px solid #dee2e6;
+}

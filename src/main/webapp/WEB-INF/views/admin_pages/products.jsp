@@ -11,7 +11,7 @@
 
 <div class="filter-section">
   <label><i class="fas fa-filter"></i> <strong>Lọc theo danh mục:</strong></label>
-  <form action="${pageContext.request.contextPath}/admin" method="GET" id="filterForm" style="margin: 0;">
+  <form action="${pageContext.request.contextPath}/admin" method="GET" id="filterForm" class="filter-form">
     <select name="category" onchange="document.getElementById('filterForm').submit()">
       <option value="">-- Tất cả sản phẩm --</option>
       <option value="1" ${currentCategory == 1 ? 'selected' : ''}>📱 Điện thoại</option>
@@ -23,7 +23,7 @@
 </div>
 
 <c:if test="${not empty param.message}">
-  <div style="background-color: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #c3e6cb;">
+  <div class="alert alert-success">
     <i class="fas fa-check-circle"></i>
     <c:choose>
       <c:when test="${param.message == 'added_success'}">Thêm sản phẩm thành công!</c:when>
@@ -34,7 +34,7 @@
   </div>
 </c:if>
 <c:if test="${not empty param.error}">
-  <div style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #f5c6cb;">
+  <div class="alert alert-error">
     <i class="fas fa-exclamation-triangle"></i> Đã có lỗi xảy ra! Vui lòng thử lại.
   </div>
 </c:if>
@@ -61,7 +61,7 @@
           <br><small class="text-muted">${p.slug}</small>
         </td>
         <td>
-                    <span style="font-family: monospace; background: #f1f1f1; padding: 2px 5px; border-radius: 3px;">
+                    <span class="vendor-code">
                         Vendor #${p.vendorId}
                     </span>
         </td>
@@ -84,25 +84,25 @@
         </td>
         <td>
           <div class="action-buttons">
-            <button type="button" class="btn-icon view" onclick="showProductDetails('detail-${p.productId}')" title="Xem chi tiết" style="background: #17a2b8; color: white;">
+            <button type="button" class="btn-icon view" onclick="showProductDetails('detail-${p.productId}')" title="Xem chi tiết">
               <i class="fas fa-eye"></i>
             </button>
 
             <button class="btn-icon edit" title="Sửa"><i class="fas fa-edit"></i></button>
 
-            <form action="${pageContext.request.contextPath}/admin" method="POST" style="display:inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
+            <form action="${pageContext.request.contextPath}/admin" method="POST" class="delete-form" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?');">
               <input type="hidden" name="action" value="delete_product">
               <input type="hidden" name="id" value="${p.productId}">
               <button type="submit" class="btn-icon delete" title="Xóa"><i class="fas fa-trash"></i></button>
             </form>
           </div>
 
-          <div id="detail-${p.productId}" style="display:none;">
+          <div id="detail-${p.productId}" class="product-detail-hidden">
             <div class="product-detail-header">
               <h3>${p.name}</h3>
               <p>ID: #${p.productId} | Vendor ID: ${p.vendorId}</p>
             </div>
-            <h4 style="margin-top: 20px; color: #2c3e50;">📦 Thông tin quản lý</h4>
+            <h4 class="product-detail-title">📦 Thông tin quản lý</h4>
             <p>${p.description}</p>
           </div>
         </td>
@@ -111,7 +111,7 @@
 
     <c:if test="${empty productList}">
       <tr>
-        <td colspan="7" style="text-align: center; padding: 20px;">
+        <td colspan="7" class="empty-state">
           <p>Không tìm thấy sản phẩm nào.</p>
           <form action="${pageContext.request.contextPath}/admin" method="POST">
             <input type="hidden" name="action" value="init_data">
@@ -144,13 +144,13 @@
 
 <div id="viewDetailModal" class="modal">
   <div class="modal-content">
-    <div class="modal-header" style="border-bottom: 1px solid #dee2e6;">
+    <div class="modal-header modal-header-bordered">
       <h2>Chi tiết sản phẩm</h2>
       <span class="close" onclick="closeModal('viewDetailModal')">&times;</span>
     </div>
-    <div class="modal-body" id="viewDetailContent" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+    <div class="modal-body modal-body-scroll" id="viewDetailContent">
     </div>
-    <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
+    <div class="modal-footer modal-footer-bordered">
       <button type="button" class="btn btn-secondary" onclick="closeModal('viewDetailModal')">Đóng</button>
     </div>
   </div>
