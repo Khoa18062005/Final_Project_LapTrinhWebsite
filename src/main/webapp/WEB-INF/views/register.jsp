@@ -13,7 +13,6 @@
 
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
   <!-- CSS riêng -->
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/register.css">
@@ -29,16 +28,15 @@
   <div class="row justify-content-center">
     <div class="col-md-6">
       <div class="card shadow">
-        <div class="card-header bg-primary text-white text-center">
-          <h3>ĐĂNG KÝ TÀI KHOẢN</h3>
+        <div class="card-header text-white text-center">
+          <h3>Đăng ký tài khoản</h3>
         </div>
         <div class="card-body">
 
           <!-- THÔNG BÁO LỖI -->
           <c:if test="${not empty errorMessage}">
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i>
-              <strong>Lỗi!</strong> ${errorMessage}
+              <strong>Lỗi:</strong> ${errorMessage}
               <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
           </c:if>
@@ -46,8 +44,7 @@
           <!-- THÔNG BÁO THÀNH CÔNG -->
           <c:if test="${not empty successMessage}">
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-              <i class="bi bi-check-circle-fill me-2"></i>
-              <strong>Thành công!</strong> ${successMessage}
+              <strong>Thành công:</strong> ${successMessage}
               <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
           </c:if>
@@ -58,14 +55,14 @@
             <!-- Họ và Tên -->
             <div class="row mb-3">
               <div class="col">
-                <label class="form-label">Họ và Tên đệm</label>
+                <label class="form-label">Họ và tên đệm</label>
                 <input type="text" name="firstName" class="form-control" required
                        placeholder="Nguyễn Văn" value="${dto.firstName}">
               </div>
               <div class="col">
                 <label class="form-label">Tên</label>
                 <input type="text" name="lastName" class="form-control" required
-                       placeholder="A" value="${dto.lastName}">
+                       placeholder="An" value="${dto.lastName}">
               </div>
             </div>
 
@@ -76,17 +73,18 @@
                 <input type="email" name="email" id="email" class="form-control" required
                        placeholder="example@email.com" value="${dto.email}">
                 <button type="button" class="btn btn-outline-primary" id="sendOtpBtn">
-                  <span id="btnText">Gửi OTP</span>
+                  <span id="btnText">Gửi mã</span>
                 </button>
               </div>
-              <small class="text-muted">Nhấn "Gửi OTP" để nhận mã xác thực qua email</small>
+              <small class="text-muted">Nhấn "Gửi mã" để nhận mã xác thực qua email</small>
+              <div class="invalid-feedback" id="emailFeedback"></div>
             </div>
 
             <!-- Ô nhập OTP -->
             <div class="mb-3" id="otpSection" style="display: ${not empty errorMessage and not empty dto.email ? 'block' : 'none'};">
-              <label class="form-label">Mã OTP</label>
+              <label class="form-label">Mã xác thực</label>
               <input type="text" name="otp" id="otpInput" class="form-control"
-                     placeholder="Nhập 6 số OTP" maxlength="6" pattern="[0-9]{6}">
+                     placeholder="Nhập 6 chữ số" maxlength="6" pattern="[0-9]{6}">
               <small id="otpTimer" class="text-muted"></small>
             </div>
 
@@ -113,7 +111,7 @@
             <!-- Giới tính -->
             <div class="mb-3">
               <label class="form-label">Giới tính</label>
-              <div class="mt-1">
+              <div class="mt-2">
                 <div class="form-check form-check-inline">
                   <input class="form-check-input" type="radio" name="gender" id="male"
                          value="Male" ${empty dto.gender or dto.gender == 'Male' ? 'checked' : ''}>
@@ -135,11 +133,9 @@
             <!-- Buttons -->
             <div class="d-grid gap-2">
               <button type="submit" class="btn btn-primary" id="registerBtn" disabled>
-                <i class="bi bi-person-plus me-2"></i>
-                Đăng Ký Ngay
+                Đăng ký
               </button>
               <button type="reset" class="btn btn-secondary">
-                <i class="bi bi-arrow-counterclockwise me-2"></i>
                 Nhập lại
               </button>
             </div>
@@ -148,11 +144,10 @@
           <!-- Links -->
           <div class="text-center mt-3">
             <span>Đã có tài khoản? </span>
-            <a href="${pageContext.request.contextPath}/login" class="fw-bold">Đăng nhập ngay</a>
+            <a href="${pageContext.request.contextPath}/login">Đăng nhập ngay</a>
           </div>
           <div class="text-center mt-2">
             <a href="${pageContext.request.contextPath}/" class="text-muted">
-              <i class="bi bi-house-door me-1"></i>
               Quay về trang chủ
             </a>
           </div>
