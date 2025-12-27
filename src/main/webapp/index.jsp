@@ -71,7 +71,7 @@
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
-                                    <i class="bi bi-person"></i> Thông tin cá nhân
+                                    <i class="bi bi-person"></i> Tài khoản cá nhân
                                 </a></li>
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">
                                     <i class="bi bi-box"></i> Đơn hàng của tôi
