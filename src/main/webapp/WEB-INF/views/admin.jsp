@@ -103,28 +103,54 @@
 
 <script src="${pageContext.request.contextPath}/assets/js/admin.js"></script>
 <script>
-    // Code JS inline nếu cần thiết
-    // Lưu ý: Các hàm showProductDetails, closeModal phải đảm bảo có trong admin.js hoặc định nghĩa ở đây
-    if (typeof closeModal !== 'function') {
-        window.closeModal = function(modalId) {
-            document.getElementById(modalId).style.display = "none";
-        }
-    }
-
-    // Logic modal click outside
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = "none";
-        }
-    }
-
-    // Logic riêng cho Products page cần được load
+    /**
+     * Hàm hiển thị chi tiết sản phẩm
+     * @param {string} sourceId - ID của thẻ div ẩn chứa thông tin (VD: 'detail-101')
+     */
     function showProductDetails(sourceId) {
-        // Lấy nội dung từ div ẩn và gán vào modal
+        // 1. Tìm thẻ div ẩn chứa dữ liệu chi tiết
         var sourceContent = document.getElementById(sourceId);
-        if(sourceContent) {
-            document.getElementById('viewDetailContent').innerHTML = sourceContent.innerHTML;
-            document.getElementById('viewDetailModal').style.display = "block";
+
+        // 2. Tìm vùng hiển thị trong Modal
+        var targetContent = document.getElementById('viewDetailContent');
+        var modal = document.getElementById('viewDetailModal');
+
+        // 3. Kiểm tra và copy dữ liệu
+        if (sourceContent && targetContent && modal) {
+            // Copy toàn bộ HTML từ div ẩn sang div của Modal
+            targetContent.innerHTML = sourceContent.innerHTML;
+
+            // Hiển thị Modal
+            modal.style.display = "block";
+            modal.classList.add("show"); // Thêm class show nếu dùng CSS animation
+        } else {
+            console.error("Lỗi: Không tìm thấy dữ liệu chi tiết hoặc Modal. ID:", sourceId);
+            alert("Không thể tải thông tin chi tiết sản phẩm này.");
+        }
+    }
+
+    /**
+     * Hàm đóng Modal (Dùng chung cho cả Modal Thêm và Modal Xem)
+     * @param {string} modalId - ID của Modal cần đóng
+     */
+    function closeModal(modalId) {
+        var modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = "none";
+            modal.classList.remove("show");
+        }
+    }
+
+    // Xử lý đóng Modal khi click ra ngoài vùng nội dung (Click vào nền đen)
+    window.onclick = function(event) {
+        var detailModal = document.getElementById('viewDetailModal');
+        var addModal = document.getElementById('productModal');
+
+        if (event.target == detailModal) {
+            detailModal.style.display = "none";
+        }
+        if (event.target == addModal) {
+            addModal.style.display = "none";
         }
     }
 </script>
