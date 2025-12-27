@@ -8,59 +8,7 @@
     <i class="fas fa-plus"></i> Thêm sản phẩm
   </button>
 </div>
-<style>
-  /* ... Các CSS khác giữ nguyên ... */
 
-  /* ========================================= */
-  /* CẬP NHẬT: MODAL CHÍNH GIỮA MÀN HÌNH */
-  /* ========================================= */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5); /* Nền tối mờ */
-    overflow: auto; /* Cho phép cuộn nếu màn hình quá nhỏ */
-  }
-
-  .modal-content {
-    background-color: #fefefe;
-    padding: 25px;
-    border: 1px solid #888;
-    width: 90%;
-    max-width: 900px; /* Độ rộng tối đa của bảng */
-    border-radius: 10px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-
-    /* Kỹ thuật căn giữa tuyệt đối */
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%); /* Đẩy ngược lại 50% chiều cao để vào giữa */
-    margin: 0 auto; /* Căn giữa chiều ngang */
-
-    /* Đảm bảo bảng không bị tràn màn hình khi nội dung dài */
-    max-height: 90vh;
-    overflow-y: auto;
-  }
-
-  /* Tùy chỉnh thanh cuộn cho Modal đẹp hơn */
-  .modal-content::-webkit-scrollbar { width: 8px; }
-  .modal-content::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-  .modal-content::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-  .modal-content::-webkit-scrollbar-thumb:hover { background: #555; }
-
-  /* Căn giữa tiêu đề bảng */
-  .spec-table th {
-    text-align: center;
-    background-color: #f1f3f5;
-    color: #333;
-  }
-
-  /* ... Các CSS khác giữ nguyên ... */
-</style>
 <div class="filter-section">
   <label><i class="fas fa-filter"></i> <strong>Lọc theo danh mục:</strong></label>
   <form action="${pageContext.request.contextPath}/admin" method="GET" id="filterForm" style="margin: 0;">
@@ -304,13 +252,3 @@
     <div class="modal-footer"><button type="button" class="btn btn-secondary" onclick="closeModal('viewDetailModal')">Đóng</button></div>
   </div>
 </div>
-
-<script>
-  function showProductDetails(sourceId) {
-    var sourceContent = document.getElementById(sourceId);
-    if (sourceContent) {
-      document.getElementById('viewDetailContent').innerHTML = sourceContent.innerHTML;
-      document.getElementById('viewDetailModal').style.display = "block";
-    }
-  }
-</script>

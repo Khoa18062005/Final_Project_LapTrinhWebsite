@@ -477,6 +477,44 @@ function filterRevenue() {
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
         event.target.classList.remove('show');
+        event.target.style.display = 'none';
+    }
+    
+    // Handle specific modals by ID
+    var detailModal = document.getElementById('viewDetailModal');
+    var addModal = document.getElementById('productModal');
+
+    if (event.target == detailModal) {
+        detailModal.style.display = "none";
+    }
+    if (event.target == addModal) {
+        addModal.style.display = "none";
+    }
+}
+
+/**
+ * Show product details in modal
+ * @param {string} sourceId - ID of hidden div containing details (e.g., 'detail-101')
+ */
+function showProductDetails(sourceId) {
+    // 1. Find the hidden div containing detail data
+    var sourceContent = document.getElementById(sourceId);
+
+    // 2. Find the display area in Modal
+    var targetContent = document.getElementById('viewDetailContent');
+    var modal = document.getElementById('viewDetailModal');
+
+    // 3. Check and copy data
+    if (sourceContent && targetContent && modal) {
+        // Copy all HTML from hidden div to Modal div
+        targetContent.innerHTML = sourceContent.innerHTML;
+
+        // Show Modal
+        modal.style.display = "block";
+        modal.classList.add("show");
+    } else {
+        console.error("Error: Cannot find detail data or Modal. ID:", sourceId);
+        alert("Không thể tải thông tin chi tiết sản phẩm này.");
     }
 }
 
