@@ -475,20 +475,10 @@ function filterRevenue() {
 
 // Close modal when clicking outside
 window.onclick = function(event) {
+    // Handle all modals with the 'modal' class
     if (event.target.classList.contains('modal')) {
         event.target.classList.remove('show');
         event.target.style.display = 'none';
-    }
-    
-    // Handle specific modals by ID
-    var detailModal = document.getElementById('viewDetailModal');
-    var addModal = document.getElementById('productModal');
-
-    if (event.target == detailModal) {
-        detailModal.style.display = "none";
-    }
-    if (event.target == addModal) {
-        addModal.style.display = "none";
     }
 }
 
@@ -514,7 +504,7 @@ function showProductDetails(sourceId) {
         modal.classList.add("show");
     } else {
         console.error("Error: Cannot find detail data or Modal. ID:", sourceId);
-        alert("Không thể tải thông tin chi tiết sản phẩm này.");
     }
 }
+
 
