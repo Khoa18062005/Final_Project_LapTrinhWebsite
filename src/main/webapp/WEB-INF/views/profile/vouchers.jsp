@@ -146,7 +146,7 @@
       startDate: '<fmt:formatDate value="${v.startDate}" pattern="dd/MM/yyyy HH:mm"/>',
       expiryDate: '<fmt:formatDate value="${v.expiryDate}" pattern="dd/MM/yyyy HH:mm"/>',
       usageCount: ${v.usageCount},
-      usageLimit: ${v.usageLimit},
+      usageLimit: ${v.usageLimitPerUser},
       isActive: ${v.active}
     }<c:if test="${!status.last}">,</c:if>
     </c:forEach>

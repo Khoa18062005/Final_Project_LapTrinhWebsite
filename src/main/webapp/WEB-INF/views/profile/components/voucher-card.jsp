@@ -78,7 +78,7 @@
           </div>
         </div>
         <small class="text-muted">
-          Còn ${voucher.usageLimit - voucher.usageCount}/${voucher.usageLimit} lượt
+          Còn ${voucher.usageLimitPerUser - voucher.usageCount}/${voucher.usageLimitPerUser} lượt
         </small>
       </c:if>
     </div>
