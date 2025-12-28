@@ -1,21 +1,17 @@
 package viettech.service;
 
-import viettech.dao.*;
-import viettech.entity.order.OrderDetail;
-import viettech.entity.product.Category;
-import viettech.entity.product.Product;
-import viettech.entity.product.Variant;
+import viettech.dao.OrderDAO;
+import viettech.dao.OrderDetailDAO;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class StatisticService {
 
     private final OrderDAO orderDAO = new OrderDAO();
     private final OrderDetailDAO orderDetailDAO = new OrderDetailDAO();
-    private final CategoryDAO categoryDAO = new CategoryDAO();
-    private final VariantDAO variantDAO = new VariantDAO();
+
+    // Đã xóa CategoryDAO và VariantDAO vì không còn cần dùng ở đây nữa
 
     // DTO để trả dữ liệu cho biểu đồ (Chart.js)
     public static class ChartData {
@@ -52,7 +48,7 @@ public class StatisticService {
 
     /**
      * 1. THỐNG KÊ DOANH THU THEO THỜI GIAN
-     * (Giữ nguyên vì lấy từ OrderDAO)
+     * (Giữ nguyên logic cũ)
      */
     public ChartData getRevenueStatistics(int days) {
         List<Object[]> rawOrders = orderDAO.findAllForStatistics();
@@ -97,63 +93,71 @@ public class StatisticService {
     }
 
     /**
-     * 2. THỐNG KÊ TỶ TRỌNG DANH MỤC
-     * (Sửa lại: OrderDetail -> Variant -> Product -> Category)
+     * 2. THỐNG KÊ TỶ TRỌNG DANH MỤC (Đã sửa lỗi Lazy & Tối ưu)
+     * Sử dụng phương thức HQL mới từ OrderDetailDAO
      */
     public ChartData getCategorySalesStatistics() {
-        List<OrderDetail> details = orderDetailDAO.findAll();
-        Map<String, Integer> categoryMap = new HashMap<>();
+        try {
+            // Gọi xuống DB để lấy thống kê trực tiếp
+            List<Object[]> results = orderDetailDAO.getCategoryStatistics();
+            Map<String, Integer> categoryMap = new LinkedHashMap<>();
 
-        // Cache danh mục
-        List<Category> categories = categoryDAO.findAll();
-        Map<Integer, String> categoryNames = categories.stream()
-                .collect(Collectors.toMap(Category::getCategoryId, Category::getName));
+            if (results != null && !results.isEmpty()) {
+                for (Object[] row : results) {
+                    String catName = (String) row[0];
+                    if (catName == null || catName.trim().isEmpty()) catName = "Khác";
 
-        for (OrderDetail detail : details) {
-            // [FIX] Lấy Variant trước
-            Variant variant = variantDAO.findById(detail.getVariantId());
-            if (variant != null) {
-                // [FIX] Lấy Product từ Variant
-                Product p = variant.getProduct();
-                if (p != null) {
-                    String catName = categoryNames.getOrDefault(p.getCategoryId(), "Khác");
-                    categoryMap.put(catName, categoryMap.getOrDefault(catName, 0) + detail.getQuantity());
+                    // HQL SUM thường trả về Long, cần ép kiểu an toàn
+                    Number quantity = (Number) row[1];
+
+                    categoryMap.put(catName, quantity != null ? quantity.intValue() : 0);
                 }
             }
-        }
 
-        return convertGenericMapToChartData(categoryMap);
+            // Nếu không có dữ liệu, trả về dữ liệu mặc định
+            if (categoryMap.isEmpty()) {
+                categoryMap.put("Chưa có dữ liệu", 0);
+            }
+
+            return convertGenericMapToChartData(categoryMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Trả về dữ liệu mặc định khi có lỗi
+            Map<String, Integer> defaultMap = new LinkedHashMap<>();
+            defaultMap.put("Lỗi tải dữ liệu", 0);
+            return convertGenericMapToChartData(defaultMap);
+        }
     }
 
     /**
-     * 3. TOP 5 SẢN PHẨM BÁN CHẠY NHẤT
-     * (Sửa lại: OrderDetail -> Variant -> Product)
+     * 3. TOP 5 SẢN PHẨM BÁN CHẠY NHẤT (Đã sửa lỗi Lazy & Tối ưu)
+     * Sử dụng phương thức HQL mới từ OrderDetailDAO
      */
     public List<TopProductDTO> getTopSellingProducts(int topN) {
-        List<OrderDetail> details = orderDetailDAO.findAll();
-        Map<String, TopProductDTO> productMap = new HashMap<>();
+        List<TopProductDTO> topProducts = new ArrayList<>();
+        try {
+            // Gọi xuống DB, DB đã sort sẵn và limit sẵn
+            List<Object[]> results = orderDetailDAO.getTopSellingProducts(topN);
 
-        for (OrderDetail detail : details) {
-            // [FIX] Lấy Variant trước
-            Variant variant = variantDAO.findById(detail.getVariantId());
-            if (variant != null) {
-                // [FIX] Lấy Product từ Variant
-                Product p = variant.getProduct();
-                if (p != null) {
-                    // Gom nhóm theo tên sản phẩm (bỏ qua khác biệt màu sắc/cấu hình của variant)
-                    String pName = p.getName();
-                    double amount = detail.getUnitPrice() * detail.getQuantity();
+            if (results != null && !results.isEmpty()) {
+                for (Object[] row : results) {
+                    String name = (String) row[0];
+                    Number quantity = (Number) row[1];
+                    Number revenue = (Number) row[2];
 
-                    TopProductDTO dto = productMap.getOrDefault(pName, new TopProductDTO(pName, 0, 0.0));
-                    productMap.put(pName, new TopProductDTO(pName, dto.quantity + detail.getQuantity(), dto.revenue + amount));
+                    topProducts.add(new TopProductDTO(
+                            name != null ? name : "Không xác định",
+                            quantity != null ? quantity.intValue() : 0,
+                            revenue != null ? revenue.doubleValue() : 0.0
+                    ));
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Trả về danh sách rỗng khi có lỗi
         }
 
-        return productMap.values().stream()
-                .sorted((p1, p2) -> Integer.compare(p2.getQuantity(), p1.getQuantity()))
-                .limit(topN)
-                .collect(Collectors.toList());
+        return topProducts;
     }
 
     // --- CÁC HÀM PHỤ TRỢ ---

@@ -1,15 +1,11 @@
 package viettech.controller;
 
-import com.google.gson.Gson;
-import java.text.SimpleDateFormat;
 import viettech.dao.*;
-import viettech.entity.order.Order;
 import viettech.entity.product.Laptop;
 import viettech.entity.product.Phone;
 import viettech.entity.product.Product;
 import viettech.entity.product.Tablet;
-import viettech.entity.storage.Inventory; // Nếu cần dùng Inventory
-import viettech.util.SessionUtil;
+import viettech.service.StatisticService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -17,12 +13,7 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.stream.Collectors;
-import viettech.service.StatisticService;
+import java.util.List;
 
 @WebServlet(urlPatterns = "/admin", loadOnStartup = 1)
 public class AdminServlet extends HttpServlet {
@@ -38,8 +29,6 @@ public class AdminServlet extends HttpServlet {
     private final LaptopDAO laptopDAO = new LaptopDAO();
     private final TabletDAO tabletDAO = new TabletDAO();
 
-    // DAO kho hàng
-    private final InventoryDAO inventoryDAO = new InventoryDAO();
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
@@ -54,32 +43,90 @@ public class AdminServlet extends HttpServlet {
             try {
                 days = Integer.parseInt(daysParam);
             } catch (NumberFormatException e) {
-                days = 7;
+                // Giữ mặc định 7 ngày
             }
         }
-        req.setAttribute("currentDays", days); // Để active nút bấm bên JSP
+        req.setAttribute("currentDays", days);
 
         // 2. Lấy dữ liệu biểu đồ Doanh thu
-        StatisticService.ChartData revenueData = statisticService.getRevenueStatistics(days);
-        req.setAttribute("totalRevenue", revenueData.getTotalValue());
-        req.setAttribute("chartLabels", revenueData.getLabels());
-        req.setAttribute("chartData", revenueData.getData());
+        try {
+            StatisticService.ChartData revenueData = statisticService.getRevenueStatistics(days);
+            req.setAttribute("totalRevenue", revenueData.getTotalValue());
+            req.setAttribute("chartLabels", revenueData.getLabels());
+            req.setAttribute("chartData", revenueData.getData());
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("totalRevenue", 0);
+            req.setAttribute("chartLabels", "[]");
+            req.setAttribute("chartData", "[]");
+        }
 
         // 3. Lấy dữ liệu biểu đồ Danh mục (Pie Chart)
-        StatisticService.ChartData categoryData = statisticService.getCategorySalesStatistics();
-        req.setAttribute("catLabels", categoryData.getLabels());
-        req.setAttribute("catData", categoryData.getData());
+        try {
+            StatisticService.ChartData categoryData = statisticService.getCategorySalesStatistics();
+            req.setAttribute("catLabels", categoryData.getLabels());
+            req.setAttribute("catData", categoryData.getData());
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("catLabels", "['Chưa có dữ liệu']");
+            req.setAttribute("catData", "[0]");
+        }
 
         // 4. Lấy Top 5 sản phẩm bán chạy
-        req.setAttribute("topProducts", statisticService.getTopSellingProducts(5));
+        try {
+            req.setAttribute("topProducts", statisticService.getTopSellingProducts(5));
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("topProducts", new java.util.ArrayList<>());
+        }
 
         // 5. Các thống kê cơ bản khác
-        req.setAttribute("totalProducts", productDAO.count());
-        req.setAttribute("totalUsers", customerDAO.count());
+        try {
+            req.setAttribute("totalProducts", productDAO.count());
+        } catch (Exception e) {
+            req.setAttribute("totalProducts", 0);
+        }
 
-        // ... logic lấy productList giữ nguyên ...
+        try {
+            req.setAttribute("totalUsers", customerDAO.count());
+        } catch (Exception e) {
+            req.setAttribute("totalUsers", 0);
+        }
+
+        try {
+            req.setAttribute("totalOrders", orderDAO.count());
+        } catch (Exception e) {
+            req.setAttribute("totalOrders", 0);
+        }
+
+        // 6. Lấy danh sách sản phẩm cho bảng quản lý
+        try {
+            List<Product> products = productDAO.findAll();
+            req.setAttribute("productList", products);
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("productList", new java.util.ArrayList<>());
+        }
 
         req.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(req, resp);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        String action = req.getParameter("action");
+        if (action == null) action = "";
+
+        switch (action) {
+            case "add_product":
+                addProduct(req, resp);
+                break;
+            case "delete_product":
+                deleteProduct(req, resp);
+                break;
+            default:
+                resp.sendRedirect(req.getContextPath() + "/admin");
+        }
     }
 
     // --- XỬ LÝ THÊM SẢN PHẨM ---

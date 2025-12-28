@@ -73,8 +73,8 @@
         <jsp:include page="/WEB-INF/views/admin_pages/products.jsp" />
     </div>
 
-    <div id="orders" class="content-section">
-<%--        <jsp:include page="/WEB-INF/views/admin_pages/orders.jsp" />--%>
+    <div id="voucher" class="content-section">
+     <jsp:include page="/WEB-INF/views/admin_pages/voucher.jsp" />
     </div>
 
     <div id="users" class="content-section">
