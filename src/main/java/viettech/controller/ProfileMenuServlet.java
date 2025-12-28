@@ -15,7 +15,6 @@ import java.io.IOException;
 @WebServlet({
     "/profile/info",
     "/profile/bank",
-    "/profile/address",
     "/profile/password",
     "/profile/orders",
     "/profile/notifications",

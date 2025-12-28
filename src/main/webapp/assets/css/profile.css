@@ -1777,3 +1777,107 @@ a.menu-item i {
         font-size: 1.5rem;
     }
 }
+
+/* ===== ADDRESS PAGE STYLES ===== */
+
+/* Address Card */
+.address-card {
+    background: #ffffff;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    position: relative;
+    height: 140px !important;
+}
+
+.address-card h5 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a1a1a;
+}
+
+.address-card p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Badge mặc định */
+.address-card .badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    letter-spacing: 0.3px;
+}
+
+.address-card .badge.bg-danger {
+    background: #dc3545 !important;
+}
+
+/* Address Meta */
+.address-meta {
+    padding-top: 12px;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 12px;
+}
+
+.address-meta small {
+    font-size: 0.85rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.address-meta i {
+    color: #9ca3af;
+}
+
+/* Empty State */
+.empty-state {
+    background: #f8f9fa;
+    border-radius: 16px;
+    padding: 60px 40px;
+    border: 2px dashed #d1d5db;
+}
+
+.empty-state i {
+    color: #d1d5db;
+}
+
+.empty-state h5 {
+    color: #374151;
+    font-weight: 700;
+    margin-top: 16px;
+}
+
+.empty-state p {
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .address-card {
+        padding: 20px;
+        min-height: auto;
+    }
+
+    .address-card h5 {
+        font-size: 1rem;
+    }
+
+    .address-card .badge {
+        font-size: 0.7rem;
+        padding: 5px 10px;
+    }
+
+    .empty-state {
+        padding: 40px 24px;
+    }
+}
+
+@media (max-width: 576px) {
+    .address-card {
+        padding: 16px;
+    }
+}
