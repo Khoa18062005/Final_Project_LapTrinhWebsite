@@ -166,4 +166,8 @@ public class UserService {
         Customer customer = customerDAO.findByEmail(email);
         return customer != null;
     }
+
+    public void UpdateLastLoginAt(Customer customer) {
+        customerDAO.update(customer);
+    }
 }
