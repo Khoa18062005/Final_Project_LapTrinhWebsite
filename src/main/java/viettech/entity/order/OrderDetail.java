@@ -53,7 +53,7 @@ public class OrderDetail {
     private Order order;
 
     @ManyToOne
-    @JoinColumn(name = "varient_id", insertable = false, updatable = false)
+    @JoinColumn(name = "variant_id", insertable = false, updatable = false)
     private Variant variant;
 
     @ManyToOne
