@@ -1,9 +1,9 @@
 package viettech.controller;
 
-import viettech.dao.AddressDAO;
-import viettech.entity.Address;
+import viettech.dto.Address_dto;
 import viettech.entity.user.Customer;
 import viettech.entity.user.User;
+import viettech.service.AddressService;
 import viettech.util.SessionUtil;
 
 import javax.servlet.ServletException;
@@ -15,15 +15,15 @@ import java.io.IOException;
 
 @WebServlet("/profile/address/add")
 public class AddAddressServlet extends HttpServlet {
-    
-    private final AddressDAO addressDAO = new AddressDAO();
-    
+
+    private final AddressService addressService = new AddressService();
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         System.out.println("📍 ===== ADD ADDRESS DEBUG =====");
-        
+
         // Check login
         User user = (User) SessionUtil.getAttribute(request, "user");
         if (user == null) {
@@ -32,7 +32,7 @@ public class AddAddressServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
-        
+
         // Check if user is Customer
         if (!(user instanceof Customer)) {
             System.out.println("❌ User is not a Customer");
@@ -40,19 +40,19 @@ public class AddAddressServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/profile/address");
             return;
         }
-        
+
         Customer customer = (Customer) user;
-        
+
         try {
-            // Lấy dữ liệu từ form
+            // Lấy dữ liệu từ form (GIỜ ĐÃ DÙNG TÊN TRỰC TIẾP)
             String receiverName = request.getParameter("receiverName");
             String phone = request.getParameter("phone");
             String street = request.getParameter("street");
-            String ward = request.getParameter("wardName"); // Từ input ẩn
-            String district = request.getParameter("districtName"); // Từ input ẩn
-            String city = request.getParameter("cityName"); // Từ input ẩn
-            boolean isDefault = request.getParameter("isDefault") != null;
-            
+            String ward = request.getParameter("ward"); // Trực tiếp từ select
+            String district = request.getParameter("district"); // Trực tiếp từ select
+            String city = request.getParameter("city"); // Trực tiếp từ select
+            boolean isDefault = "on".equals(request.getParameter("isDefault"));
+
             System.out.println("📝 Form Data:");
             System.out.println("  - Receiver: " + receiverName);
             System.out.println("  - Phone: " + phone);
@@ -61,54 +61,49 @@ public class AddAddressServlet extends HttpServlet {
             System.out.println("  - District: " + district);
             System.out.println("  - City: " + city);
             System.out.println("  - Is Default: " + isDefault);
-            
+
             // Validate dữ liệu
             if (receiverName == null || receiverName.trim().isEmpty() ||
-                phone == null || phone.trim().isEmpty() ||
-                street == null || street.trim().isEmpty() ||
-                ward == null || ward.trim().isEmpty() ||
-                district == null || district.trim().isEmpty() ||
-                city == null || city.trim().isEmpty()) {
-                
+                    phone == null || phone.trim().isEmpty() ||
+                    street == null || street.trim().isEmpty() ||
+                    ward == null || ward.trim().isEmpty() ||
+                    district == null || district.trim().isEmpty() ||
+                    city == null || city.trim().isEmpty()) {
+
                 System.out.println("❌ Validation failed");
                 SessionUtil.setErrorMessage(request, "Vui lòng điền đầy đủ thông tin!");
                 response.sendRedirect(request.getContextPath() + "/profile/address");
                 return;
             }
-            
-            // Nếu đặt làm mặc định, bỏ mặc định của các địa chỉ cũ
-            if (isDefault) {
-                Address currentDefault = addressDAO.findDefaultByCustomerId(customer.getUserId());
-                if (currentDefault != null) {
-                    currentDefault.setDefault(false);
-                    addressDAO.update(currentDefault);
-                }
-            }
-            
-            // Tạo địa chỉ mới
-            Address newAddress = new Address(
-                customer,
-                receiverName.trim(),
-                phone.trim(),
-                street.trim(),
-                ward.trim(),
-                district.trim(),
-                city.trim(),
-                isDefault
+
+            // Tạo DTO từ dữ liệu
+            Address_dto addressDTO = new Address_dto(
+                    receiverName.trim(),
+                    phone.trim(),
+                    street.trim(),
+                    ward.trim(),
+                    district.trim(),
+                    city.trim(),
+                    isDefault
             );
-            
-            // Lưu vào database
-            addressDAO.insert(newAddress);
-            
-            System.out.println("✅ Address added successfully! ID: " + newAddress.getAddressId());
-            
-            SessionUtil.setSuccessMessage(request, "Thêm địa chỉ thành công!");
+
+            // Gọi service để xử lý logic thêm địa chỉ
+            boolean success = addressService.addAddress(addressDTO, customer);
+
+            if (success) {
+                System.out.println("✅ Address added successfully!");
+                SessionUtil.setSuccessMessage(request, "Thêm địa chỉ thành công!");
+            } else {
+                System.out.println("❌ Address service failed");
+                SessionUtil.setErrorMessage(request, "Có lỗi xảy ra khi thêm địa chỉ!");
+            }
+
             response.sendRedirect(request.getContextPath() + "/profile/address");
-            
+
         } catch (Exception e) {
             System.err.println("❌ ERROR in AddAddressServlet:");
             e.printStackTrace();
-            SessionUtil.setErrorMessage(request, "Có lỗi xảy ra khi thêm địa chỉ!");
+            SessionUtil.setErrorMessage(request, "Có lỗi xảy ra khi thêm địa chỉ: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/profile/address");
         }
     }

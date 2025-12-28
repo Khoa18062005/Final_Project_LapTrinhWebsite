@@ -1,16 +1,14 @@
 package viettech.controller;
 
-import viettech.dao.AddressDAO;
-import viettech.entity.Address;
 import viettech.entity.user.Customer;
 import viettech.entity.user.User;
+import viettech.service.AddressService;
 import viettech.util.SessionUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
-import java.util.List;
 
 /**
  * Servlet xử lý trang Address
@@ -19,7 +17,7 @@ import java.util.List;
 @WebServlet("/profile/address")
 public class AddressServlet extends HttpServlet {
 
-    private final AddressDAO addressDAO = new AddressDAO();
+    private final AddressService addressService = new AddressService();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -51,12 +49,12 @@ public class AddressServlet extends HttpServlet {
         System.out.println("📧 Customer Email: " + customer.getEmail());
 
         try {
-            // Lấy danh sách địa chỉ của customer
-            List<Address> addresses = addressDAO.findByCustomerId(customerId);
+            // Lấy danh sách địa chỉ của customer qua Service
+            var addresses = addressService.getAddressesByCustomerId(customerId);
             System.out.println("📍 Total addresses found: " + addresses.size());
 
             // Debug từng địa chỉ
-            for (Address addr : addresses) {
+            for (var addr : addresses) {
                 System.out.println("  - Address ID: " + addr.getAddressId());
                 System.out.println("    Receiver: " + addr.getReceiverName());
                 System.out.println("    Phone: " + addr.getPhone());
@@ -68,8 +66,8 @@ public class AddressServlet extends HttpServlet {
                 System.out.println("    ---");
             }
 
-            // Tìm địa chỉ mặc định
-            Address defaultAddress = addressDAO.findDefaultByCustomerId(customerId);
+            // Tìm địa chỉ mặc định qua Service
+            var defaultAddress = addressService.getDefaultAddress(customerId);
             if (defaultAddress != null) {
                 System.out.println("✅ Default address ID: " + defaultAddress.getAddressId());
             } else {
