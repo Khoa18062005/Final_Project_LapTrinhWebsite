@@ -19,7 +19,6 @@ import java.io.IOException;
     "/profile/password",
     "/profile/orders",
     "/profile/notifications",
-    "/profile/vtx"
 })
 public class ProfileMenuServlet extends HttpServlet {
 
