@@ -331,6 +331,7 @@ function showSection(sectionId) {
     const titles = {
         'dashboard': 'Dashboard',
         'products': 'Quản lý sản phẩm',
+        'voucher': 'Quản lý Voucher',
         'users': 'Quản lý người dùng',
         'orders': 'Quản lý đơn hàng',
         'revenue': 'Báo cáo doanh thu',

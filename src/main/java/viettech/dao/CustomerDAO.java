@@ -110,7 +110,11 @@ public class CustomerDAO {
         }
     }
     public Integer count() {
-        return 0;
+        try {
+            return this.findAll().size();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to count customer", e);
+        }
     }
 
     // DELETE - Xóa khách hàng theo ID
