@@ -650,3 +650,134 @@ input, select, button, .menu-item, .menu-sub-item {
 .btn-save.btn-enabled {
     animation: enableButton 0.3s ease;
 }
+
+/* ===== FIX SIDEBAR MENU - ĐẸP HƠN ===== */
+
+/* Reset link styles cho menu */
+.profile-menu a {
+    text-decoration: none;
+    display: block;
+    color: inherit;
+}
+
+.profile-menu a:hover {
+    text-decoration: none;
+}
+
+/* Menu item khi là thẻ <a> */
+a.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    color: #4a5568;
+    position: relative;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+a.menu-item:hover {
+    background-color: #f8f9fb;
+    color: #0d6efd;
+    padding-left: 24px;
+    text-decoration: none;
+}
+
+a.menu-item:hover i {
+    transform: scale(1.1);
+    color: #0d6efd;
+}
+
+a.menu-item.active {
+    color: #0d6efd;
+    font-weight: 600;
+    background-color: #eff6ff;
+    border-left: 4px solid #0d6efd;
+}
+
+a.menu-item.active i {
+    color: #0d6efd;
+}
+
+/* Menu sub-item khi là thẻ <a> */
+a.menu-sub-item {
+    display: block;
+    padding: 11px 20px 11px 56px;
+    font-size: 0.9rem;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+a.menu-sub-item:hover {
+    background-color: #f8f9fb;
+    color: #0d6efd;
+    padding-left: 60px;
+    text-decoration: none;
+}
+
+a.menu-sub-item.active {
+    color: #0d6efd;
+    font-weight: 600;
+    background-color: #eff6ff;
+}
+
+a.menu-sub-item.active::before {
+    content: '';
+    position: absolute;
+    left: 44px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    background-color: #0d6efd;
+    border-radius: 50%;
+}
+
+/* Đảm bảo icon trong menu-item vẫn đẹp */
+a.menu-item i {
+    font-size: 1.25rem;
+    width: 22px;
+    text-align: center;
+    transition: transform 0.2s ease;
+    color: #6b7280;
+}
+
+/* Remove underline khi focus */
+.profile-menu a:focus {
+    outline: none;
+    text-decoration: none;
+}
+
+/* ===== VOUCHER PAGE ENHANCEMENTS ===== */
+
+/* Badge trong tabs */
+.nav-tabs .badge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+}
+
+/* Voucher không khả dụng */
+.voucher-card .btn-warning {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+/* Progress bar nhỏ */
+.voucher-card .progress {
+    background-color: #e9ecef;
+}
+
+/* Modal voucher detail */
+.voucher-detail label {
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
