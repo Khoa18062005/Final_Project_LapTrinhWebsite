@@ -1881,3 +1881,279 @@ a.menu-item i {
         padding: 16px;
     }
 }
+/* ===== ADDRESS PAGE STYLES ENHANCEMENT ===== */
+
+/* Nút Thêm Địa Chỉ */
+.btn-add-address {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    border: none;
+    padding: 12px 28px;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-add-address:hover {
+    background: linear-gradient(135deg, #0b5ed7 0%, #0a58ca 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.35);
+}
+
+.btn-add-address:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+}
+
+/* Modal Styles */
+#addAddressModal .modal-header {
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    border-radius: 16px 16px 0 0;
+    padding: 24px 32px;
+}
+
+#addAddressModal .modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#addAddressModal .modal-body {
+    padding: 32px;
+}
+
+#addAddressModal .form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+#addAddressModal .form-control,
+#addAddressModal .form-select {
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+#addAddressModal .form-control:focus,
+#addAddressModal .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+    outline: none;
+}
+
+#addAddressModal .form-control:hover,
+#addAddressModal .form-select:hover {
+    border-color: #9ca3af;
+}
+
+#addAddressModal .form-control::placeholder {
+    color: #9ca3af;
+}
+
+#addAddressModal .form-select:disabled {
+    background-color: #f9fafb;
+    color: #9ca3af;
+    cursor: not-allowed;
+}
+
+/* Checkbox mặc định */
+#addAddressModal .form-check {
+    padding-left: 2rem;
+    margin-top: 1rem;
+}
+
+#addAddressModal .form-check-input {
+    width: 20px;
+    height: 20px;
+    margin-left: -2rem;
+    margin-top: 0.2rem;
+    border: 2px solid #d1d5db;
+    cursor: pointer;
+}
+
+#addAddressModal .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+#addAddressModal .form-check-input:focus {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+}
+
+#addAddressModal .form-check-label {
+    font-size: 0.95rem;
+    color: #374151;
+    cursor: pointer;
+    font-weight: 500;
+    padding-left: 0.5rem;
+}
+
+/* Modal Footer */
+#addAddressModal .modal-footer {
+    border-top: 1px solid #e5e7eb;
+    padding: 24px 32px;
+    border-radius: 0 0 16px 16px;
+}
+
+#addAddressModal .modal-footer .btn {
+    padding: 12px 32px;
+    font-weight: 600;
+    border-radius: 10px;
+    font-size: 1rem;
+    min-width: 120px;
+}
+
+#addAddressModal .modal-footer .btn-secondary {
+    background: #6b7280;
+    border: none;
+    color: white;
+}
+
+#addAddressModal .modal-footer .btn-secondary:hover {
+    background: #4b5563;
+}
+
+/* Loading State cho Select */
+.loading {
+    position: relative;
+    color: transparent;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #0d6efd;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+@keyframes spin {
+    to { transform: translateY(-50%) rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .btn-add-address {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+    }
+
+    #addAddressModal .modal-body {
+        padding: 24px;
+    }
+
+    #addAddressModal .modal-footer {
+        padding: 20px 24px;
+    }
+
+    #addAddressModal .modal-footer .btn {
+        padding: 10px 24px;
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn-add-address {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    #addAddressModal .modal-body {
+        padding: 20px;
+    }
+
+    #addAddressModal .modal-footer {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    #addAddressModal .modal-footer .btn {
+        width: 100%;
+    }
+}
+
+/* ===== LOADING STATES ===== */
+.select-loading {
+    position: relative;
+    color: #6c757d;
+}
+
+.select-loading::after {
+    content: 'Đang tải...';
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #0d6efd;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* Nút loading */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Disabled state cho select */
+select:disabled {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Error state */
+select.error {
+    border-color: #dc3545 !important;
+    background-color: #f8d7da !important;
+}
+
+select.error:focus {
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Success state */
+select.success {
+    border-color: #198754 !important;
+    background-color: #d1e7dd !important;
+}
+
+select.success:focus {
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25) !important;
+}
