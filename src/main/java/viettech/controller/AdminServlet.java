@@ -5,6 +5,7 @@ import viettech.entity.product.Laptop;
 import viettech.entity.product.Phone;
 import viettech.entity.product.Product;
 import viettech.entity.product.Tablet;
+import viettech.entity.voucher.Voucher;
 import viettech.service.StatisticService;
 
 import javax.servlet.ServletException;
@@ -23,6 +24,7 @@ public class AdminServlet extends HttpServlet {
     private final ProductDAO productDAO = new ProductDAO();
     private final CustomerDAO customerDAO = new CustomerDAO();
     private final OrderDAO orderDAO = new OrderDAO();
+    private final VoucherDAO voucherDAO = new VoucherDAO();
 
     // DAO riêng cho từng loại sản phẩm (Dùng để Insert)
     private final PhoneDAO phoneDAO = new PhoneDAO();
@@ -106,6 +108,15 @@ public class AdminServlet extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
             req.setAttribute("productList", new java.util.ArrayList<>());
+        }
+
+        // 7. Lấy danh sách voucher cho bảng quản lý
+        try {
+            List<Voucher> vouchers = voucherDAO.findAll();
+            req.setAttribute("voucherList", vouchers);
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("voucherList", new java.util.ArrayList<>());
         }
 
         req.getRequestDispatcher("/WEB-INF/views/admin.jsp").forward(req, resp);
