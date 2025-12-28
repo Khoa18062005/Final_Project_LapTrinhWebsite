@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             changes.push(`firstName: "${originalValues.firstName}" → "${firstName}"`);
         }
 
-        // Check email (KHÔNG tính vào hasChanges nữa vì cần OTP)
+        // Check email (NẾU đổi email + OTP verified → hasChanges = true)
         const email = (document.getElementById('email')?.value || '').trim();
         const emailChanged = email !== originalValues.email;
 
@@ -70,13 +70,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (emailOtpSection) {
                 emailOtpSection.style.display = 'block';
             }
-            changes.push(`email: "${originalValues.email}" → "${email}" [CẦN XÁC THỰC]`);
-            // KHÔNG set hasChanges = true ở đây
+
+            // NẾU đã verify OTP → tính là có thay đổi
+            if (otpVerified) {
+                hasChanges = true;
+                changes.push(`email: "${originalValues.email}" → "${email}" [✓ VERIFIED]`);
+            } else {
+                changes.push(`email: "${originalValues.email}" → "${email}" [⏳ CHƯA XÁC THỰC]`);
+            }
         } else {
             // Ẩn OTP section
             if (emailOtpSection) {
                 emailOtpSection.style.display = 'none';
             }
+            otpVerified = false;
         }
 
         // Check phone
@@ -240,8 +247,12 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ===== EMAIL: GỬI OTP =====
-    // ===== EMAIL: GỬI OTP =====
+    // ===== EMAIL OTP VARIABLES =====
+    let otpVerified = false;
+    let countdownTimer = null;
+    const OTP_DURATION = 90;
+
+// ===== EMAIL: GỬI OTP =====
     if (sendOtpBtn) {
         sendOtpBtn.addEventListener('click', function() {
             const newEmail = emailInput.value.trim();
@@ -258,12 +269,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Gọi servlet gửi OTP
             console.log('📧 Sending OTP to:', newEmail);
+            const CONTEXT_PATH = document.querySelector('meta[name="context-path"]')?.content || '';
+
             sendOtpBtn.disabled = true;
             sendOtpBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang gửi...';
-            const contextPath = document.querySelector('meta[name="context-path"]')?.content || '';
 
-
-            fetch(contextPath + '/send-email-otp', {  // ← Servlet mới
+            fetch(CONTEXT_PATH + '/send-email-otp', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                 body: 'email=' + encodeURIComponent(newEmail)
@@ -273,20 +284,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.success) {
                         showAlert('Mã OTP đã được gửi đến email mới!', 'success');
 
-                        // Countdown
-                        let countdown = 90;
-                        sendOtpBtn.innerHTML = `<i class="bi bi-hourglass me-1"></i> ${countdown}s`;
+                        // Focus vào ô OTP
+                        document.getElementById('emailOtp').focus();
 
-                        const timer = setInterval(() => {
-                            countdown--;
-                            if (countdown > 0) {
-                                sendOtpBtn.innerHTML = `<i class="bi bi-hourglass me-1"></i> ${countdown}s`;
-                            } else {
-                                clearInterval(timer);
-                                sendOtpBtn.disabled = false;
-                                sendOtpBtn.innerHTML = '<i class="bi bi-send me-1"></i> Gửi lại OTP';
-                            }
-                        }, 1000);
+                        // Start countdown
+                        startOtpCountdown(OTP_DURATION);
                     } else {
                         showAlert(data.message || 'Gửi OTP thất bại!', 'error');
                         sendOtpBtn.disabled = false;
@@ -299,6 +301,66 @@ document.addEventListener('DOMContentLoaded', function() {
                     sendOtpBtn.disabled = false;
                     sendOtpBtn.innerHTML = '<i class="bi bi-send me-1"></i> Gửi OTP';
                 });
+        });
+    }
+
+// ===== COUNTDOWN TIMER =====
+    function startOtpCountdown(duration) {
+        const timerEl = document.getElementById('otpTimer');
+        let timeLeft = duration;
+
+        if (countdownTimer) {
+            clearInterval(countdownTimer);
+        }
+
+        function updateDisplay() {
+            timerEl.textContent = `Mã có hiệu lực trong ${timeLeft} giây`;
+            timerEl.className = 'text-success d-block mt-2';
+
+            sendOtpBtn.disabled = true;
+            sendOtpBtn.innerHTML = `<i class="bi bi-hourglass me-1"></i> ${timeLeft}s`;
+        }
+
+        updateDisplay();
+
+        countdownTimer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                updateDisplay();
+            } else {
+                clearInterval(countdownTimer);
+                timerEl.textContent = 'Mã đã hết hạn. Vui lòng gửi lại';
+                timerEl.className = 'text-danger d-block mt-2';
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.innerHTML = '<i class="bi bi-send me-1"></i> Gửi lại';
+                otpVerified = false;
+            }
+        }, 1000);
+    }
+
+// ===== OTP INPUT: Enable Save Button khi đủ 6 số =====
+    const emailOtpInput = document.getElementById('emailOtp');
+    if (emailOtpInput) {
+        emailOtpInput.addEventListener('input', function() {
+            const otp = this.value.trim();
+
+            if (otp.length === 6 && /^\d{6}$/.test(otp)) {
+                // OTP hợp lệ
+                otpVerified = true;
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+
+                // Kiểm tra lại nếu có thay đổi khác
+                checkForChanges();
+            } else {
+                otpVerified = false;
+                if (otp.length > 0) {
+                    this.classList.add('is-invalid');
+                    this.classList.remove('is-valid');
+                } else {
+                    this.classList.remove('is-invalid', 'is-valid');
+                }
+            }
         });
     }
 
@@ -353,13 +415,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const lastName = (document.getElementById('lastName')?.value || '').trim();
             const email = (document.getElementById('email')?.value || '').trim();
             const phone = (document.getElementById('phone')?.value || '').trim();
-
-            // Check if email changed but no OTP
-            if (email !== originalValues.email) {
-                e.preventDefault();
-                showAlert('Bạn cần xác thực email mới trước khi lưu!', 'error');
-                return false;
-            }
 
             // Validate họ tên
             if (!firstName || !lastName) {

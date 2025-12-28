@@ -213,7 +213,7 @@
                             <div class="form-group-custom">
                                 <label>Tên đăng nhập</label>
                                 <div class="form-value">
-                                    <span class="text-dark fw-semibold">${user.username}</span>
+                                    <span class="text-dark fw-semibold">${user.email}</span>
                                 </div>
                             </div>
 
@@ -273,9 +273,7 @@
                                                 <i class="bi bi-send me-1"></i> Gửi OTP
                                             </button>
                                         </div>
-                                        <small class="text-muted">
-                                            Mã OTP sẽ được gửi đến email mới của bạn
-                                        </small>
+                                        <small id="otpTimer" class="text-muted d-block mt-2"></small>
                                     </div>
                                 </div>
                             </div>

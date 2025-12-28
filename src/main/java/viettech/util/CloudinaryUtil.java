@@ -117,6 +117,9 @@ public class CloudinaryUtil {
     /**
      * Upload avatar (tối ưu cho ảnh đại diện)
      */
+    /**
+     * Upload avatar (tối ưu cho ảnh đại diện)
+     */
     public static String uploadAvatar(Part filePart) throws IOException {
         if (filePart == null || filePart.getSize() == 0) {
             throw new IllegalArgumentException("Vui lòng chọn file ảnh!");
@@ -136,26 +139,25 @@ public class CloudinaryUtil {
         try (InputStream inputStream = filePart.getInputStream()) {
             String publicId = AVATAR_FOLDER + "/" + UUID.randomUUID().toString();
 
+            // ✅ FIX: Transformation phải là Map đơn giản, KHÔNG lồng nhau
             Map uploadResult = getCloudinary().uploader().upload(inputStream.readAllBytes(),
                     ObjectUtils.asMap(
                             "public_id", publicId,
                             "folder", AVATAR_FOLDER,
                             "resource_type", "image",
                             "overwrite", false,
-                            "transformation", ObjectUtils.asMap(
-                                    "width", 500,
-                                    "height", 500,
-                                    "crop", "fill",
-                                    "gravity", "face",
-                                    "quality", "auto:good",
-                                    "fetch_format", "auto"
-                            )
+                            "width", 500,                    // ← FIX: Đưa ra ngoài
+                            "height", 500,                   // ← FIX: Đưa ra ngoài
+                            "crop", "fill",                  // ← FIX: Đưa ra ngoài
+                            "gravity", "face",               // ← FIX: Đưa ra ngoài
+                            "quality", "auto:good",          // ← FIX: Đưa ra ngoài
+                            "fetch_format", "auto"           // ← FIX: Đưa ra ngoài
                     )
             );
 
             String imageUrl = (String) uploadResult.get("secure_url");
             System.out.println("✅ Upload avatar thành công: " + imageUrl);
-            
+
             return imageUrl;
 
         } catch (IllegalArgumentException e) {
@@ -175,13 +177,11 @@ public class CloudinaryUtil {
             throw new IllegalArgumentException("Vui lòng chọn file ảnh!");
         }
 
-        // Validate file type
         String contentType = filePart.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("File không phải là ảnh!");
         }
 
-        // Validate file size (max 5MB)
         if (filePart.getSize() > 5 * 1024 * 1024) {
             throw new IllegalArgumentException("Kích thước file vượt quá 5MB!");
         }
@@ -195,17 +195,15 @@ public class CloudinaryUtil {
                             "folder", PRODUCT_FOLDER,
                             "resource_type", "image",
                             "overwrite", false,
-                            "transformation", ObjectUtils.asMap(
-                                    "width", 1200,
-                                    "quality", "auto:good",
-                                    "fetch_format", "auto"
-                            )
+                            "width", 1200,                   // ← FIX: Đưa ra ngoài
+                            "quality", "auto:good",          // ← FIX
+                            "fetch_format", "auto"           // ← FIX
                     )
             );
 
             String imageUrl = (String) uploadResult.get("secure_url");
             System.out.println("✅ Upload product image thành công: " + imageUrl);
-            
+
             return imageUrl;
 
         } catch (IllegalArgumentException e) {
