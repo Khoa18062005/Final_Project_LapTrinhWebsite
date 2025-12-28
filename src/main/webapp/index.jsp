@@ -16,6 +16,8 @@
 
     <!-- CSS riêng -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
+
 </head>
 <body>
 
@@ -25,7 +27,6 @@
     const isLoggedIn = ${not empty sessionScope.user};
 </script>
 
-<!-- HEADER -->
 <!-- HEADER -->
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -57,21 +58,34 @@
                 <!-- Kiểm tra user đã đăng nhập chưa -->
                 <c:choose>
                     <c:when test="${not empty sessionScope.user}">
-                        <!-- Đã đăng nhập: Hiển thị tên user với tooltip full name -->
+                        <!-- Đã đăng nhập: Hiển thị avatar + tên -->
                         <div class="items-header dropdown"
                              data-bs-toggle="tooltip"
                              data-bs-placement="bottom"
                              title="${sessionScope.user.firstName} ${sessionScope.user.lastName}">
                             <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown"
                                     data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle me-1"></i>
+                                <!-- Avatar thay vì icon -->
+                                <c:choose>
+                                    <c:when test="${not empty sessionScope.user.avatar and sessionScope.user.avatar != ''}">
+                                        <img src="${sessionScope.user.avatar}"
+                                             alt="Avatar"
+                                             class="user-avatar-small me-1"
+                                             onerror="this.src='${pageContext.request.contextPath}/assets/img/default-avatar.jpg'">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <img src="${pageContext.request.contextPath}/assets/img/default-avatar.jpg"
+                                             alt="Avatar"
+                                             class="user-avatar-small me-1">
+                                    </c:otherwise>
+                                </c:choose>
                                 <span class="user-name">
                                     ${sessionScope.user.firstName} ${sessionScope.user.lastName}
                                 </span>
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
-                                    <i class="bi bi-person"></i> Thông tin cá nhân
+                                    <i class="bi bi-person"></i> Tài khoản cá nhân
                                 </a></li>
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">
                                     <i class="bi bi-box"></i> Đơn hàng của tôi
@@ -236,8 +250,7 @@
     </c:choose>
 </section>
 
-<!-- Modal Smember - Phiên bản ĐẸP LUNG LINH 2025 -->
-<!-- Modal Smember - Minimalist & Đẹp như CellphoneS -->
+<!-- Modal Smember -->
 <div class="modal fade" id="smemberModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content smember-modal-content">
