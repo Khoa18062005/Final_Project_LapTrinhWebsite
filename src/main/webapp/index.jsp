@@ -114,50 +114,47 @@
 </header>
 
 <!-- THÔNG BÁO -->
-<%
-    String successMessage = (String) session.getAttribute("successMessage");
-    String errorMessage = (String) session.getAttribute("errorMessage");
-    String infoMessage = (String) session.getAttribute("infoMessage");
-%>
-
-<% if (successMessage != null && !successMessage.isEmpty()) { %>
-<div class="alert-container">
-    <div class="container">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <strong>Thành công!</strong> <%= successMessage %>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- ✅ SUCCESS MESSAGE -->
+<c:if test="${not empty sessionScope.successMessage}">
+    <div class="alert-container">
+        <div class="container">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <strong>Thành công!</strong> ${sessionScope.successMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
     </div>
-</div>
-<% session.removeAttribute("successMessage"); %>
-<% } %>
+    <c:remove var="successMessage" scope="session"/>
+</c:if>
 
-<% if (errorMessage != null && !errorMessage.isEmpty()) { %>
-<div class="alert-container">
-    <div class="container">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <strong>Lỗi!</strong> <%= errorMessage %>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- ✅ ERROR MESSAGE -->
+<c:if test="${not empty sessionScope.errorMessage}">
+    <div class="alert-container">
+        <div class="container">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Lỗi!</strong> ${sessionScope.errorMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
     </div>
-</div>
-<% session.removeAttribute("errorMessage"); %>
-<% } %>
+    <c:remove var="errorMessage" scope="session"/>
+</c:if>
 
-<% if (infoMessage != null && !infoMessage.isEmpty()) { %>
-<div class="alert-container">
-    <div class="container">
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <i class="bi bi-info-circle-fill me-2"></i>
-            <%= infoMessage %>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- ✅ INFO MESSAGE -->
+<c:if test="${not empty sessionScope.infoMessage}">
+    <div class="alert-container">
+        <div class="container">
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                    ${sessionScope.infoMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
     </div>
-</div>
-<% session.removeAttribute("infoMessage"); %>
-<% } %>
+    <c:remove var="infoMessage" scope="session"/>
+</c:if>
 
 <!-- CATEGORY -->
 <section class="categories">
