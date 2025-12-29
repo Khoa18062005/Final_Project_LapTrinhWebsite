@@ -4,9 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import viettech.dao.AddressDAO;
 import viettech.dto.Address_dto;
-import viettech.dto.Address_dto;
 import viettech.entity.Address;
 import viettech.entity.user.Customer;
+import java.util.*;
 
 /**
  * Service xử lý logic địa chỉ
@@ -42,7 +42,6 @@ public class AddressService {
         }
 
         System.out.println("✅ Service: Processing add address for customer: " + customer.getEmail());
-
         try {
             // Nếu đặt làm mặc định, bỏ mặc định của các địa chỉ cũ
             if (dto.isDefault()) {
@@ -138,7 +137,7 @@ public class AddressService {
      * Đếm số địa chỉ của customer
      */
     public long countAddressesByCustomerId(int customerId) {
-        java.util.List<Address> addresses = addressDAO.findByCustomerId(customerId);
+        List<Address> addresses = addressDAO.findByCustomerId(customerId);
         return addresses.size();
     }
 }
