@@ -177,76 +177,298 @@
 
 <!-- PRODUCTS -->
 <section class="products">
-    <c:choose>
-        <c:when test="${empty products}">
-            <p class="text-center w-100 py-5 fs-4 text-muted">Hiện tại chưa có sản phẩm nào.</p>
-        </c:when>
-        <c:otherwise>
-            <c:forEach var="phone" items="${products}">
-                <a href="${pageContext.request.contextPath}/product?id=${phone.id}" class="product-link">
-                    <div class="product">
-                        <!-- Badges -->
-                        <div class="product-badges">
-                            <c:if test="${phone.discountPercent > 0}">
-                                <span class="badge discount">Giảm ${phone.discountPercent}%</span>
-                            </c:if>
-                            <span class="badge installment">Trả góp 0%</span>
+
+    <!-- ==================== ĐIỆN THOẠI ==================== -->
+    <div class="category-block mb-5">
+        <h2 class="category-title text-center mb-4">Điện thoại</h2>
+        <c:choose>
+            <c:when test="${empty phones}">
+                <p class="text-center w-100 py-5 fs-4 text-muted">Hiện tại chưa có điện thoại nào.</p>
+            </c:when>
+            <c:otherwise>
+                <div class="row justify-content-start">
+                    <c:forEach var="phone" items="${phones}">
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <a href="${pageContext.request.contextPath}/product?id=${phone.id}" class="product-link">
+                                <div class="product position-relative">
+
+                                    <!-- Badges -->
+                                    <div class="product-badges">
+                                        <c:if test="${phone.discountPercent > 0}">
+                                            <span class="badge discount">Giảm ${phone.discountPercent}%</span>
+                                        </c:if>
+                                        <span class="badge installment">Trả góp 0%</span>
+                                    </div>
+
+                                    <!-- Hình ảnh từ CDN -->
+                                    <c:choose>
+                                        <c:when test="${not empty phone.primaryImage}">
+                                            <div class="product-image">
+                                                <img src="${phone.primaryImage}"
+                                                     alt="${phone.name}"
+                                                     class="w-100 h-100"
+                                                     style="object-fit: contain;"
+                                                     onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/no-image.png';">
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="product-image-placeholder text-center py-3 d-flex align-items-center justify-content-center">
+                                                <p class="text-muted mb-0">Chưa có ảnh sản phẩm</p>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+
+                                    <!-- Tên sản phẩm -->
+                                    <h3 class="product-name">${phone.name} | Chính hãng</h3>
+
+                                    <!-- Giá -->
+                                    <div class="product-price">
+                                        <fmt:formatNumber value="${phone.price}" type="number" groupingUsed="true"/>đ
+                                        <c:if test="${phone.oldPrice > phone.price}">
+                                            <span class="old-price">
+                                                <fmt:formatNumber value="${phone.oldPrice}" type="number" groupingUsed="true"/>đ
+                                            </span>
+                                        </c:if>
+                                    </div>
+
+                                    <!-- Giảm thêm cho member -->
+                                    <c:if test="${phone.memberDiscount > 0}">
+                                        <div class="member-discount">
+                                            Smember giảm đến <fmt:formatNumber value="${phone.memberDiscount}" type="number" groupingUsed="true"/>đ
+                                        </div>
+                                    </c:if>
+
+                                    <!-- Thông tin trả góp -->
+                                    <div class="installment-info">
+                                        Trả góp 0% - 0đ phụ thu - 0đ trả trước - Kỳ hạn đến 6 tháng
+                                    </div>
+
+                                    <!-- Footer -->
+                                    <div class="product-footer">
+                                        <div class="rating">
+                                            <span class="stars">★ ${phone.rating}</span>
+                                            <span class="like">Yêu thích</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
+                    </c:forEach>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </div>
 
-                        <!-- Hình ảnh: Chỉ hiển thị nếu primaryImage không rỗng -->
-                        <c:if test="${not empty phone.primaryImage}">
-                            <div class="product-image">
-                                <img src="${pageContext.request.contextPath}/uploads/phones/${phone.primaryImage}"
-                                     alt="${phone.name}"
-                                     onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'">
-                            </div>
-                        </c:if>
-                        <!-- Nếu không có ảnh, có thể thêm placeholder text nếu muốn -->
-                        <c:if test="${empty phone.primaryImage}">
-                            <div class="product-image-placeholder text-center py-3">
-                                <p class="text-muted">Chưa có ảnh sản phẩm</p>
-                            </div>
-                        </c:if>
+    <!-- ==================== LAPTOP ==================== -->
+    <div class="category-block mb-5">
+        <h2 class="category-title text-center mb-4">Laptop</h2>
+        <c:choose>
+            <c:when test="${empty laptops}">
+                <p class="text-center w-100 py-5 fs-4 text-muted">Hiện tại chưa có laptop nào.</p>
+            </c:when>
+            <c:otherwise>
+                <div class="row justify-content-start">
+                    <c:forEach var="phone" items="${laptops}">
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <a href="${pageContext.request.contextPath}/product?id=${phone.id}" class="product-link">
+                                <div class="product position-relative">
+                                    <!-- Badges -->
+                                    <div class="product-badges">
+                                        <c:if test="${phone.discountPercent > 0}">
+                                            <span class="badge discount">Giảm ${phone.discountPercent}%</span>
+                                        </c:if>
+                                        <span class="badge installment">Trả góp 0%</span>
+                                    </div>
 
-                        <!-- Tên sản phẩm -->
-                        <h3 class="product-name">${phone.name} | Chính hãng</h3>
+                                    <!-- Hình ảnh từ CDN -->
+                                    <c:choose>
+                                        <c:when test="${not empty phone.primaryImage}">
+                                            <div class="product-image">
+                                                <img src="${phone.primaryImage}"
+                                                     alt="${phone.name}"
+                                                     class="w-100 h-100"
+                                                     style="object-fit: contain;"
+                                                     onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/no-image.png';">
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="product-image-placeholder text-center py-3 d-flex align-items-center justify-content-center">
+                                                <p class="text-muted mb-0">Chưa có ảnh sản phẩm</p>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
 
-                        <!-- Giá -->
-                        <div class="product-price">
-                            <fmt:formatNumber value="${phone.price}" type="number" groupingUsed="true"/>đ
-                            <c:if test="${phone.oldPrice > phone.price}">
-                                <span class="old-price">
-                                    <fmt:formatNumber value="${phone.oldPrice}" type="number" groupingUsed="true"/>đ
-                                </span>
-                            </c:if>
+                                    <h3 class="product-name">${phone.name} | Chính hãng</h3>
+                                    <div class="product-price">
+                                        <fmt:formatNumber value="${phone.price}" type="number" groupingUsed="true"/>đ
+                                        <c:if test="${phone.oldPrice > phone.price}">
+                                            <span class="old-price">
+                                                <fmt:formatNumber value="${phone.oldPrice}" type="number" groupingUsed="true"/>đ
+                                            </span>
+                                        </c:if>
+                                    </div>
+                                    <c:if test="${phone.memberDiscount > 0}">
+                                        <div class="member-discount">
+                                            Smember giảm đến <fmt:formatNumber value="${phone.memberDiscount}" type="number" groupingUsed="true"/>đ
+                                        </div>
+                                    </c:if>
+                                    <div class="installment-info">
+                                        Trả góp 0% - 0đ phụ thu - 0đ trả trước - Kỳ hạn đến 6 tháng
+                                    </div>
+                                    <div class="product-footer">
+                                        <div class="rating">
+                                            <span class="stars">★ ${phone.rating}</span>
+                                            <span class="like">Yêu thích</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
+                    </c:forEach>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </div>
 
-                        <!-- Giảm thêm cho member -->
-                        <c:if test="${phone.memberDiscount > 0}">
-                            <div class="member-discount">
-                                Smember giảm đến <fmt:formatNumber value="${phone.memberDiscount}" type="number" groupingUsed="true"/>đ
-                            </div>
-                        </c:if>
+    <!-- ==================== MÁY TÍNH BẢNG ==================== -->
+    <div class="category-block mb-5">
+        <h2 class="category-title text-center mb-4">Máy tính bảng</h2>
+        <c:choose>
+            <c:when test="${empty tablets}">
+                <p class="text-center w-100 py-5 fs-4 text-muted">Hiện tại chưa có máy tính bảng nào.</p>
+            </c:when>
+            <c:otherwise>
+                <div class="row justify-content-start">
+                    <c:forEach var="phone" items="${tablets}">
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <a href="${pageContext.request.contextPath}/product?id=${phone.id}" class="product-link">
+                                <div class="product position-relative">
+                                    <!-- Badges + Ảnh + Nội dung giống hệt trên -->
+                                    <div class="product-badges">
+                                        <c:if test="${phone.discountPercent > 0}">
+                                            <span class="badge discount">Giảm ${phone.discountPercent}%</span>
+                                        </c:if>
+                                        <span class="badge installment">Trả góp 0%</span>
+                                    </div>
 
-                        <!-- Thông tin trả góp -->
-                        <div class="installment-info">
-                            Trả góp 0% - 0đ phụ thu - 0đ trả trước - Kỳ hạn đến 6 tháng
+                                    <c:choose>
+                                        <c:when test="${not empty phone.primaryImage}">
+                                            <div class="product-image">
+                                                <img src="${phone.primaryImage}"
+                                                     alt="${phone.name}"
+                                                     class="w-100 h-100"
+                                                     style="object-fit: contain;"
+                                                     onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/no-image.png';">
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="product-image-placeholder text-center py-3 d-flex align-items-center justify-content-center">
+                                                <p class="text-muted mb-0">Chưa có ảnh sản phẩm</p>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+
+                                    <h3 class="product-name">${phone.name} | Chính hãng</h3>
+                                    <div class="product-price">
+                                        <fmt:formatNumber value="${phone.price}" type="number" groupingUsed="true"/>đ
+                                        <c:if test="${phone.oldPrice > phone.price}">
+                                            <span class="old-price">
+                                                <fmt:formatNumber value="${phone.oldPrice}" type="number" groupingUsed="true"/>đ
+                                            </span>
+                                        </c:if>
+                                    </div>
+                                    <c:if test="${phone.memberDiscount > 0}">
+                                        <div class="member-discount">
+                                            Smember giảm đến <fmt:formatNumber value="${phone.memberDiscount}" type="number" groupingUsed="true"/>đ
+                                        </div>
+                                    </c:if>
+                                    <div class="installment-info">
+                                        Trả góp 0% - 0đ phụ thu - 0đ trả trước - Kỳ hạn đến 6 tháng
+                                    </div>
+                                    <div class="product-footer">
+                                        <div class="rating">
+                                            <span class="stars">★ ${phone.rating}</span>
+                                            <span class="like">Yêu thích</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
+                    </c:forEach>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </div>
 
-                        <!-- Footer -->
-                        <div class="product-footer">
-                            <div class="rating">
-                                <span class="stars">★ ${phone.rating}</span>
-                                <span class="like">Yêu thích</span>
-                            </div>
+    <!-- ==================== TAI NGHE ==================== -->
+    <div class="category-block mb-5">
+        <h2 class="category-title text-center mb-4">Tai nghe</h2>
+        <c:choose>
+            <c:when test="${empty headphones}">
+                <p class="text-center w-100 py-5 fs-4 text-muted">Hiện tại chưa có tai nghe nào.</p>
+            </c:when>
+            <c:otherwise>
+                <div class="row justify-content-start">
+                    <c:forEach var="phone" items="${headphones}">
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 mb-4">
+                            <a href="${pageContext.request.contextPath}/product?id=${phone.id}" class="product-link">
+                                <div class="product position-relative">
+                                    <div class="product-badges">
+                                        <c:if test="${phone.discountPercent > 0}">
+                                            <span class="badge discount">Giảm ${phone.discountPercent}%</span>
+                                        </c:if>
+                                        <span class="badge installment">Trả góp 0%</span>
+                                    </div>
+
+                                    <c:choose>
+                                        <c:when test="${not empty phone.primaryImage}">
+                                            <div class="product-image">
+                                                <img src="${phone.primaryImage}"
+                                                     alt="${phone.name}"
+                                                     class="w-100 h-100"
+                                                     style="object-fit: contain;"
+                                                     onerror="this.onerror=null; this.src='${pageContext.request.contextPath}/assets/images/no-image.png';">
+                                            </div>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="product-image-placeholder text-center py-3 d-flex align-items-center justify-content-center">
+                                                <p class="text-muted mb-0">Chưa có ảnh sản phẩm</p>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+
+                                    <h3 class="product-name">${phone.name} | Chính hãng</h3>
+                                    <div class="product-price">
+                                        <fmt:formatNumber value="${phone.price}" type="number" groupingUsed="true"/>đ
+                                        <c:if test="${phone.oldPrice > phone.price}">
+                                            <span class="old-price">
+                                                <fmt:formatNumber value="${phone.oldPrice}" type="number" groupingUsed="true"/>đ
+                                            </span>
+                                        </c:if>
+                                    </div>
+                                    <c:if test="${phone.memberDiscount > 0}">
+                                        <div class="member-discount">
+                                            Smember giảm đến <fmt:formatNumber value="${phone.memberDiscount}" type="number" groupingUsed="true"/>đ
+                                        </div>
+                                    </c:if>
+                                    <div class="installment-info">
+                                        Trả góp 0% - 0đ phụ thu - 0đ trả trước - Kỳ hạn đến 6 tháng
+                                    </div>
+                                    <div class="product-footer">
+                                        <div class="rating">
+                                            <span class="stars">★ ${phone.rating}</span>
+                                            <span class="like">Yêu thích</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
-                    </div>
-                </a>
-            </c:forEach>
-        </c:otherwise>
-    </c:choose>
+                    </c:forEach>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </div>
 </section>
-
 <!-- Modal Smember -->
 <div class="modal fade" id="smemberModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
