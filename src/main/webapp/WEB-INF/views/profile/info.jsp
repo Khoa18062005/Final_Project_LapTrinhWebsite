@@ -37,16 +37,16 @@
                     <div class="form-group-custom">
                         <label>Họ và tên đệm<span class="text-danger">*</span></label>
                         <input type="text" class="form-control-custom" name="lastName" id="lastName"
-                               value="${user.lastName}" placeholder="Nhập họ"
-                               data-original="${user.lastName}" required>
+                               value="${user.firstName}" placeholder="Nhập họ"
+                               data-original="${user.firstName}" required>
                     </div>
 
                     <!-- Tên -->
                     <div class="form-group-custom">
                         <label>Tên <span class="text-danger">*</span></label>
                         <input type="text" class="form-control-custom" name="firstName" id="firstName"
-                               value="${user.firstName}" placeholder="Nhập tên"
-                               data-original="${user.firstName}" required>
+                               value="${user.lastName}" placeholder="Nhập tên"
+                               data-original="${user.lastName}" required>
                     </div>
 
                     <!-- Email -->
