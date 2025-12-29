@@ -123,6 +123,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" id="voucherDetailContent">
+      <div class="modal-body" id="voucherDetailContent">
         <!-- Content will be loaded by JavaScript -->
       </div>
     </div>

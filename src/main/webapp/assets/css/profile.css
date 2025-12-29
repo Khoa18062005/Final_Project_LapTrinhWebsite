@@ -956,7 +956,7 @@ a.menu-item i {
 }
 
 .voucher-middle .text-muted {
-    color: white !important;
+    color: black !important;
 }
 
 /* Progress Bar */
@@ -1068,7 +1068,48 @@ a.menu-item i {
     border-radius: 10px;
 }
 
-/* Modal Voucher Detail */
+/* ===== CRITICAL FIX: MODAL VOUCHER DETAIL Z-INDEX ===== */
+
+/* QUAN TRỌNG: Backdrop phải THẤP HƠN modal */
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+/* Modal container phải cao hơn backdrop */
+#voucherDetailModal.modal {
+    z-index: 1055 !important;
+}
+
+/* Modal dialog */
+#voucherDetailModal .modal-dialog {
+    z-index: 1056 !important;
+    position: relative;
+}
+
+/* Modal content - cao nhất và có thể click */
+#voucherDetailModal .modal-content {
+    z-index: 1057 !important;
+    position: relative;
+    background: white !important;
+    pointer-events: auto !important;
+}
+
+/* Tất cả elements bên trong modal phải có thể click */
+#voucherDetailModal .modal-header,
+#voucherDetailModal .modal-body,
+#voucherDetailModal .modal-footer {
+    position: relative;
+    z-index: 1058 !important;
+    pointer-events: auto !important;
+}
+
+#voucherDetailModal .modal-header *,
+#voucherDetailModal .modal-body *,
+#voucherDetailModal .modal-footer * {
+    pointer-events: auto !important;
+}
+
+/* Modal Header styling */
 .modal-header {
     background: #0d6efd;
     color: white;
@@ -1138,6 +1179,7 @@ a.menu-item i {
 .voucher-toast {
     animation: slideInRight 0.4s ease;
     font-weight: 600;
+    z-index: 9999 !important;
 }
 
 @keyframes slideInRight {
@@ -1881,6 +1923,7 @@ a.menu-item i {
         padding: 16px;
     }
 }
+
 /* ===== ADDRESS PAGE STYLES ENHANCEMENT ===== */
 
 /* Nút Thêm Địa Chỉ */
@@ -2162,11 +2205,7 @@ select.success:focus {
 
 /* Fix: Modal bị header che (tăng z-index) */
 #addAddressModal.modal {
-    z-index: 99999 !important; /* Tăng rất cao để không bị header che */
-}
-
-.modal-backdrop {
-    z-index: 99998 !important;
+    z-index: 1060 !important;
 }
 
 /* Fix: Dropdown select bị che (hiển thị trên modal) */
@@ -2182,16 +2221,16 @@ select.success:focus {
 
 /* Container của dropdown (Bootstrap 5) */
 #addAddressModal .modal-dialog {
-    z-index: 99999 !important;
+    z-index: 1061 !important;
 }
 
 #addAddressModal .modal-content {
-    z-index: 100000 !important;
+    z-index: 1062 !important;
 }
 
 /* Đảm bảo header không cao hơn modal */
 .navbar {
-    z-index: 1030 !important; /* Bootstrap default */
+    z-index: 1030 !important;
 }
 
 /* Fix: Dropdown list hiển thị đúng vị trí */
@@ -2233,7 +2272,7 @@ select.success:focus {
 #addAddressModal .modal-body {
     max-height: 70vh;
     overflow-y: auto;
-    padding-right: 5px; /* Thêm padding để tránh scrollbar che */
+    padding-right: 5px;
 }
 
 /* Scrollbar styling */
@@ -2269,7 +2308,7 @@ select.success:focus {
 
 /* Thêm margin-top cho modal để không bị header che */
 .modal {
-    padding-top: 60px !important; /* Thêm padding top để modal không bị header che */
+    padding-top: 60px !important;
 }
 
 /* Đảm bảo modal backdrop che hết màn hình */
@@ -2280,55 +2319,4 @@ select.success:focus {
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-}
-
-/* ===== CUSTOM DROPDOWN FIX ===== */
-
-/* Force dropdown hiển thị trên modal */
-#addAddressModal select option {
-    position: absolute !important;
-    top: 100% !important;
-    left: 0 !important;
-    z-index: 100002 !important;
-    background: white !important;
-    border: 1px solid #e5e7eb !important;
-    border-radius: 8px !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-    margin-top: 4px !important;
-    max-height: 250px !important;
-    overflow-y: auto !important;
-}
-
-/* Style cho từng option */
-#addAddressModal select option {
-    padding: 10px 15px !important;
-    cursor: pointer !important;
-    transition: background 0.2s !important;
-}
-
-#addAddressModal select option:hover {
-    background: #f0f7ff !important;
-}
-
-#addAddressModal select option:checked {
-    background: #0d6efd !important;
-    color: white !important;
-}
-
-/* Fix cho mobile */
-@media (max-width: 576px) {
-    #addAddressModal .modal-dialog {
-        margin: 0.5rem !important;
-        max-height: 90vh !important;
-    }
-
-    #addAddressModal .modal-content {
-        border-radius: 16px !important;
-        overflow: hidden !important;
-    }
-
-    /* Trên mobile, dropdown của trình duyệt sẽ mở ở vị trí riêng nên không cần fix */
-    #addAddressModal select:focus {
-        position: relative !important;
-    }
 }

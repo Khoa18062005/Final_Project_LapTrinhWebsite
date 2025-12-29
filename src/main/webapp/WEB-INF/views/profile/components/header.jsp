@@ -56,7 +56,7 @@
                        alt="Avatar" class="user-avatar-small me-1">
                 </c:otherwise>
               </c:choose>
-              <span class="user-name">${sessionScope.user.lastName} ${sessionScope.user.firstName}</span>
+              <span class="user-name">${sessionScope.user.firstName} ${sessionScope.user.lastName}</span>
             </button>
             <ul class="dropdown-menu">
               <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile/info">
