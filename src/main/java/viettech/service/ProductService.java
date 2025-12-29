@@ -330,4 +330,80 @@ public class ProductService {
                 return "Unknown";
         }
     }
+    /**
+     * Phương thức chung: lấy tất cả sản phẩm thuộc một category
+     * @param categoryId ID của category
+     * @return List<ProductCardDTO> chứa toàn bộ sản phẩm của category đó
+     */
+    private List<ProductCardDTO> getAllProductsByCategory(int categoryId) {
+        // CHÚ Ý: Cần sửa DAO để JOIN FETCH images (xem bước 2 bên dưới)
+        List<Product> products = productDAO.findByCategoryIdWithImages(categoryId);
+
+        return products.stream()
+                .map(p -> {
+                    ProductCardDTO dto = new ProductCardDTO();
+                    dto.setId(p.getProductId());
+                    dto.setName(p.getName());
+                    dto.setPrice(p.getBasePrice());
+                    dto.setRating(p.getAverageRating());
+                    dto.setMemberDiscount(0); // có thể tính sau
+                    dto.setOldPrice(p.getBasePrice()); // tạm thời
+                    dto.setDiscountPercent(0); // tạm thời
+
+                    // ===== LẤY ẢNH CHÍNH TỪ DANH SÁCH IMAGES =====
+                    String primaryImageUrl = "";
+
+                    if (p.getImages() != null && !p.getImages().isEmpty()) {
+                        // Ưu tiên ảnh có isPrimary = true
+                        primaryImageUrl = p.getImages().stream()
+                                .filter(img -> img.isPrimary())
+                                .map(ProductImage::getUrl)
+                                .findFirst()
+                                .orElse("");
+
+                        // Nếu không có ảnh primary, lấy ảnh có sortOrder nhỏ nhất (thường là ảnh chính)
+                        if (primaryImageUrl.isEmpty()) {
+                            primaryImageUrl = p.getImages().stream()
+                                    .min(java.util.Comparator.comparingInt(ProductImage::getSortOrder))
+                                    .map(ProductImage::getUrl)
+                                    .orElse("");
+                        }
+                    }
+
+                    dto.setPrimaryImage(primaryImageUrl);
+                    // ==========================================
+
+                    return dto;
+                })
+                .toList();
+    }
+
+    /**
+     * Lấy tất cả điện thoại
+     */
+    public List<ProductCardDTO> getAllPhones() {
+        return getAllProductsByCategory(CATEGORY_PHONE);
+    }
+
+    /**
+     * Lấy tất cả laptop
+     */
+    public List<ProductCardDTO> getAllLaptops() {
+        return getAllProductsByCategory(CATEGORY_LAPTOP);
+    }
+
+    /**
+     * Lấy tất cả tablet
+     */
+    public List<ProductCardDTO> getAllTablets() {
+        return getAllProductsByCategory(CATEGORY_TABLET);
+    }
+
+    /**
+     * Lấy tất cả tai nghe
+     */
+    public List<ProductCardDTO> getAllHeadphones() {
+        return getAllProductsByCategory(CATEGORY_HEADPHONE);
+    }
+    // =================================================================================
 }

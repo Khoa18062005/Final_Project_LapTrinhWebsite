@@ -35,7 +35,7 @@ public class ProfileServlet extends HttpServlet {
         }
 
         request.setAttribute("user", user);
-        request.getRequestDispatcher("/WEB-INF/views/profile.jsp").forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/profile/info");
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ProfileServlet extends HttpServlet {
             // 2. XỬ LÝ EMAIL NẾU THAY ĐỔI
             if (!dto.getEmail().equals(user.getEmail())) {
                 if (!handleEmailChange(request, dto, user)) {
-                    response.sendRedirect(request.getContextPath() + "/profile");
+                    response.sendRedirect(request.getContextPath() + "/profile/info");
                     return;
                 }
             }
@@ -95,7 +95,7 @@ public class ProfileServlet extends HttpServlet {
         }
 
         // 6. REDIRECT VỀ PROFILE
-        response.sendRedirect(request.getContextPath() + "/profile");
+        response.sendRedirect(request.getContextPath() + "/profile/info");
     }
 
     /**

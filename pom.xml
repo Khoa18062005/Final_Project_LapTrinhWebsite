@@ -98,7 +98,16 @@
       <artifactId>jbcrypt</artifactId>
       <version>0.4</version>
     </dependency>
-
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j</artifactId>
+      <version>1.10.0</version>
+    </dependency>
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-open-ai</artifactId>
+      <version>1.10.0</version>
+    </dependency>
     <!-- ========== JSON ========== -->
     <!-- Jackson for JSON -->
     <dependency>
@@ -126,7 +135,7 @@
     <dependency>
       <groupId>com.cloudinary</groupId>
       <artifactId>cloudinary-http44</artifactId>
-      <version>1.36.0</version>
+      <version>1.39.0</version>
     </dependency>
 
     <!-- Logback Implementation -->

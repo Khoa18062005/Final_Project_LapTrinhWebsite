@@ -23,11 +23,15 @@ public class AddressDAO {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         EntityTransaction trans = em.getTransaction();
         try {
+            System.out.println("📍 DAO: Starting to insert address");
             trans.begin();
             em.persist(address);
             trans.commit();
+            System.out.println("✅ DAO: Inserted new address for customer ID: " + address.getCustomer().getUserId());
             logger.info("✓ Inserted new address for customer");
         } catch (Exception e) {
+            System.out.println("❌ DAO Exception: " + e.getMessage());
+            e.printStackTrace();
             if (trans.isActive()) trans.rollback();
             logger.error("✗ Failed to insert address", e);
             throw new RuntimeException("Failed to insert address", e);

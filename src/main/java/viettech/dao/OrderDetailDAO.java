@@ -8,6 +8,7 @@ import viettech.entity.order.OrderDetail;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.TypedQuery;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -17,6 +18,10 @@ import java.util.List;
 public class OrderDetailDAO {
 
     private static final Logger logger = LoggerFactory.getLogger(OrderDetailDAO.class);
+
+    // ==========================================
+    // BASIC CRUD OPERATIONS
+    // ==========================================
 
     // CREATE
     public void insert(OrderDetail orderDetail) {
@@ -162,5 +167,68 @@ public class OrderDetailDAO {
             em.close();
         }
     }
-}
 
+    // ==========================================
+    // STATISTICS METHODS (ADDED TO FIX LAZY LOADING)
+    // ==========================================
+
+    /**
+     * Thống kê số lượng bán theo danh mục (Category)
+     * Query: OrderDetail -> Variant -> Product -> Category
+     * @return List<Object[]> : [String categoryName, Long totalQuantity]
+     */
+    public List<Object[]> getCategoryStatistics() {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            // SQL Gốc của bạn:
+            // SELECT c.name, SUM(od.quantity) FROM order_details od ...
+
+            // JPQL Tương ứng (Lưu ý Case Sensitive tên Class và tên Biến):
+            String jpql = "SELECT c.name, SUM(od.quantity) " +
+                    "FROM OrderDetail od " +      // Class OrderDetail
+                    "JOIN od.variant v " +        // Biến variant trong OrderDetail
+                    "JOIN v.product p " +         // Biến product trong Variant
+                    "JOIN p.category c " +        // Biến category trong Product
+                    "GROUP BY c.name";
+
+            TypedQuery<Object[]> query = em.createQuery(jpql, Object[].class);
+            List<Object[]> results = query.getResultList();
+
+            logger.info("✓ Retrieved category statistics. Rows: {}", results.size());
+            return results;
+        } catch (Exception e) {
+            logger.error("✗ Error calculating category statistics", e);
+            return new ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Thống kê Top sản phẩm bán chạy nhất
+     * Query: OrderDetail -> Variant -> Product
+     * @param limit Số lượng sản phẩm muốn lấy (ví dụ: Top 5)
+     * @return List<Object[]> : [String productName, Long totalQuantity, Double totalRevenue]
+     */
+    public List<Object[]> getTopSellingProducts(int limit) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            // Lưu ý: od.unitPrice phải đúng tên biến trong Entity OrderDetail (thường là unitPrice chứ không phải unit_price)
+            String jpql = "SELECT p.name, SUM(od.quantity), SUM(od.quantity * od.unitPrice) " +
+                    "FROM OrderDetail od " +
+                    "JOIN od.variant v " +
+                    "JOIN v.product p " +
+                    "GROUP BY p.name " +
+                    "ORDER BY SUM(od.quantity) DESC";
+
+            return em.createQuery(jpql, Object[].class)
+                    .setMaxResults(limit)
+                    .getResultList();
+        } catch (Exception e) {
+            logger.error("✗ Error calculating top products", e);
+            return new ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
+}
