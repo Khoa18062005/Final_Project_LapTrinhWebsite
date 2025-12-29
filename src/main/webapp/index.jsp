@@ -196,7 +196,7 @@
                         <!-- Hình ảnh: Chỉ hiển thị nếu primaryImage không rỗng -->
                         <c:if test="${not empty phone.primaryImage}">
                             <div class="product-image">
-                                <img src="${pageContext.request.contextPath}/uploads/phones/${phone.primaryImage}"
+                                <img src="${phone.primaryImage}"
                                      alt="${phone.name}"
                                      onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'">
                             </div>

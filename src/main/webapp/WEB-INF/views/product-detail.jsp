@@ -52,7 +52,7 @@
             <!-- Product Images -->
             <div class="product-images">
                 <div class="main-image">
-                    Hình ảnh sản phẩm
+                    <img src="${product.primaryImageUrl}">
                 </div>
             </div>
 
@@ -121,9 +121,24 @@
                     </div>
                 </div>
 
+                <!-- Trong phần action buttons của product-detail.jsp -->
                 <div class="action-buttons">
-                    <button class="btn btn-primary">Thêm vào giỏ hàng</button>
-                    <button class="btn btn-secondary">Mua ngay</button>
+                    <form action="${pageContext.request.contextPath}/cart/add" method="POST" class="d-inline">
+                        <input type="hidden" name="productId" value="${product.productId}">
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="action" value="add">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                        </button>
+                    </form>
+
+                    <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post">
+                        <input type="hidden" name="productId" value="${product.productId}">
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-secondary">
+                            Mua ngay
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

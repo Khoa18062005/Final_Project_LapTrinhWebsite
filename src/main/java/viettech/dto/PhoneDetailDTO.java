@@ -71,10 +71,10 @@ public class PhoneDetailDTO extends ProductDetailDTO {
                           String os, String osVersion, String simType, String networkSupport,
                           String connectivity, boolean nfc, String waterproofRating, String dustproofRating,
                           boolean fingerprintSensor, boolean faceRecognition, boolean wirelessCharging,
-                          boolean reverseCharging, boolean audioJack) {
+                          boolean reverseCharging, boolean audioJack, String imageUrl) {
         super(productId, vendorId, categoryId, name, slug, basePrice, description, brand, specifications,
                 status, conditions, weight, dimensions, createdAt, updatedAt, averageRating, totalReviews,
-                totalSold, viewCount, isFeatured);
+                totalSold, viewCount, isFeatured, imageUrl);
         this.screenSize = screenSize;
         this.screenResolution = screenResolution;
         this.screenType = screenType;
