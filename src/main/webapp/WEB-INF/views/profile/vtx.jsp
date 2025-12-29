@@ -12,7 +12,7 @@
     <!-- Header -->
     <div class="vtx-header">
       <h4><i class="bi bi-coin me-2"></i>VietTech Xu (VTX)</h4>
-      <p class="text-white-75">Tích điểm thưởng và nhận ưu đãi hấp dẫn từ VietTech</p>
+      <p class="text-muted">Tích điểm thưởng và nhận ưu đãi hấp dẫn từ VietTech</p>
     </div>
 
     <!-- Current Balance Card -->
@@ -153,7 +153,7 @@
               </div>
               <div class="method-content">
                 <h6>Giới Thiệu Bạn Bè</h6>
-                <p class="text-muted mb-0">Nhận 200 VTX khi bạn bè đăng ký</p>
+                <p class="text-muted mb-0">Nhận 200 VTX khi bạn bè đăng ký qua mã giới thiệu</p>
               </div>
             </div>
           </div>

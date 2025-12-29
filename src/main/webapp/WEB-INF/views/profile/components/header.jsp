@@ -37,6 +37,13 @@
       </form>
 
       <div class="header-right-items">
+        <!-- Chuông thông báo -->
+        <div class="items-header notification-bell" id="notificationBell">
+          <i class="bi bi-bell fs-4 text-white"></i>
+          <h5>Thông báo</h5>
+          <span class="notification-badge">0</span>
+        </div>
+
         <div class="items-header">
           <i class="bi bi-cart3 fs-4 text-white"></i>
           <h5>Giỏ hàng</h5>
