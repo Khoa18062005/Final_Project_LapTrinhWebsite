@@ -54,6 +54,7 @@ public class CheckoutServlet extends HttpServlet {
 
             // 3. Lấy TẤT CẢ địa chỉ của customer từ database
             List<Address> savedAddresses = addressDAO.findByCustomerId(fullCustomer.getUserId());
+            Address defaultAddress = addressDAO.findDefaultByCustomerId(customer.getUserId());
 
             // 4. Debug: In ra số lượng địa chỉ tìm được
             System.out.println("Found " + savedAddresses.size() + " addresses for customer ID: " + fullCustomer.getUserId());
@@ -64,11 +65,9 @@ public class CheckoutServlet extends HttpServlet {
             }
 
             // 5. Tìm địa chỉ mặc định để pre-select
-            Address defaultAddress = null;
             for (Address address : savedAddresses) {
-                if (address.isDefault()) {
-                    defaultAddress = address;
-                    break;
+                if (address == defaultAddress) {
+                    savedAddresses.remove(defaultAddress);
                 }
             }
 

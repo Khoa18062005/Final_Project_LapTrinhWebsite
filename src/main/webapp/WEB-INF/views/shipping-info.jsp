@@ -94,38 +94,55 @@
 
                 <!-- Danh sách địa chỉ -->
                 <div class="address-list">
-                  <c:forEach var="address" items="${savedAddresses}" varStatus="status">
-                    <div class="card mb-3 border-2 ${address.isDefault ? 'border-primary' : 'border-light'}">
+                  <!-- Default Address -->
+                  <c:if test="${not empty defaultAddress}">
+                    <div class="card mb-3 border-2 border-primary">
                       <div class="card-body">
                         <div class="form-check">
                           <input class="form-check-input" type="radio"
                                  name="selectedAddressId"
-                                 value="${address.addressId}"
-                            ${address.isDefault ? 'checked' : ''}
-                                 id="address-${status.index}">
-                          <label class="form-check-label w-100" for="address-${status.index}">
+                                 value="${defaultAddress.addressId}"
+                                 checked
+                                 id="default-address">
+                          <label class="form-check-label w-100" for="default-address">
                             <div class="d-flex justify-content-between align-items-start">
                               <div>
-                                <strong>${address.receiverName}</strong> | ${address.phone}
-                                <p class="mb-1">${address.street}</p>
-                                <p class="mb-1">${address.ward}, ${address.district}, ${address.city}</p>
+                                <strong>${defaultAddress.receiverName}</strong> | ${defaultAddress.phone}
+                                <p class="mb-1">${defaultAddress.street}</p>
+                                <p class="mb-1">${defaultAddress.ward}, ${defaultAddress.district}, ${defaultAddress.city}</p>
                               </div>
-                              <c:if test="${address.isDefault}">
-                                <span class="badge bg-primary">Mặc định</span>
-                              </c:if>
+                              <span class="badge bg-primary">Mặc định</span>
                             </div>
                           </label>
                         </div>
                       </div>
                     </div>
-                  </c:forEach>
-                </div>
+                  </c:if>
 
-                <!-- Ghi chú đơn hàng -->
-                <div class="mb-4">
-                  <label for="note" class="form-label">Ghi chú giao hàng (tùy chọn)</label>
-                  <textarea class="form-control" id="note" name="note" rows="3"
-                            placeholder="Ví dụ: Giao hàng giờ hành chính, gọi điện trước khi giao...">${defaultAddress.note}</textarea>
+                  <!-- Other Addresses -->
+                  <c:forEach var="address" items="${savedAddresses}" varStatus="status">
+                    <c:if test="${not address.isDefault()}">
+                      <div class="card mb-3 border-2 border-light">
+                        <div class="card-body">
+                          <div class="form-check">
+                            <input class="form-check-input" type="radio"
+                                   name="selectedAddressId"
+                                   value="${address.addressId}"
+                                   id="address-${status.index}">
+                            <label class="form-check-label w-100" for="address-${status.index}">
+                              <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                  <strong>${address.receiverName}</strong> | ${address.phone}
+                                  <p class="mb-1">${address.street}</p>
+                                  <p class="mb-1">${address.ward}, ${address.district}, ${address.city}</p>
+                                </div>
+                              </div>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                    </c:if>
+                  </c:forEach>
                 </div>
 
                 <!-- Nút điều hướng -->
