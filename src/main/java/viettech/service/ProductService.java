@@ -1,9 +1,11 @@
 package viettech.service;
 
 import viettech.dao.ProductDAO;
+import viettech.dao.ProductImageDAO;
 import viettech.dto.*;
 import viettech.entity.product.*;
 
+import java.awt.*;
 import java.util.List;
 
 public class ProductService {
@@ -23,7 +25,7 @@ public class ProductService {
             dto.setName(p.getName());
             dto.setPrice(p.getBasePrice());
             dto.setRating(p.getAverageRating());
-            dto.setPrimaryImage("");
+            dto.setPrimaryImage(getImagesById(p.getProductId()));
             dto.setMemberDiscount(0);
             return dto;
         }).toList();
@@ -32,6 +34,11 @@ public class ProductService {
     public int getCategoryById(int productId) {
         Product product = productDAO.findById(productId);
         return product != null ? product.getCategoryId() : -1;
+    }
+
+    public String getImagesById(int productId) {
+        ProductImageDAO imageDAO = new ProductImageDAO();
+        return imageDAO.findPrimaryByProductId(productId).getUrl();
     }
 
     /**
@@ -91,6 +98,7 @@ public class ProductService {
         dto.setTotalSold(phone.getTotalSold());
         dto.setViewCount(phone.getViewCount());
         dto.setFeatured(phone.isFeatured());
+        dto.setPrimaryImageUrl(getImagesById(phone.getProductId()));
 
         // Map từ Phone (specific fields)
         dto.setScreenSize(phone.getScreenSize());
@@ -149,6 +157,7 @@ public class ProductService {
         dto.setTotalSold(laptop.getTotalSold());
         dto.setViewCount(laptop.getViewCount());
         dto.setFeatured(laptop.isFeatured());
+        dto.setPrimaryImageUrl(getImagesById(laptop.getProductId()));
 
         // Map từ Laptop (specific fields)
         dto.setCpu(laptop.getCpu());
@@ -211,6 +220,8 @@ public class ProductService {
         dto.setTotalSold(tablet.getTotalSold());
         dto.setViewCount(tablet.getViewCount());
         dto.setFeatured(tablet.isFeatured());
+        dto.setPrimaryImageUrl(getImagesById(tablet.getProductId()));
+
 
         // Map từ Tablet (specific fields)
         dto.setScreenSize(tablet.getScreenSize());
@@ -268,6 +279,8 @@ public class ProductService {
         dto.setTotalSold(headphone.getTotalSold());
         dto.setViewCount(headphone.getViewCount());
         dto.setFeatured(headphone.isFeatured());
+        dto.setPrimaryImageUrl(getImagesById(headphone.getProductId()));
+
 
         // Map từ Headphone (specific fields)
         dto.setType(headphone.getType());

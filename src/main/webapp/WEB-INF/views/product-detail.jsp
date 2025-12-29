@@ -7,14 +7,17 @@
 
 <head>
     <meta charset="UTF-8">
+    <title>VietTech | Sàn Thương Mại Điện Tử</title>
+    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/PNG/AVT.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${product.name} - Chi tiết sản phẩm</title>
 
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
     <!-- CSS riêng -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css">
 </head>
 
@@ -49,7 +52,7 @@
             <!-- Product Images -->
             <div class="product-images">
                 <div class="main-image">
-                    Hình ảnh sản phẩm
+                    <img src="${product.primaryImageUrl}">
                 </div>
             </div>
 
@@ -118,9 +121,24 @@
                     </div>
                 </div>
 
+                <!-- Trong phần action buttons của product-detail.jsp -->
                 <div class="action-buttons">
-                    <button class="btn btn-primary">Thêm vào giỏ hàng</button>
-                    <button class="btn btn-secondary">Mua ngay</button>
+                    <form action="${pageContext.request.contextPath}/cart/add" method="POST" class="d-inline">
+                        <input type="hidden" name="productId" value="${product.productId}">
+                        <input type="hidden" name="quantity" value="1">
+                        <input type="hidden" name="action" value="add">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                        </button>
+                    </form>
+
+                    <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post">
+                        <input type="hidden" name="productId" value="${product.productId}">
+                        <input type="hidden" name="quantity" value="1">
+                        <button type="submit" class="btn btn-secondary">
+                            Mua ngay
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
