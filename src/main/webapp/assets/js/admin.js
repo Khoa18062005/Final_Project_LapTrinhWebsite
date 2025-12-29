@@ -507,5 +507,3 @@ function showProductDetails(sourceId) {
         console.error("Error: Cannot find detail data or Modal. ID:", sourceId);
     }
 }
-
-

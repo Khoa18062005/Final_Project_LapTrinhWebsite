@@ -580,6 +580,152 @@ input, select, button, .menu-item, .menu-sub-item {
     background: #9ca3af;
 }
 
+/* ===== MÃ GIỚI THIỆU ===== */
+.referral-code-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eaeaea;
+}
+
+.referral-code-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+}
+
+.referral-code-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.referral-code-text {
+    background-color: #f8f9fa;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    letter-spacing: 1px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    user-select: text;
+    flex: 1;
+    cursor: text;
+    transition: all 0.2s ease;
+}
+
+.referral-code-text:hover {
+    background-color: #f1f3f5;
+    border-color: #0d6efd;
+}
+
+/* Nút copy */
+.btn-copy {
+    background: #ffffff;
+    border: 2px solid #e5e7eb;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+.btn-copy:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+.btn-copy:active {
+    transform: translateY(0);
+}
+
+.btn-copy i {
+    transition: all 0.2s ease;
+}
+
+.referral-info-icon {
+    color: #6c757d;
+    cursor: help;
+    font-size: 1.1rem;
+    transition: color 0.2s;
+    margin-left: 8px;
+    flex-shrink: 0;
+}
+
+.referral-info-icon:hover {
+    color: #0d6efd;
+}
+
+/* Thông báo sao chép thành công */
+.copy-success-message {
+    background-color: #d1fae5;
+    border: 1px solid #10b981;
+    color: #065f46;
+    padding: 8px 16px;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.copy-success-message i {
+    color: #10b981;
+    font-size: 1rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive cho mã giới thiệu */
+@media (max-width: 768px) {
+    .referral-code-display {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .referral-code-container {
+        width: 100%;
+    }
+
+    .referral-info-icon {
+        margin-left: 0;
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .referral-code-text {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+
+    .btn-copy {
+        width: 38px;
+        height: 38px;
+        padding: 6px 10px;
+    }
+}
 /* ===== BUTTON STATES - DISABLED/ENABLED ===== */
 
 /* Nút Lưu khi DISABLED (chưa có thay đổi) */

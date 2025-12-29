@@ -545,3 +545,59 @@ function showAlert(message, type = 'info') {
         }
     }, 5000);
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Chức năng copy mã giới thiệu
+    const copyBtn = document.getElementById('copyReferralBtn');
+    const referralCodeText = document.getElementById('referralCodeText');
+    const copySuccessMessage = document.getElementById('copySuccessMessage');
+
+    if (copyBtn && referralCodeText) {
+        copyBtn.addEventListener('click', function() {
+            const referralCode = referralCodeText.textContent.trim();
+
+            // Tạo một textarea ẩn để copy
+            const textArea = document.createElement('textarea');
+            textArea.value = referralCode;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.select();
+            textArea.setSelectionRange(0, 99999); // Cho mobile
+
+            try {
+                // Thực hiện copy
+                const successful = document.execCommand('copy');
+
+                if (successful) {
+                    // Hiển thị thông báo thành công
+                    copySuccessMessage.style.display = 'block';
+
+                    // Đổi icon tạm thời
+                    const icon = copyBtn.querySelector('i');
+                    icon.className = 'bi bi-check2';
+
+                    // Khôi phục icon sau 2 giây
+                    setTimeout(() => {
+                        copySuccessMessage.style.display = 'none';
+                        icon.className = 'bi bi-clipboard';
+                    }, 2000);
+
+                    // Thay đổi tooltip tạm thời
+                    const tooltip = bootstrap.Tooltip.getInstance(copyBtn);
+                    if (tooltip) {
+                        tooltip.setContent({'.tooltip-inner': 'Đã sao chép!'});
+                        setTimeout(() => {
+                            tooltip.setContent({'.tooltip-inner': 'Sao chép mã'});
+                        }, 2000);
+                    }
+                }
+            } catch (err) {
+                console.error('Lỗi khi sao chép: ', err);
+            }
+
+            // Xóa textarea
+            document.body.removeChild(textArea);
+        });
+    }
+});
