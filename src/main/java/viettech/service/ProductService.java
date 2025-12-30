@@ -2,10 +2,13 @@ package viettech.service;
 
 import viettech.dao.ProductDAO;
 import viettech.dao.ProductImageDAO;
+import viettech.dao.VariantAttributeDAO;
+import viettech.dao.VariantDAO;
 import viettech.dto.*;
 import viettech.entity.product.*;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductService {
@@ -406,4 +409,30 @@ public class ProductService {
         return getAllProductsByCategory(CATEGORY_HEADPHONE);
     }
     // =================================================================================
+
+    public List<VariantDTO> getAllVariantsById(int productId) {
+        List<VariantDTO> list = new ArrayList<>();
+        VariantDAO variantDAO = new VariantDAO();
+        VariantAttributeDAO variantAttributeDAO = new VariantAttributeDAO();
+
+        List<Variant> variants = variantDAO.findByProductId(productId);
+        for(Variant variant : variants) {
+            VariantDTO dto = new VariantDTO();
+            dto.setVariantId(variant.getVariantId());
+            dto.setActive(variant.isActive());
+            dto.setFinalPrice(variant.getFinalPrice());
+            List<AttributeDTO> attributeDTO = new ArrayList<>();
+            List<VariantAttribute> variantAttributes = variantAttributeDAO.findByVariantId(variant.getVariantId());
+            for(VariantAttribute variantAttribute : variantAttributes) {
+                AttributeDTO attr = new AttributeDTO();
+                attr.setAttributeId(variantAttribute.getAttributeId());
+                attr.setAttributeName(variantAttribute.getAttributeName());
+                attr.setAttributeValue(variantAttribute.getAttributeValue());
+                attributeDTO.add(attr);
+            }
+            dto.setAttributes(attributeDTO);
+            list.add(dto);
+        }
+        return list;
+    }
 }

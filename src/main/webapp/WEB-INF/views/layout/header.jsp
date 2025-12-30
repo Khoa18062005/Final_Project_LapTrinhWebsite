@@ -30,8 +30,14 @@
                 </button>
             </form>
 
+
             <!-- Nhóm các nút bên phải: Giỏ hàng + Đăng nhập/User -->
             <div class="header-right-items">
+                <div class="items-header notification-bell" id="notificationBell">
+                    <i class="bi bi-bell fs-4 text-white"></i>
+                    <h5>Thông báo</h5>
+                    <span class="notification-badge">0</span>
+                </div>
                 <!-- Giỏ hàng -->
                 <div class="items-header">
                     <i class="bi bi-cart3 fs-4 text-white"></i>
