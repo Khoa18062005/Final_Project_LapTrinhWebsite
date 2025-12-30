@@ -1,0 +1,190 @@
+/* CSS cho phần variant */
+.variant-section {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.variant-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.variant-option {
+    min-width: 120px;
+    text-align: center;
+    padding: 8px 15px;
+    transition: all 0.3s ease;
+    border: 2px solid #dee2e6;
+}
+
+.variant-option:hover {
+    border-color: #0d6efd;
+    transform: translateY(-2px);
+}
+
+.variant-option.active {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    color: white !important;
+    box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3);
+}
+
+.variant-info {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    animation: fadeIn 0.3s ease;
+}
+
+.variant-attribute {
+    margin-bottom: 8px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.variant-attribute strong {
+    min-width: 120px;
+    color: #495057;
+}
+
+.variant-attribute span {
+    color: #212529;
+}
+
+.variant-status {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.variant-status strong {
+    color: #495057;
+}
+
+/* Container cho variant specs trong phần specifications */
+.variant-specs-container {
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #0d6efd;
+}
+
+.variant-specs-container h3 {
+    color: #0d6efd;
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.variant-specs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+}
+
+.variant-spec-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 15px;
+    background-color: white;
+    border-radius: 5px;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.variant-spec-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.variant-spec-label {
+    font-weight: 500;
+    color: #495057;
+    min-width: 150px;
+}
+
+.variant-spec-value {
+    color: #212529;
+    font-weight: 600;
+    text-align: right;
+    flex-grow: 1;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .variant-options {
+        flex-direction: column;
+    }
+
+    .variant-option {
+        width: 100%;
+    }
+
+    .variant-specs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .variant-attribute {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+
+    .variant-attribute strong {
+        min-width: auto;
+    }
+
+    .variant-spec-item {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .variant-spec-label {
+        min-width: auto;
+    }
+
+    .variant-spec-value {
+        text-align: left;
+    }
+}
+
+/* Disabled state cho nút */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Price animation */
+.price-update {
+    animation: pricePulse 0.5s ease;
+}
+
+@keyframes pricePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
