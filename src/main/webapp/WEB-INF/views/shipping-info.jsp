@@ -18,7 +18,6 @@
   <!-- CSS riêng -->
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css">
 </head>
 
 <body>
@@ -170,9 +169,6 @@
 
 <!-- Footer -->
 <jsp:include page="/WEB-INF/views/layout/footer.jsp" />
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
   // Xử lý form submission

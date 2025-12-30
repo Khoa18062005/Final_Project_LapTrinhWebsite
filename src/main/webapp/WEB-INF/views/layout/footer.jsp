@@ -74,5 +74,3 @@
 <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 
-</body>
-</html>
