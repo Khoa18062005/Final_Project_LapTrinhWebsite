@@ -2761,3 +2761,105 @@ select.success:focus {
         font-size: 0.85rem;
     }
 }
+
+/* ===== FIX FOR MODAL FLICKERING/JITTERING ===== */
+
+/* QUAN TRỌNG: Tắt tất cả transition/transform cho modal trong vòng lặp */
+.modal[id^="deleteNotificationModal"] {
+    /* Tắt tất cả hiệu ứng chuyển động khi mở/đóng modal */
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Fix cho modal backdrop */
+.modal-backdrop {
+    /* Đảm bảo backdrop không có hiệu ứng gây giật */
+    transition: opacity 0.15s linear !important;
+}
+
+/* Tắt hiệu ứng fade cho modal trong vòng lặp */
+.modal.fade[id^="deleteNotificationModal"] {
+    transition: none !important;
+}
+
+.modal.fade[id^="deleteNotificationModal"] .modal-dialog {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Đảm bảo modal dialog không có transform gây giật */
+.modal-dialog {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Tắt tất cả hover effects cho nút xóa trong modal */
+.modal[id^="deleteNotificationModal"] .btn,
+.modal[id^="deleteNotificationModal"] .btn:hover,
+.modal[id^="deleteNotificationModal"] .btn:active {
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+}
+
+/* Fix riêng cho các modal xóa thông báo */
+#deleteNotificationModal${notification.notificationId} {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1055;
+    display: none;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    outline: 0;
+}
+
+/* Tắt hiệu ứng pulse/animation cho modal xóa */
+#deleteNotificationModal${notification.notificationId}.modal.fade .modal-dialog {
+    transition: transform 0.15s ease-out !important;
+    transform: translate(0, -50px) !important;
+}
+
+#deleteNotificationModal${notification.notificationId}.modal.show .modal-dialog {
+    transform: translate(0, 0) !important;
+}
+
+/* Đảm bảo modal content không có box-shadow gây re-render */
+.modal-content {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    /* Fixed shadow để tránh re-calc */
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+/* Fix cho nút đóng trong modal */
+.modal-header .btn-close {
+    transition: none !important;
+    transform: none !important;
+}
+
+/* Tắt tất cả hiệu ứng cho các phần tử trong modal xóa */
+.modal[id^="deleteNotificationModal"] * {
+    animation: none !important;
+}
+
+/* Tối ưu hiệu suất cho modal */
+.modal {
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: opacity;
+}
+
+/* Disable tất cả transition cho modal và các phần tử con */
+.modal.fade,
+.modal.fade .modal-dialog,
+.modal.fade .modal-content,
+.modal.fade .modal-header,
+.modal.fade .modal-body,
+.modal.fade .modal-footer {
+    transition: none !important;
+    animation-duration: 0.001s !important;
+}
+

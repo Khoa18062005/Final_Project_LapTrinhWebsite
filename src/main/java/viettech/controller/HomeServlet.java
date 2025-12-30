@@ -1,6 +1,7 @@
 package viettech.controller;
 
 import viettech.service.ProductService;
+import viettech.util.NotificationUtil;
 import viettech.dto.ProductCardDTO;
 
 import javax.servlet.ServletException;
@@ -14,7 +15,6 @@ import java.util.List;
 @WebServlet({"", "/", "/index"})
 public class HomeServlet extends HttpServlet {
 
-    // Khởi tạo ProductService một lần (tốt hơn là dùng DI, nhưng tạm thời để vậy ổn)
     private final ProductService productService = new ProductService();
 
     @Override
@@ -33,14 +33,12 @@ public class HomeServlet extends HttpServlet {
         request.setAttribute("tablets", tablets);
         request.setAttribute("headphones", headphones);
 
-        // (Tùy chọn) Nếu bạn vẫn muốn giữ list tất cả sản phẩm cho phần khác thì thêm dòng này:
-        // request.setAttribute("products", productService.getHomeProducts());
+        // Thêm thông tin thông báo vào request
+        NotificationUtil.addNotificationAttributes(request);
 
         // Forward sang index.jsp
         request.getRequestDispatcher("/index.jsp").forward(request, response);
     }
-
-    // Nếu bạn có doPost (ví dụ xử lý form), thì gọi doGet hoặc xử lý tương tự
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

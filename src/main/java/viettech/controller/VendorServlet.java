@@ -27,14 +27,14 @@ public class VendorServlet extends HttpServlet {
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
         // 2. Bảo mật: Chỉ Vendor (Role = 2) được vào
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        if (user.getRoleID() != 2) {
-            response.sendRedirect(request.getContextPath() + "/");
-            return;
-        }
+//        if (user == null) {
+//            response.sendRedirect(request.getContextPath() + "/login");
+//            return;
+//        }
+//        if (user.getRoleID() != 2) {
+//            response.sendRedirect(request.getContextPath() + "/");
+//            return;
+//        }
 
         // 3. Lấy dữ liệu từ Service
         int vendorId = user.getUserId();

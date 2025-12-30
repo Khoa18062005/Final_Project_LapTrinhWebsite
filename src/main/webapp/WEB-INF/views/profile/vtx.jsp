@@ -10,7 +10,7 @@
 <div class="col-lg-10 col-md-9">
   <div class="profile-content">
     <!-- Header -->
-    <div class="vtx-header">
+    <div class="profile-header">
       <h4><i class="bi bi-coin me-2"></i>VietTech Xu (VTX)</h4>
       <p class="text-muted">Tích điểm thưởng và nhận ưu đãi hấp dẫn từ VietTech</p>
     </div>

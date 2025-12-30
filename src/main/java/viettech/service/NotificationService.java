@@ -1,43 +1,164 @@
 package viettech.service;
 
 import viettech.dao.NotificationDAO;
+import viettech.dto.NotificationReadDTO;
+import viettech.dto.NotificationDeleteDTO;
 import viettech.entity.Notification;
 
 import java.util.List;
 
 /**
- * Service xử lý logic thông báo
+ * Service xử lý logic thông báo với DTO pattern
  */
 public class NotificationService {
-    private final NotificationDAO notificationDAO = new NotificationDAO();
-    
+    private final NotificationDAO notificationDAO;
+
+    public NotificationService() {
+        this.notificationDAO = new NotificationDAO();
+    }
+
     public List<Notification> getNotificationsByUserId(int userId) {
         return notificationDAO.findByUserId(userId);
     }
-    
+
     public List<Notification> getUnreadNotificationsByUserId(int userId) {
         return notificationDAO.findUnreadByUserId(userId);
     }
-    
+
     public int getUnreadCountByUserId(int userId) {
         return (int) notificationDAO.countUnreadByUserId(userId);
     }
-    
-    public void markAsRead(int notificationId) {
-        notificationDAO.markAsRead(notificationId);
-    }
-    
-    public void markAllAsReadByUserId(int userId) {
-        notificationDAO.markAllAsReadByUserId(userId);
-    }
-    
-    public boolean deleteNotification(int notificationId) {
+
+    /**
+     * Xử lý đánh dấu đã đọc thông báo (một hoặc tất cả)
+     * @param dto DTO chứa notificationId, markAll và userId
+     * @return true nếu thành công, false nếu thất bại
+     */
+    public boolean markAsRead(NotificationReadDTO dto) {
         try {
-            notificationDAO.delete(notificationId);
-            return true;
+            if (dto == null) {
+                System.out.println("❌ Service: DTO is null");
+                return false;
+            }
+
+            if (dto.isMarkAll()) {
+                // Đánh dấu tất cả đã đọc
+                System.out.println("🔔 Service: Marking ALL notifications as read for user " + dto.getUserId());
+
+                long unreadCount = notificationDAO.countUnreadByUserId(dto.getUserId());
+                System.out.println("ℹ️ Service: Found " + unreadCount + " unread notifications");
+
+                if (unreadCount == 0) {
+                    System.out.println("ℹ️ Service: No unread notifications");
+                    return true;
+                }
+
+                notificationDAO.markAllAsReadByUserId(dto.getUserId());
+                System.out.println("✅ Service: All notifications marked as read");
+                return true;
+            } else {
+                // Đánh dấu một thông báo đã đọc
+                System.out.println("🔔 Service: Marking notification " + dto.getNotificationId() +
+                        " as read for user " + dto.getUserId());
+
+                // Kiểm tra thông báo có thuộc về user không
+                Notification notification = notificationDAO.findById(dto.getNotificationId());
+                if (notification == null) {
+                    System.out.println("❌ Service: Notification not found");
+                    return false;
+                }
+
+                if (notification.getUserId() != dto.getUserId()) {
+                    System.out.println("❌ Service: Notification doesn't belong to user");
+                    return false;
+                }
+
+                notificationDAO.markAsRead(dto.getNotificationId());
+                System.out.println("✅ Service: Notification marked as read");
+                return true;
+            }
+
         } catch (Exception e) {
+            System.out.println("❌ Service Exception: " + e.getMessage());
             e.printStackTrace();
             return false;
+        }
+    }
+
+    /**
+     * Xóa thông báo
+     * @param dto DTO chứa notificationId và userId
+     * @return true nếu thành công, false nếu thất bại
+     */
+    public boolean deleteNotification(NotificationDeleteDTO dto) {
+        try {
+            if (dto == null) {
+                System.out.println("❌ Service: DTO is null");
+                return false;
+            }
+
+            System.out.println("🗑️ Service: Deleting notification " + dto.getNotificationId());
+
+            // Kiểm tra thông báo có thuộc về user không
+            Notification notification = notificationDAO.findById(dto.getNotificationId());
+            if (notification == null) {
+                System.out.println("❌ Service: Notification not found");
+                return false;
+            }
+
+            if (notification.getUserId() != dto.getUserId()) {
+                System.out.println("❌ Service: Notification doesn't belong to user");
+                return false;
+            }
+
+            // Xóa thông báo
+            notificationDAO.delete(dto.getNotificationId());
+            System.out.println("✅ Service: Notification deleted");
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("❌ Service Exception: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Helper method để tạo NotificationReadDTO từ request parameters
+     */
+    public static NotificationReadDTO createReadDTOFromRequest(int userId,
+                                                               String notificationIdParam, String markAllParam) {
+
+        boolean markAll = "true".equalsIgnoreCase(markAllParam);
+        int notificationId = 0;
+
+        if (notificationIdParam != null && !notificationIdParam.trim().isEmpty()) {
+            try {
+                notificationId = Integer.parseInt(notificationIdParam);
+            } catch (NumberFormatException e) {
+                System.out.println("❌ Invalid notification ID format: " + notificationIdParam);
+            }
+        }
+
+        return new NotificationReadDTO(notificationId, markAll, userId);
+    }
+
+    /**
+     * Helper method để tạo NotificationDeleteDTO từ request parameters
+     */
+    public static NotificationDeleteDTO createDeleteDTOFromRequest(int userId,
+                                                                   String notificationIdParam) {
+
+        if (notificationIdParam == null || notificationIdParam.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            int notificationId = Integer.parseInt(notificationIdParam);
+            return new NotificationDeleteDTO(notificationId, userId);
+        } catch (NumberFormatException e) {
+            System.out.println("❌ Invalid notification ID format: " + notificationIdParam);
+            return null;
         }
     }
 }

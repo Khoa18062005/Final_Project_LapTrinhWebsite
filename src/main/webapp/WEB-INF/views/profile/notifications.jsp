@@ -15,7 +15,6 @@
         <p class="text-muted mb-0">Quản lý và xem các thông báo từ VietTech</p>
       </div>
 
-      <!-- Nút hành động -->
       <div class="d-flex gap-2">
         <c:if test="${unreadCount > 0}">
           <button type="button" class="btn btn-primary btn-mark-all-read"
@@ -23,9 +22,10 @@
             <i class="bi bi-check-all me-2"></i>Đánh dấu đã đọc tất cả
           </button>
         </c:if>
-        <button type="button" class="btn btn-outline-secondary" id="refreshNotifications">
+        <a href="${pageContext.request.contextPath}/profile/notifications"
+           class="btn btn-outline-secondary">
           <i class="bi bi-arrow-clockwise"></i>
-        </button>
+        </a>
       </div>
     </div>
 
@@ -146,18 +146,24 @@
                       </div>
                       <div class="notification-actions">
                         <c:if test="${!notification.read}">
-                          <button type="button" class="btn btn-sm btn-outline-success mark-as-read-btn"
-                                  data-notification-id="${notification.notificationId}">
-                            <i class="bi bi-check"></i> Đánh dấu đã đọc
-                          </button>
+                          <form action="${pageContext.request.contextPath}/profile/notifications/mark-read"
+                                method="post" class="d-inline">
+                            <input type="hidden" name="notificationId" value="${notification.notificationId}">
+                            <input type="hidden" name="markAll" value="false">
+                            <button type="submit" class="btn btn-sm btn-outline-success">
+                              <i class="bi bi-check"></i> Đánh dấu đã đọc
+                            </button>
+                          </form>
                         </c:if>
                         <c:if test="${not empty notification.actionUrl}">
                           <a href="${notification.actionUrl}" class="btn btn-sm btn-primary">
                             <i class="bi bi-arrow-right"></i> Xem ngay
                           </a>
                         </c:if>
-                        <button type="button" class="btn btn-sm btn-outline-danger delete-notification-btn"
-                                data-notification-id="${notification.notificationId}">
+                        <!-- SỬA NÚT XÓA: BỎ data-bs-toggle VÀ data-bs-target, THÊM class và data attributes -->
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-delete-notification"
+                                data-notification-id="${notification.notificationId}"
+                                data-notification-title="${notification.title}">
                           <i class="bi bi-trash"></i>
                         </button>
                       </div>
@@ -173,7 +179,6 @@
                 <c:if test="${!notification.read}">
                   <div class="notification-item unread"
                        data-notification-id="${notification.notificationId}">
-                    <!-- Nội dung tương tự như trên, chỉ hiển thị thông báo chưa đọc -->
                     <div class="notification-header">
                       <div class="notification-type">
                         <c:choose>
@@ -214,6 +219,12 @@
                               <i class="bi bi-arrow-right"></i> Xem ngay
                             </a>
                           </c:if>
+                          <!-- THÊM NÚT XÓA CHO TAB CHƯA ĐỌC -->
+                          <button type="button" class="btn btn-sm btn-outline-danger btn-delete-notification"
+                                  data-notification-id="${notification.notificationId}"
+                                  data-notification-title="${notification.title}">
+                            <i class="bi bi-trash"></i>
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -236,17 +247,97 @@
         <h5 class="modal-title"><i class="bi bi-check-all me-2"></i>Đánh dấu tất cả đã đọc</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body">
-        <p>Bạn có chắc chắn muốn đánh dấu tất cả thông báo là đã đọc không?</p>
-        <p class="text-muted small">Sau khi xác nhận, tất cả thông báo sẽ được đánh dấu là đã đọc.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-        <button type="button" class="btn btn-primary" id="confirmMarkAllRead">Xác nhận</button>
-      </div>
+      <form action="${pageContext.request.contextPath}/profile/notifications/mark-read"
+            method="post" id="markAllReadForm">
+        <div class="modal-body">
+          <p>Bạn có chắc chắn muốn đánh dấu tất cả thông báo là đã đọc không?</p>
+          <p class="text-muted small">Sau khi xác nhận, tất cả thông báo sẽ được đánh dấu là đã đọc.</p>
+          <input type="hidden" name="markAll" value="true">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-primary">Xác nhận</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
 
+<!-- THÊM MODAL XÓA DUY NHẤT Ở ĐÂY -->
+<div class="modal fade" id="deleteNotificationModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Xóa thông báo
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="${pageContext.request.contextPath}/profile/notifications/delete" method="post">
+        <div class="modal-body">
+          <p>Bạn có chắc chắn muốn xóa thông báo này không?</p>
+          <p class="text-muted small" id="notificationTitleText"></p>
+          <p class="text-danger small">Hành động này không thể hoàn tác.</p>
+          <input type="hidden" name="notificationId" id="deleteNotificationId">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-danger">Xóa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- THÊM JAVASCRIPT Ở CUỐI FILE -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Xử lý nút xóa thông báo
+    const deleteButtons = document.querySelectorAll('.btn-delete-notification');
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteNotificationModal'));
+    const deleteNotificationIdInput = document.getElementById('deleteNotificationId');
+    const notificationTitleText = document.getElementById('notificationTitleText');
+
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const notificationId = this.getAttribute('data-notification-id');
+        const notificationTitle = this.getAttribute('data-notification-title');
+
+        // Cập nhật thông tin vào modal
+        deleteNotificationIdInput.value = notificationId;
+        notificationTitleText.textContent = '"' + notificationTitle + '"';
+
+        // Hiển thị modal
+        deleteModal.show();
+      });
+    });
+
+    // Xử lý nút đánh dấu đã đọc (nếu có)
+    const markAsReadButtons = document.querySelectorAll('.mark-as-read-btn');
+    markAsReadButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const notificationId = this.getAttribute('data-notification-id');
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '${pageContext.request.contextPath}/profile/notifications/mark-read';
+
+        const notificationIdInput = document.createElement('input');
+        notificationIdInput.type = 'hidden';
+        notificationIdInput.name = 'notificationId';
+        notificationIdInput.value = notificationId;
+
+        const markAllInput = document.createElement('input');
+        markAllInput.type = 'hidden';
+        markAllInput.name = 'markAll';
+        markAllInput.value = 'false';
+
+        form.appendChild(notificationIdInput);
+        form.appendChild(markAllInput);
+        document.body.appendChild(form);
+        form.submit();
+      });
+    });
+  });
+</script>
 
 <%@ include file="components/footer.jsp" %>
