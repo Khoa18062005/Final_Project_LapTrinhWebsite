@@ -30,6 +30,7 @@ public class NotificationServlet extends HttpServlet  {
 
         request.setAttribute("notifications", notifications);
         request.setAttribute("unreadCount", unreadCount);
+        request.setAttribute("activePage", "notifications");
         request.setAttribute("totalNotifications", notifications.size());
         String path = request.getServletPath();
         String page = path.substring(path.lastIndexOf('/') + 1); // Extract "info", "bank", etc.
