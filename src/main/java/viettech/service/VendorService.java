@@ -8,9 +8,11 @@ import viettech.dao.*;
 import viettech.dto.Vendor_dto;
 import viettech.entity.delivery.DeliveryAssignment;
 import viettech.entity.order.Order;
+import viettech.entity.order.OrderDetail;
 import viettech.entity.product.Product;
 import viettech.entity.product.ProductApproval;
 import viettech.entity.user.Vendor;
+import viettech.entity.user.Shipper;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -34,10 +36,28 @@ public class VendorService {
         Vendor_dto dto = new Vendor_dto();
 
         try {
+            logger.info("Getting dashboard data for vendor {}", vendorId);
+
             // 1. Lấy thông tin Vendor
             Vendor vendor = em.find(Vendor.class, vendorId);
-            if (vendor == null) return null;
+            if (vendor == null) {
+                logger.warn("Vendor {} not found", vendorId);
+                return null;
+            }
             dto.setVendorInfo(vendor);
+            logger.info("Found vendor: {}", vendor.getBusinessName());
+
+            // 1.1. Lấy thông tin Warehouse của Vendor
+            String warehouseQuery = "SELECT w FROM Warehouse w WHERE w.vendor.userId = :vid";
+            List<viettech.entity.storage.Warehouse> warehouses = em.createQuery(warehouseQuery, viettech.entity.storage.Warehouse.class)
+                    .setParameter("vid", vendorId)
+                    .getResultList();
+            if (!warehouses.isEmpty()) {
+                dto.setWarehouseInfo(warehouses.get(0)); // Lấy warehouse đầu tiên
+                logger.info("Found warehouse: {}", warehouses.get(0).getName());
+            } else {
+                logger.info("No warehouse found for vendor {}", vendorId);
+            }
 
             // 2. Lấy danh sách Sản phẩm (Products)
             String prodQuery = "SELECT p FROM Product p WHERE p.vendorId = :vid ORDER BY p.createdAt DESC";
@@ -46,10 +66,12 @@ public class VendorService {
                     .getResultList();
             dto.setProductList(products);
             dto.setTotalProducts(products.size());
+            logger.info("Found {} products for vendor {}", products.size(), vendorId);
 
             // Đếm sản phẩm chờ duyệt từ ProductApproval
             long pendingProds = approvalDAO.countPendingByVendorId(vendorId);
             dto.setPendingApprovals(pendingProds);
+            logger.info("Found {} pending approvals for vendor {}", pendingProds, vendorId);
 
             // 3. Lấy danh sách Đơn hàng (Orders)
             // JOIN FETCH để tránh lỗi Lazy Loading khi lấy Customer và Address
@@ -63,6 +85,7 @@ public class VendorService {
                     .getResultList();
 
             dto.setRecentOrders(orders);
+            logger.info("Found {} orders for vendor {}", orders.size(), vendorId);
 
             // 4. Tính toán thống kê Đơn hàng
             long newOrders = 0;
@@ -82,7 +105,7 @@ public class VendorService {
             }
 
             dto.setNewOrdersCount(newOrders);
-            dto.setMonthlyRevenue(revenue);
+            logger.info("Calculated stats: newOrders={}, revenue={}", newOrders, revenue);
 
             // 5. Lấy danh sách đơn cần giao cho Shipper (Ví dụ trạng thái: Confirmed hoặc Processing)
             // Lọc từ list orders đã lấy ở trên để đỡ query nhiều lần
@@ -90,13 +113,17 @@ public class VendorService {
                     .filter(o -> "Processing".equalsIgnoreCase(o.getStatus()) || "Confirmed".equalsIgnoreCase(o.getStatus()))
                     .toList(); // Java 16+, nếu thấp hơn dùng Collectors.toList()
             dto.setPendingShippingOrders(shippingOrders);
+            logger.info("Found {} orders ready for shipping", shippingOrders.size());
+
+            logger.info("Successfully retrieved dashboard data for vendor {}", vendorId);
+            return dto;
 
         } catch (Exception e) {
             logger.error("✗ Error getting dashboard data for vendor {}", vendorId, e);
+            return null;
         } finally {
             em.close();
         }
-        return dto;
     }
 
     // ==================== PRODUCT MANAGEMENT ====================
@@ -195,6 +222,43 @@ public class VendorService {
         }
     }
 
+    /**
+     * Lấy tất cả sản phẩm của vendor
+     */
+    public List<Product> getAllProductsByVendor(int vendorId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            String jpql = "SELECT p FROM Product p WHERE p.vendorId = :vendorId ORDER BY p.createdAt DESC";
+            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
+            query.setParameter("vendorId", vendorId);
+            return query.getResultList();
+        } catch (Exception e) {
+            logger.error("✗ Failed to get all products for vendor {}", vendorId, e);
+            throw new RuntimeException("Failed to get products", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Lấy sản phẩm theo ID và kiểm tra quyền sở hữu
+     */
+    public Product getProductById(int productId, int vendorId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            Product product = em.find(Product.class, productId);
+            if (product != null && product.getVendorId() == vendorId) {
+                return product;
+            }
+            return null;
+        } catch (Exception e) {
+            logger.error("✗ Failed to get product {} for vendor {}", productId, vendorId, e);
+            throw new RuntimeException("Failed to get product", e);
+        } finally {
+            em.close();
+        }
+    }
+
     // ==================== ORDER MANAGEMENT ====================
 
     /**
@@ -280,6 +344,55 @@ public class VendorService {
         }
     }
 
+    /**
+     * Lấy chi tiết đơn hàng bao gồm thông tin sản phẩm
+     */
+    public List<OrderDetail> getOrderDetails(int orderId, int vendorId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            // Kiểm tra đơn hàng có thuộc vendor này không
+            Order order = orderDAO.findById(orderId);
+            if (order == null || order.getVendorId() != vendorId) {
+                return null;
+            }
+
+            String jpql = "SELECT od FROM OrderDetail od WHERE od.orderId = :orderId";
+            TypedQuery<OrderDetail> query = em.createQuery(jpql, OrderDetail.class);
+            query.setParameter("orderId", orderId);
+            return query.getResultList();
+        } catch (Exception e) {
+            logger.error("✗ Failed to get order details for order {} vendor {}", orderId, vendorId, e);
+            throw new RuntimeException("Failed to get order details", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Lấy thông tin shipper được gán cho đơn hàng
+     */
+    public Shipper getShipperForOrder(int orderId, int vendorId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            // Kiểm tra đơn hàng có thuộc vendor này không
+            Order order = orderDAO.findById(orderId);
+            if (order == null || order.getVendorId() != vendorId) {
+                return null;
+            }
+
+            String jpql = "SELECT s FROM DeliveryAssignment da JOIN Shipper s ON da.shipperId = s.userId WHERE da.deliveryId = :orderId";
+            TypedQuery<Shipper> query = em.createQuery(jpql, Shipper.class);
+            query.setParameter("orderId", orderId);
+            List<Shipper> shippers = query.getResultList();
+            return shippers.isEmpty() ? null : shippers.get(0);
+        } catch (Exception e) {
+            logger.error("✗ Failed to get shipper for order {} vendor {}", orderId, vendorId, e);
+            throw new RuntimeException("Failed to get shipper information", e);
+        } finally {
+            em.close();
+        }
+    }
+
     // ==================== SHIPPER ASSIGNMENT ====================
 
     /**
@@ -312,10 +425,10 @@ public class VendorService {
             order.setStatus("Assigned");
             orderDAO.update(order);
 
-            logger.info("✓ Vendor {} assigned order {} to shipper {}", vendorId, orderId, shipperId);
+            logger.info("Vendor {} assigned order {} to shipper {}", vendorId, orderId, shipperId);
             return assignment;
         } catch (Exception e) {
-            logger.error("✗ Failed to assign shipper for vendor {}", vendorId, e);
+            logger.error("Failed to assign shipper for vendor {}", vendorId, e);
             throw new RuntimeException("Failed to assign shipper", e);
         } finally {
             em.close();
@@ -323,12 +436,17 @@ public class VendorService {
     }
 
     /**
-     * Lấy danh sách đơn hàng cần giao cho shipper
+     * Lấy danh sách đơn hàng cần giao với thông tin chi tiết
      */
     public List<Order> getOrdersReadyForShipping(int vendorId) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            String jpql = "SELECT o FROM Order o WHERE o.vendorId = :vendorId " +
+            String jpql = "SELECT DISTINCT o FROM Order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "LEFT JOIN FETCH o.orderDetails od " +
+                    "LEFT JOIN FETCH od.product p " +
+                    "WHERE o.vendorId = :vendorId " +
                     "AND (o.status = 'Processing' OR o.status = 'Confirmed' OR o.status = 'Ready') " +
                     "ORDER BY o.orderDate DESC";
             TypedQuery<Order> query = em.createQuery(jpql, Order.class);
@@ -341,5 +459,171 @@ public class VendorService {
             em.close();
         }
     }
-}
 
+    /**
+     * DTO cho thông tin đơn hàng trả về JSON
+     */
+    public static class OrderInfoDTO {
+        private int orderId;
+        private String orderNumber;
+        private String status;
+        private double totalPrice;
+        private double shippingFee;
+        private String orderDate;
+        private CustomerInfoDTO customer;
+        private AddressInfoDTO address;
+
+        // Constructor and getters/setters
+        public OrderInfoDTO(Order order) {
+            this.orderId = order.getOrderId();
+            this.orderNumber = order.getOrderNumber();
+            this.status = order.getStatus();
+            this.totalPrice = order.getTotalPrice();
+            this.shippingFee = order.getShippingFee();
+            this.orderDate = order.getOrderDate() != null ? order.getOrderDate().toString() : null;
+
+            // Initialize customer info with null-safe approach
+            if (order.getCustomer() != null) {
+                this.customer = new CustomerInfoDTO(order.getCustomer());
+            } else {
+                // Provide empty customer info if not available
+                this.customer = new CustomerInfoDTO();
+            }
+
+            // Initialize address info with null-safe approach
+            if (order.getAddress() != null) {
+                this.address = new AddressInfoDTO(order.getAddress());
+            } else {
+                // Provide empty address info if not available
+                this.address = new AddressInfoDTO();
+            }
+        }
+
+        // Getters and setters
+        public int getOrderId() { return orderId; }
+        public void setOrderId(int orderId) { this.orderId = orderId; }
+
+        public String getOrderNumber() { return orderNumber; }
+        public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+
+        public String getStatus() { return status; }
+        public void setStatus(String status) { this.status = status; }
+
+        public double getTotalPrice() { return totalPrice; }
+        public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
+
+        public double getShippingFee() { return shippingFee; }
+        public void setShippingFee(double shippingFee) { this.shippingFee = shippingFee; }
+
+        public String getOrderDate() { return orderDate; }
+        public void setOrderDate(String orderDate) { this.orderDate = orderDate; }
+
+        public CustomerInfoDTO getCustomer() { return customer; }
+        public void setCustomer(CustomerInfoDTO customer) { this.customer = customer; }
+
+        public AddressInfoDTO getAddress() { return address; }
+        public void setAddress(AddressInfoDTO address) { this.address = address; }
+    }
+
+    /**
+     * DTO cho thông tin khách hàng
+     */
+    public static class CustomerInfoDTO {
+        private String firstName;
+        private String lastName;
+        private String email;
+        private String phone;
+
+        // Default constructor for null-safe initialization
+        public CustomerInfoDTO() {
+            this.firstName = "N/A";
+            this.lastName = "";
+            this.email = "N/A";
+            this.phone = "N/A";
+        }
+
+        public CustomerInfoDTO(viettech.entity.user.Customer customer) {
+            this.firstName = customer.getFirstName();
+            this.lastName = customer.getLastName();
+            this.email = customer.getEmail();
+            this.phone = customer.getPhone();
+        }
+
+        // Getters and setters
+        public String getFirstName() { return firstName; }
+        public void setFirstName(String firstName) { this.firstName = firstName; }
+
+        public String getLastName() { return lastName; }
+        public void setLastName(String lastName) { this.lastName = lastName; }
+
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+
+        public String getPhone() { return phone; }
+        public void setPhone(String phone) { this.phone = phone; }
+    }
+
+    /**
+     * DTO cho thông tin địa chỉ
+     */
+    public static class AddressInfoDTO {
+        private String street;
+        private String district;
+        private String city;
+        private String ward;
+
+        // Default constructor for null-safe initialization
+        public AddressInfoDTO() {
+            this.street = "N/A";
+            this.district = "N/A";
+            this.city = "N/A";
+            this.ward = "";
+        }
+
+        public AddressInfoDTO(viettech.entity.Address address) {
+            this.street = address.getStreet();
+            this.district = address.getDistrict();
+            this.city = address.getCity();
+            this.ward = address.getWard();
+        }
+
+        // Getters and setters
+        public String getStreet() { return street; }
+        public void setStreet(String street) { this.street = street; }
+
+        public String getDistrict() { return district; }
+        public void setDistrict(String district) { this.district = district; }
+
+        public String getCity() { return city; }
+        public void setCity(String city) { this.city = city; }
+
+        public String getWard() { return ward; }
+        public void setWard(String ward) { this.ward = ward; }
+    }
+
+    /**
+     * DTO cho thông tin sản phẩm trong đơn hàng
+     */
+    public static class OrderItemDTO {
+        private String productName;
+        private int quantity;
+        private double price;
+
+        public OrderItemDTO(OrderDetail detail) {
+            this.productName = detail.getProductName();
+            this.quantity = detail.getQuantity();
+            this.price = detail.getUnitPrice();
+        }
+
+        // Getters and setters
+        public String getProductName() { return productName; }
+        public void setProductName(String productName) { this.productName = productName; }
+
+        public int getQuantity() { return quantity; }
+        public void setQuantity(int quantity) { this.quantity = quantity; }
+
+        public double getPrice() { return price; }
+        public void setPrice(double price) { this.price = price; }
+        public double getTotal() { return quantity * price; }
+    }
+}

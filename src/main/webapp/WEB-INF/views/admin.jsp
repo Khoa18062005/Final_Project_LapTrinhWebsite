@@ -12,28 +12,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        /* CSS Badge */
-        .badge-type { padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; color: white; font-weight: 600; display: inline-block; margin-top: 4px;}
-        .badge-type.phone { background-color: #3498db; }
-        .badge-type.laptop { background-color: #e67e22; }
-        .badge-type.tablet { background-color: #9b59b6; }
-        .badge-type.accessory { background-color: #2ecc71; }
-
-        /* CSS Modal Detail */
-        .spec-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.95rem; }
-        .spec-table th, .spec-table td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; vertical-align: top; }
-        .spec-table th { width: 35%; background-color: #f8f9fa; color: #495057; font-weight: 600; }
-        .spec-title { margin: 20px 0 10px 0; color: #2c3e50; border-left: 4px solid #007bff; padding-left: 10px; font-size: 1.1rem; }
-        .product-detail-header { border-bottom: 2px solid #f1f1f1; padding-bottom: 15px; margin-bottom: 15px; }
-
-        #viewDetailModal .modal-content { max-width: 900px; width: 90%; }
-
-        /* Filter Section */
-        .filter-section { background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; align-items: center; gap: 15px; }
-        .filter-section select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; outline: none; min-width: 200px; }
-    </style>
 </head>
 <body>
 <div class="sidebar">
@@ -88,254 +66,23 @@
     </div>
 
     <div id="dashboard" class="content-section active">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-card-header">
-                    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
-                </div>
-                <div class="stat-details">
-                    <h3>Tổng người dùng</h3>
-                    <p class="stat-number">${totalUsers}</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-card-header">
-                    <div class="stat-icon green"><i class="fas fa-shopping-bag"></i></div>
-                </div>
-                <div class="stat-details">
-                    <h3>Tổng sản phẩm</h3>
-                    <p class="stat-number">${totalProducts}</p>
-                </div>
-            </div>
-        </div>
+        <jsp:include page="/WEB-INF/views/admin_pages/dashboard.jsp" />
     </div>
 
     <div id="products" class="content-section">
-        <div class="section-header">
-            <h2>Quản lý sản phẩm</h2>
-            <button class="btn btn-primary" onclick="openAddProductModal()">
-                <i class="fas fa-plus"></i> Thêm sản phẩm
-            </button>
-        </div>
+        <jsp:include page="/WEB-INF/views/admin_pages/products.jsp" />
+    </div>
 
-        <div class="filter-section">
-            <label><i class="fas fa-filter"></i> <strong>Lọc theo danh mục:</strong></label>
-            <form action="${pageContext.request.contextPath}/admin" method="GET" id="filterForm" style="margin: 0;">
-                <select name="category" onchange="document.getElementById('filterForm').submit()">
-                    <option value="">-- Tất cả sản phẩm --</option>
-                    <option value="1" ${currentCategory == 1 ? 'selected' : ''}>📱 Điện thoại</option>
-                    <option value="2" ${currentCategory == 2 ? 'selected' : ''}>💻 Laptop</option>
-                    <option value="3" ${currentCategory == 3 ? 'selected' : ''}>🖊 Tablet</option>
-                    <option value="4" ${currentCategory == 4 ? 'selected' : ''}>🎧 Phụ kiện</option>
-                </select>
-            </form>
-        </div>
-
-        <c:if test="${not empty param.message}">
-            <div style="background-color: #d4edda; color: #155724; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #c3e6cb;">
-                <i class="fas fa-check-circle"></i> ${param.message}
-            </div>
-        </c:if>
-        <c:if test="${not empty param.error}">
-            <div style="background-color: #f8d7da; color: #721c24; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #f5c6cb;">
-                <i class="fas fa-exclamation-triangle"></i> Đã có lỗi xảy ra!
-            </div>
-        </c:if>
-
-        <div class="table-container">
-            <table class="data-table">
-                <thead>
-                <tr>
-                    <th>Mã (ID)</th>
-                    <th>Tên sản phẩm</th>
-                    <th>Mã người bán</th> <th>Danh mục</th>
-                    <th>Giá gốc</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                </tr>
-                </thead>
-                <tbody id="productsTable">
-                <c:forEach var="p" items="${productList}">
-                    <tr>
-                        <td>#${p.productId}</td>
-                        <td>
-                            <strong>${p.name}</strong>
-                            <br><small style="color: #888;">${p.slug}</small>
-                        </td>
-                        <td>
-                            <span style="font-family: monospace; background: #f1f1f1; padding: 2px 5px; border-radius: 3px;">
-                                Vendor #${p.vendorId}
-                            </span>
-                        </td>
-                        <td>
-                            <c:choose>
-                                <c:when test="${p.categoryId == 1}"><span class="badge-type phone">Điện thoại</span></c:when>
-                                <c:when test="${p.categoryId == 2}"><span class="badge-type laptop">Laptop</span></c:when>
-                                <c:when test="${p.categoryId == 3}"><span class="badge-type tablet">Tablet</span></c:when>
-                                <c:when test="${p.categoryId == 4}"><span class="badge-type accessory">Phụ kiện</span></c:when>
-                                <c:otherwise><span class="badge-type">Khác</span></c:otherwise>
-                            </c:choose>
-                        </td>
-                        <td>
-                            <fmt:formatNumber value="${p.basePrice}" type="currency" currencySymbol="₫" maxFractionDigits="0"/>
-                        </td>
-                        <td>
-                            <span class="status-badge ${p.status == 'Active' ? 'delivered' : 'rejected'}">
-                                    ${p.status != null ? p.status : 'Active'}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="action-buttons">
-                                <button type="button" class="btn-icon view" onclick="showProductDetails('detail-${p.productId}')" title="Xem chi tiết" style="background: #17a2b8; color: white;">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-
-                                <button class="btn-icon edit" title="Sửa"><i class="fas fa-edit"></i></button>
-
-                                <form action="${pageContext.request.contextPath}/admin" method="POST" style="display:inline;" onsubmit="return confirm('Xóa sản phẩm này?');">
-                                    <input type="hidden" name="action" value="delete_product">
-                                    <input type="hidden" name="id" value="${p.productId}">
-                                    <button type="submit" class="btn-icon delete" title="Xóa"><i class="fas fa-trash"></i></button>
-                                </form>
-                            </div>
-
-                            <div id="detail-${p.productId}" style="display:none;">
-                                <div class="product-detail-header">
-                                    <h3>${p.name}</h3>
-                                    <p>ID: #${p.productId} | Vendor ID: ${p.vendorId}</p>
-                                </div>
-
-                                <c:if test="${p.categoryId == 1}">
-                                    <h4 class="spec-title">📱 Thông số kỹ thuật</h4>
-                                    <table class="spec-table">
-                                        <tr><th colspan="2" style="background:#e9ecef;">Màn hình & Camera</th></tr>
-                                        <tr><td>Màn hình</td><td>${p.screenSize} - ${p.screenType} (${p.screenResolution})</td></tr>
-                                        <tr><td>Camera</td><td>Sau: ${p.rearCamera} <br> Trước: ${p.frontCamera}</td></tr>
-
-                                        <tr><th colspan="2" style="background:#e9ecef;">Cấu hình</th></tr>
-                                        <tr><td>Chip (CPU/GPU)</td><td>${p.processor} / ${p.gpu}</td></tr>
-                                        <tr><td>Hệ điều hành</td><td>${p.os} ${p.osVersion}</td></tr>
-
-                                        <tr><th colspan="2" style="background:#e9ecef;">Pin & Khác</th></tr>
-                                        <tr><td>Pin/Sạc</td><td>${p.batteryCapacity} (${p.chargingSpeed})</td></tr>
-                                        <tr><td>SIM/Mạng</td><td>${p.simType} / ${p.networkSupport}</td></tr>
-                                        <tr><td>Tiện ích</td><td>
-                                                ${p.fingerprintSensor ? 'Vân tay,' : ''}
-                                                ${p.faceRecognition ? 'FaceID,' : ''}
-                                                ${p.waterproofRating}
-                                        </td></tr>
-                                    </table>
-                                </c:if>
-
-                                <h4 class="spec-title">📝 Thông tin quản lý</h4>
-                                <table class="spec-table">
-                                    <tr><td>Giá gốc</td><td><fmt:formatNumber value="${p.basePrice}" type="currency" currencySymbol="₫"/></td></tr>
-                                    <tr><td>Tình trạng</td><td>${p.conditions}</td></tr>
-                                    <tr><td>Thống kê</td><td>Xem: ${p.viewCount} | Bán: ${p.totalSold}</td></tr>
-                                    <tr><td>Mô tả</td><td>${p.description}</td></tr>
-                                </table>
-                            </div>
-                        </td>
-                    </tr>
-                </c:forEach>
-
-                <c:if test="${empty productList}">
-                    <tr>
-                        <td colspan="7" style="text-align: center; padding: 20px;">
-                            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
-                                <p>Không tìm thấy sản phẩm nào.</p>
-                                <form action="${pageContext.request.contextPath}/admin" method="POST">
-                                    <input type="hidden" name="action" value="init_data">
-                                    <button type="submit" class="btn btn-secondary btn-sm">Tạo dữ liệu mẫu</button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                </c:if>
-                </tbody>
-            </table>
-        </div>
+    <div id="orders" class="content-section">
+<%--        <jsp:include page="/WEB-INF/views/admin_pages/orders.jsp" />--%>
     </div>
 
     <div id="users" class="content-section">
-        <div class="section-header"><h2>Quản lý người dùng</h2></div>
-        <div class="table-container"><p style="padding: 15px;">Tính năng đang phát triển...</p></div>
+<%--        <jsp:include page="/WEB-INF/views/admin_pages/u sers.jsp" />--%>
     </div>
-    <div id="orders" class="content-section">
-        <div class="section-header"><h2>Quản lý đơn hàng</h2></div>
-        <div class="table-container"><p style="padding: 15px;">Tính năng đang phát triển...</p></div>
-    </div>
-</div>
 
-<div id="productModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Thêm sản phẩm mới</h2>
-            <span class="close" onclick="closeModal('productModal')">&times;</span>
-        </div>
-        <div class="modal-body">
-            <form id="productForm" action="${pageContext.request.contextPath}/admin" method="POST">
-                <input type="hidden" name="action" value="add_product">
-                <div class="form-group">
-                    <label>Tên sản phẩm <span style="color:red">*</span></label>
-                    <input type="text" name="name" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Danh mục <span style="color:red">*</span></label>
-                    <select name="categoryId" class="form-control" required>
-                        <option value="1">Điện thoại</option>
-                        <option value="2">Laptop</option>
-                        <option value="3">Tablet</option>
-                        <option value="4">Phụ kiện</option>
-                    </select>
-                </div>
-                <div class="form-row" style="display: flex; gap: 15px;">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Giá (VNĐ) <span style="color:red">*</span></label>
-                        <input type="number" name="price" class="form-control" required min="0" step="1000">
-                    </div>
-                    <div class="form-group" style="flex: 1;">
-                        <label>Tồn kho</label>
-                        <input type="number" name="stock" class="form-control" value="10">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Mô tả</label>
-                    <textarea name="description" class="form-control" rows="3"></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Lưu</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div id="viewDetailModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header" style="border-bottom: 1px solid #dee2e6;">
-            <h2>Chi tiết sản phẩm</h2>
-            <span class="close" onclick="closeModal('viewDetailModal')">&times;</span>
-        </div>
-        <div class="modal-body" id="viewDetailContent" style="padding: 20px; max-height: 70vh; overflow-y: auto;"></div>
-        <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
-            <button type="button" class="btn btn-secondary" onclick="closeModal('viewDetailModal')">Đóng</button>
-        </div>
-    </div>
 </div>
 
 <script src="${pageContext.request.contextPath}/assets/js/admin.js"></script>
-<script>
-    function showProductDetails(sourceId) {
-        document.getElementById('viewDetailContent').innerHTML = document.getElementById(sourceId).innerHTML;
-        document.getElementById('viewDetailModal').style.display = "block";
-    }
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = "none";
-        }
-    }
-</script>
 </body>
 </html>

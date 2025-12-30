@@ -111,8 +111,6 @@ public class CustomerDAO {
     }
     public Integer count() {
         return 0;
-
-
     }
 
     // DELETE - Xóa khách hàng theo ID

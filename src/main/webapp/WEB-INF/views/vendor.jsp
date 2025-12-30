@@ -390,6 +390,22 @@
             margin-bottom: 20px;
         }
 
+        /* Border utilities */
+        .border-left-primary {
+            border-left: 4px solid var(--secondary-color) !important;
+        }
+
+        /* Warehouse info styles */
+        .warehouse-info {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .warehouse-details div {
+            line-height: 1.4;
+        }
+
         /* Responsive */
         @media (max-width: 992px) {
             .sidebar {
@@ -470,6 +486,30 @@
 
 <!-- Sidebar -->
 <nav class="sidebar">
+    <!-- Warehouse Information -->
+    <c:if test="${not empty data.warehouseInfo}">
+        <div class="warehouse-info mb-4 p-3 bg-light rounded">
+            <h6 class="text-primary mb-2">
+                <i class="fas fa-warehouse"></i> Kho hàng
+            </h6>
+            <div class="warehouse-details small">
+                <div class="mb-1">
+                    <strong>${data.warehouseInfo.name}</strong>
+                </div>
+                <div class="mb-1">
+                    <i class="fas fa-hashtag"></i> ${data.warehouseInfo.code}
+                </div>
+                <div class="mb-1">
+                    <i class="fas fa-map-marker-alt"></i>
+                    ${data.warehouseInfo.addressLine}
+                    <c:if test="${not empty data.warehouseInfo.ward}">, ${data.warehouseInfo.ward}</c:if>
+                    <c:if test="${not empty data.warehouseInfo.district}">, ${data.warehouseInfo.district}</c:if>
+                    <c:if test="${not empty data.warehouseInfo.city}">, ${data.warehouseInfo.city}</c:if>
+                </div>
+            </div>
+        </div>
+    </c:if>
+
     <ul class="nav flex-column">
         <li class="nav-item">
             <a class="nav-link active" href="${pageContext.request.contextPath}/vendor">
@@ -477,7 +517,7 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="#" onclick="showProductModal(); return false;">
+            <a class="nav-link" href="${pageContext.request.contextPath}/vendor?action=products">
                 <span><i class="fas fa-box"></i> Quản lý sản phẩm</span>
             </a>
         </li>
@@ -500,11 +540,9 @@
         <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/vendor?action=shipping">
                 <span><i class="fas fa-truck"></i> Giao hàng</span>
-            </a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" href="#">
-                <span><i class="fas fa-chart-line"></i> Thống kê</span>
+                <c:if test="${not empty data.pendingShippingOrders and fn:length(data.pendingShippingOrders) > 0}">
+                    <span class="badge bg-info rounded-pill">${fn:length(data.pendingShippingOrders)}</span>
+                </c:if>
             </a>
         </li>
     </ul>
@@ -758,6 +796,7 @@
                                 <tr>
                                     <th>Mã đơn hàng</th>
                                     <th>Khách hàng</th>
+                                    <th>Sản phẩm</th>
                                     <th>Ngày đặt</th>
                                     <th>Tổng tiền</th>
                                     <th>Trạng thái</th>
@@ -787,6 +826,12 @@
                                                             <span class="text-muted">N/A</span>
                                                         </c:otherwise>
                                                     </c:choose>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-info"
+                                                            onclick="viewOrderDetails(${order.orderId})">
+                                                        <i class="fas fa-box"></i> Xem SP
+                                                    </button>
                                                 </td>
                                                 <td>
                                                     <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy"/><br>
@@ -840,7 +885,7 @@
                                     </c:when>
                                     <c:otherwise>
                                         <tr>
-                                            <td colspan="6">
+                                            <td colspan="7">
                                                 <div class="empty-state">
                                                     <i class="fas fa-inbox"></i>
                                                     <h5>Không có đơn hàng nào</h5>
@@ -889,6 +934,114 @@
             </div>
         </c:when>
 
+        <%-- PRODUCTS PAGE --%>
+        <c:when test="${param.action == 'products'}">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-box"></i> Quản lý sản phẩm</h2>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="showAddProductModal()">
+                        <i class="fas fa-plus"></i> Thêm sản phẩm
+                    </button>
+                </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i>
+                        Danh sách sản phẩm
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th>Danh mục</th>
+                                    <th>Giá bán</th>
+                                    <th>Đã bán</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:choose>
+                                    <c:when test="${not empty products}">
+                                        <c:forEach items="${products}" var="product">
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div>
+                                                            <strong>${product.name}</strong><br>
+                                                            <small class="text-muted">${product.brand}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${product.categoryId == 1}">Laptop</c:when>
+                                                        <c:when test="${product.categoryId == 2}">Điện thoại</c:when>
+                                                        <c:when test="${product.categoryId == 3}">Tablet</c:when>
+                                                        <c:when test="${product.categoryId == 4}">Tai nghe</c:when>
+                                                        <c:otherwise>Khác</c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <strong>
+                                                        <fmt:formatNumber value="${product.basePrice}" type="currency"
+                                                                        currencySymbol="" maxFractionDigits="0"/>đ
+                                                    </strong>
+                                                </td>
+                                                <td>${product.totalSold != null ? product.totalSold : 0}</td>
+                                                <td>
+                                                    <span class="badge ${product.status == 'Active' ? 'bg-success' : 'bg-secondary'}">
+                                                        ${product.status}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <fmt:formatDate value="${product.createdAt}" pattern="dd/MM/yyyy"/><br>
+                                                    <small class="text-muted">
+                                                        <fmt:formatDate value="${product.createdAt}" pattern="HH:mm"/>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-warning"
+                                                            onclick="editProduct(${product.productId})">
+                                                        <i class="fas fa-edit"></i> Sửa
+                                                    </button>
+                                                    <button class="btn btn-sm btn-danger"
+                                                            onclick="deleteProduct(${product.productId})">
+                                                        <i class="fas fa-trash"></i> Xóa
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tr>
+                                            <td colspan="7">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-box-open"></i>
+                                                    <h5>Chưa có sản phẩm nào</h5>
+                                                    <p>Hãy bắt đầu bằng cách <a href="#" onclick="showAddProductModal(); return false;">thêm sản phẩm đầu tiên</a></p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </c:when>
+
         <%-- SHIPPING PAGE --%>
         <c:when test="${param.action == 'shipping'}">
             <!-- Page Header -->
@@ -909,107 +1062,186 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-4">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h3 class="text-success mb-0">
+                                <c:set var="assignedCount" value="0"/>
+                                <c:forEach items="${orders}" var="order">
+                                    <c:if test="${order.status == 'Assigned'}">
+                                        <c:set var="assignedCount" value="${assignedCount + 1}"/>
+                                    </c:if>
+                                </c:forEach>
+                                ${assignedCount}
+                            </h3>
+                            <p class="text-muted mb-0">Đã gán shipper</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning mb-0">
+                                <c:set var="unassignedCount" value="0"/>
+                                <c:forEach items="${orders}" var="order">
+                                    <c:if test="${order.status != 'Assigned'}">
+                                        <c:set var="unassignedCount" value="${unassignedCount + 1}"/>
+                                    </c:if>
+                                </c:forEach>
+                                ${unassignedCount}
+                            </h3>
+                            <p class="text-muted mb-0">Chưa gán shipper</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Orders Ready for Shipping -->
             <c:choose>
                 <c:when test="${not empty orders}">
                     <c:forEach items="${orders}" var="order">
-                        <div class="order-card mb-3 p-3 border rounded">
-                            <div class="order-header d-flex justify-content-between align-items-center mb-3">
-                                <div>
-                                    <h5 class="mb-1">#${order.orderNumber}</h5>
-                                    <small class="text-muted">
-                                        <i class="far fa-clock"></i>
-                                        <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm"/>
-                                    </small>
-                                </div>
-                                <div>
-                                    <span class="badge bg-info">${order.status}</span>
+                        <div class="card mb-3 border-left-primary">
+                            <div class="card-header bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">
+                                            <i class="fas fa-shopping-cart text-primary"></i>
+                                            Đơn hàng #${order.orderNumber}
+                                        </h5>
+                                        <small class="text-muted">
+                                            <i class="far fa-clock"></i>
+                                            <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-${order.status == 'Assigned' ? 'success' : 'warning'} fs-6">
+                                            ${order.status == 'Assigned' ? 'Đã gán shipper' : 'Chờ gán shipper'}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="order-info row g-3">
-                                <div class="col-md-6">
-                                    <div class="info-item d-flex">
-                                        <i class="fas fa-user me-2 mt-1"></i>
-                                        <div>
-                                            <div class="label text-muted small">Khách hàng:</div>
-                                            <div class="value">
-                                                <c:choose>
-                                                    <c:when test="${not empty order.customer}">
-                                                        <c:choose>
-                                                            <c:when test="${not empty order.customer.firstName || not empty order.customer.lastName}">
-                                                                ${order.customer.firstName} ${order.customer.lastName}
-                                                            </c:when>
-                                                            <c:otherwise>
-                                                                ${order.customer.email}
-                                                            </c:otherwise>
-                                                        </c:choose>
-                                                        <br>
-                                                        <small>${order.customer.phone}</small>
-                                                    </c:when>
-                                                    <c:otherwise>N/A</c:otherwise>
-                                                </c:choose>
-                                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Customer Information -->
+                                    <div class="col-md-4">
+                                        <div class="border-end pe-3">
+                                            <h6 class="text-primary mb-2">
+                                                <i class="fas fa-user"></i> Thông tin khách hàng
+                                            </h6>
+                                            <c:choose>
+                                                <c:when test="${not empty order.customer}">
+                                                    <div class="mb-1">
+                                                        <strong>${order.customer.firstName} ${order.customer.lastName}</strong>
+                                                    </div>
+                                                    <div class="mb-1">
+                                                        <i class="fas fa-envelope text-muted"></i>
+                                                        ${order.customer.email}
+                                                    </div>
+                                                    <div class="mb-1">
+                                                        <i class="fas fa-phone text-muted"></i>
+                                                        ${order.customer.phone}
+                                                    </div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="text-muted">Thông tin khách hàng không có</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="col-md-6">
-                                    <div class="info-item d-flex">
-                                        <i class="fas fa-map-marker-alt me-2 mt-1"></i>
-                                        <div>
-                                            <div class="label text-muted small">Địa chỉ giao:</div>
-                                            <div class="value">
-                                                <c:choose>
-                                                    <c:when test="${not empty order.address}">
-                                                        ${order.address.street}<br>
+                                    <!-- Delivery Address -->
+                                    <div class="col-md-4">
+                                        <div class="border-end pe-3">
+                                            <h6 class="text-primary mb-2">
+                                                <i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng
+                                            </h6>
+                                            <c:choose>
+                                                <c:when test="${not empty order.address}">
+                                                    <div class="mb-1">
+                                                        <strong>${order.address.street}</strong>
+                                                    </div>
+                                                    <div class="mb-1">
                                                         ${order.address.district}, ${order.address.city}
-                                                    </c:when>
-                                                    <c:otherwise>Chưa có địa chỉ</c:otherwise>
-                                                </c:choose>
-                                            </div>
+                                                    </div>
+                                                    <c:if test="${not empty order.address.ward}">
+                                                        <div class="mb-1">${order.address.ward}</div>
+                                                    </c:if>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="text-muted">Địa chỉ không có</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="col-md-6">
-                                    <div class="info-item d-flex">
-                                        <i class="fas fa-money-bill-wave me-2 mt-1"></i>
-                                        <div>
-                                            <div class="label text-muted small">Giá trị đơn:</div>
-                                            <div class="value">
-                                                <strong class="text-success">
-                                                    <fmt:formatNumber value="${order.totalPrice}" type="currency"
-                                                                    currencySymbol="" maxFractionDigits="0"/>đ
-                                                </strong>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="info-item d-flex">
-                                        <i class="fas fa-shipping-fast me-2 mt-1"></i>
-                                        <div>
-                                            <div class="label text-muted small">Phí ship:</div>
-                                            <div class="value">
-                                                <fmt:formatNumber value="${order.shippingFee}" type="currency"
+                                    <!-- Order Details -->
+                                    <div class="col-md-4">
+                                        <h6 class="text-primary mb-2">
+                                            <i class="fas fa-box"></i> Chi tiết đơn hàng
+                                        </h6>
+                                        <div class="mb-2">
+                                            <strong class="text-success">
+                                                <fmt:formatNumber value="${order.totalPrice}" type="currency"
                                                                 currencySymbol="" maxFractionDigits="0"/>đ
+                                            </strong>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Phí ship:</small>
+                                            <fmt:formatNumber value="${order.shippingFee}" type="currency"
+                                                            currencySymbol="" maxFractionDigits="0"/>đ
+                                        </div>
+
+                                        <!-- Product List -->
+                                        <c:if test="${not empty order.orderDetails}">
+                                            <div class="mt-2">
+                                                <small class="text-muted fw-bold">Sản phẩm:</small>
+                                                <c:forEach items="${order.orderDetails}" var="detail" begin="0" end="2">
+                                                    <div class="small">
+                                                        • ${detail.product.name} (x${detail.quantity})
+                                                    </div>
+                                                </c:forEach>
+                                                <c:if test="${fn:length(order.orderDetails) > 3}">
+                                                    <div class="small text-muted">
+                                                        và ${fn:length(order.orderDetails) - 3} sản phẩm khác...
+                                                    </div>
+                                                </c:if>
+                                            </div>
+                                        </c:if>
+                                    </div>
+                                </div>
+
+                                <!-- Shipper Information -->
+                                <div class="row mt-3 pt-3 border-top">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div id="shipper-info-${order.orderId}">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-user-tie"></i>
+                                                    Đang tải thông tin shipper...
+                                                </small>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <button class="btn btn-outline-primary btn-sm"
+                                                        onclick="viewOrderDetails(${order.orderId})">
+                                                    <i class="fas fa-eye"></i> Chi tiết
+                                                </button>
+                                                <c:if test="${order.status != 'Assigned'}">
+                                                    <button class="btn btn-success btn-sm"
+                                                            onclick="showAssignShipperModal(${order.orderId}, '${order.orderNumber}')">
+                                                        <i class="fas fa-user-plus"></i> Gán Shipper
+                                                    </button>
+                                                </c:if>
+                                                <c:if test="${order.status == 'Assigned'}">
+                                                    <button class="btn btn-warning btn-sm"
+                                                            onclick="changeShipper(${order.orderId}, '${order.orderNumber}')">
+                                                        <i class="fas fa-exchange-alt"></i> Đổi Shipper
+                                                    </button>
+                                                </c:if>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            <div class="mt-3 d-flex gap-2">
-                                <button class="btn btn-success" onclick="showAssignShipperModal(${order.orderId}, '${order.orderNumber}')">
-                                    <i class="fas fa-user-plus"></i> Gán Shipper
-                                </button>
-                                <button class="btn btn-outline-primary" onclick="viewOrderDetail(${order.orderId})">
-                                    <i class="fas fa-eye"></i> Xem chi tiết
-                                </button>
                             </div>
                         </div>
                     </c:forEach>
@@ -1028,26 +1260,62 @@
 
             <!-- Assign Shipper Modal -->
             <div class="modal fade" id="assignShipperModal" tabindex="-1">
-                <div class="modal-dialog">
+                <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title"><i class="fas fa-user-plus"></i> Gán Shipper</h5>
+                            <h5 class="modal-title">
+                                <i class="fas fa-user-plus"></i> Gán Shipper cho đơn hàng
+                            </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <input type="hidden" id="assignOrderId">
                             <div class="alert alert-info">
                                 <strong>Đơn hàng:</strong> <span id="assignOrderNumber"></span>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Chọn Shipper *</label>
-                                <input type="number" class="form-control" id="shipperId"
-                                       placeholder="Nhập ID của Shipper" required>
-                                <small class="text-muted">Nhập ID của shipper bạn muốn gán cho đơn hàng này</small>
+
+                            <!-- Order Summary -->
+                            <div class="card mb-3" id="orderSummary">
+                                <div class="card-body">
+                                    <h6>Thông tin đơn hàng</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Khách hàng:</small>
+                                            <div id="modalCustomerInfo">Đang tải...</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">Địa chỉ:</small>
+                                            <div id="modalAddressInfo">Đang tải...</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+
+                            <form id="assignShipperForm">
+                                <input type="hidden" id="assignOrderId" name="orderId">
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-user-tie"></i> Chọn Shipper *
+                                    </label>
+                                    <select class="form-select" id="shipperSelect" name="shipperId" required>
+                                        <option value="">Chọn shipper...</option>
+                                        <!-- Shipper options will be loaded dynamically -->
+                                    </select>
+                                    <small class="text-muted">Chọn shipper để giao đơn hàng này</small>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-sticky-note"></i> Ghi chú (tùy chọn)
+                                    </label>
+                                    <textarea class="form-control" id="assignmentNote" name="note" rows="2"
+                                              placeholder="Ghi chú cho shipper..."></textarea>
+                                </div>
+                            </form>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Hủy
+                            </button>
                             <button type="button" class="btn btn-success" onclick="confirmAssignShipper()">
                                 <i class="fas fa-check"></i> Xác nhận gán
                             </button>
@@ -1063,337 +1331,40 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 class="mb-1"><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
-                    <p class="text-muted mb-0">Chào mừng trở lại! Đây là tổng quan hoạt động kinh doanh của bạn.</p>
-                </div>
-                <div>
-                    <button class="btn btn-primary" onclick="showAddProductModal()">
-                        <i class="fas fa-plus"></i> Thêm sản phẩm
-                    </button>
                 </div>
             </div>
 
-    <!-- Statistics Cards -->
-    <div class="stats-row">
-        <div class="stat-card">
-            <div class="stat-icon bg-gradient-primary">
-                <i class="fas fa-box"></i>
-            </div>
-            <div class="stat-value">${data.totalProducts != null ? data.totalProducts : 0}</div>
-            <div class="stat-label">Tổng sản phẩm</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon bg-gradient-success">
-                <i class="fas fa-shopping-cart"></i>
-            </div>
-            <div class="stat-value">${data.newOrdersCount != null ? data.newOrdersCount : 0}</div>
-            <div class="stat-label">Đơn hàng mới</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon bg-gradient-warning">
-                <i class="fas fa-clock"></i>
-            </div>
-            <div class="stat-value">${data.pendingApprovals != null ? data.pendingApprovals : 0}</div>
-            <div class="stat-label">Chờ phê duyệt</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon bg-gradient-info">
-                <i class="fas fa-money-bill-wave"></i>
-            </div>
-            <div class="stat-value">
-                <fmt:formatNumber value="${data.monthlyRevenue != null ? data.monthlyRevenue : 0}"
-                                 type="currency" currencySymbol="" maxFractionDigits="0"/>đ
-            </div>
-            <div class="stat-label">Doanh thu tháng này</div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-        <a href="#" class="quick-action-btn" onclick="showAddProductModal(); return false;">
-            <i class="fas fa-plus-circle text-primary"></i>
-            <span>Thêm sản phẩm</span>
-        </a>
-        <a href="${pageContext.request.contextPath}/vendor?action=orders&status=Pending" class="quick-action-btn">
-            <i class="fas fa-list-check text-success"></i>
-            <span>Xử lý đơn hàng</span>
-        </a>
-        <a href="${pageContext.request.contextPath}/vendor?action=shipping" class="quick-action-btn">
-            <i class="fas fa-truck-fast text-info"></i>
-            <span>Giao hàng</span>
-        </a>
-        <a href="${pageContext.request.contextPath}/vendor?action=approvals" class="quick-action-btn">
-            <i class="fas fa-clipboard-check text-warning"></i>
-            <span>Phê duyệt</span>
-        </a>
-    </div>
-
-    <!-- Recent Orders -->
-    <div class="content-card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Đơn hàng gần đây</h5>
-            <a href="${pageContext.request.contextPath}/vendor?action=orders" class="btn btn-sm btn-primary">
-                Xem tất cả <i class="fas fa-arrow-right"></i>
-            </a>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Mã đơn</th>
-                            <th>Khách hàng</th>
-                            <th>Ngày đặt</th>
-                            <th>Tổng tiền</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${not empty data.recentOrders}">
-                                <c:forEach items="${data.recentOrders}" var="order" begin="0" end="4">
-                                    <tr>
-                                        <td><strong>#${order.orderNumber}</strong></td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${not empty order.customer}">
-                                                    <c:choose>
-                                                        <c:when test="${not empty order.customer.firstName || not empty order.customer.lastName}">
-                                                            ${order.customer.firstName} ${order.customer.lastName}
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            ${order.customer.email}
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                    <br>
-                                                    <small class="text-muted">${order.customer.email}</small>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="text-muted">Khách hàng</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy"/><br>
-                                            <small class="text-muted"><fmt:formatDate value="${order.orderDate}" pattern="HH:mm"/></small>
-                                        </td>
-                                        <td>
-                                            <strong class="text-success">
-                                                <fmt:formatNumber value="${order.totalPrice}" type="currency"
-                                                                currencySymbol="" maxFractionDigits="0"/>đ
-                                            </strong>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${order.status == 'Pending'}">
-                                                    <span class="badge badge-pending">Chờ xử lý</span>
-                                                </c:when>
-                                                <c:when test="${order.status == 'Processing'}">
-                                                    <span class="badge badge-processing">Đang xử lý</span>
-                                                </c:when>
-                                                <c:when test="${order.status == 'Confirmed'}">
-                                                    <span class="badge badge-confirmed">Đã xác nhận</span>
-                                                </c:when>
-                                                <c:when test="${order.status == 'Completed'}">
-                                                    <span class="badge badge-completed">Hoàn thành</span>
-                                                </c:when>
-                                                <c:when test="${order.status == 'Cancelled'}">
-                                                    <span class="badge badge-cancelled">Đã hủy</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="badge bg-secondary">${order.status}</span>
-                                                </c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-primary"
-                                                    onclick="viewOrderDetail(${order.orderId})">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <c:if test="${order.status == 'Pending'}">
-                                                <button class="btn btn-sm btn-success"
-                                                        onclick="updateOrderStatus(${order.orderId}, 'Processing')">
-                                                    <i class="fas fa-play"></i>
-                                                </button>
-                                            </c:if>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <tr>
-                                    <td colspan="6">
-                                        <div class="empty-state">
-                                            <i class="fas fa-inbox"></i>
-                                            <h5>Chưa có đơn hàng nào</h5>
-                                            <p>Các đơn hàng mới sẽ hiển thị ở đây</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </c:otherwise>
-                        </c:choose>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Products List -->
-    <div class="content-card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="fas fa-box"></i> Sản phẩm của tôi</h5>
-            <div>
-                <button class="btn btn-sm btn-success" onclick="showAddProductModal()">
-                    <i class="fas fa-plus"></i> Thêm mới
-                </button>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead>
-                        <tr>
-                            <th>Sản phẩm</th>
-                            <th>Danh mục</th>
-                            <th>Giá bán</th>
-                            <th>Đã bán</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:choose>
-                            <c:when test="${not empty data.productList}">
-                                <c:forEach items="${data.productList}" var="product" begin="0" end="9">
-                                    <tr>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <strong>${product.name}</strong><br>
-                                                    <small class="text-muted">${product.brand}</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <c:choose>
-                                                <c:when test="${product.categoryId == 1}">Laptop</c:when>
-                                                <c:when test="${product.categoryId == 2}">Điện thoại</c:when>
-                                                <c:when test="${product.categoryId == 3}">Tablet</c:when>
-                                                <c:when test="${product.categoryId == 4}">Tai nghe</c:when>
-                                                <c:otherwise>Khác</c:otherwise>
-                                            </c:choose>
-                                        </td>
-                                        <td>
-                                            <strong>
-                                                <fmt:formatNumber value="${product.basePrice}" type="currency"
-                                                                currencySymbol="" maxFractionDigits="0"/>đ
-                                            </strong>
-                                        </td>
-                                        <td>${product.totalSold != null ? product.totalSold : 0}</td>
-                                        <td>
-                                            <span class="badge ${product.status == 'Active' ? 'bg-success' : 'bg-secondary'}">
-                                                ${product.status}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-warning"
-                                                    onclick="editProduct(${product.productId})">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-sm btn-danger"
-                                                    onclick="deleteProduct(${product.productId})">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </c:forEach>
-                            </c:when>
-                            <c:otherwise>
-                                <tr>
-                                    <td colspan="6">
-                                        <div class="empty-state">
-                                            <i class="fas fa-box-open"></i>
-                                            <h5>Chưa có sản phẩm nào</h5>
-                                            <p>Hãy bắt đầu bằng cách <a href="#" onclick="showAddProductModal(); return false;">thêm sản phẩm đầu tiên</a></p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </c:otherwise>
-                        </c:choose>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <!-- Shipping Orders -->
-    <c:if test="${not empty data.pendingShippingOrders}">
-        <div class="content-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="fas fa-truck"></i> Đơn hàng cần giao</h5>
-                <a href="${pageContext.request.contextPath}/vendor?action=shipping" class="btn btn-sm btn-info">
-                    Xem chi tiết <i class="fas fa-arrow-right"></i>
-                </a>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Mã đơn</th>
-                                <th>Khách hàng</th>
-                                <th>Địa chỉ</th>
-                                <th>Giá trị</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach items="${data.pendingShippingOrders}" var="shipOrder" begin="0" end="4">
-                                <tr>
-                                    <td><strong>#${shipOrder.orderNumber}</strong></td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${not empty shipOrder.customer}">
-                                                <c:choose>
-                                                    <c:when test="${not empty shipOrder.customer.firstName || not empty shipOrder.customer.lastName}">
-                                                        ${shipOrder.customer.firstName} ${shipOrder.customer.lastName}
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        ${shipOrder.customer.email}
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </c:when>
-                                            <c:otherwise>N/A</c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <c:choose>
-                                            <c:when test="${not empty shipOrder.address}">
-                                                ${shipOrder.address.street}, ${shipOrder.address.district}
-                                            </c:when>
-                                            <c:otherwise>Địa chỉ</c:otherwise>
-                                        </c:choose>
-                                    </td>
-                                    <td>
-                                        <strong class="text-success">
-                                            <fmt:formatNumber value="${shipOrder.totalPrice}" type="currency"
-                                                            currencySymbol="" maxFractionDigits="0"/>đ
-                                        </strong>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-success"
-                                                onclick="assignShipper(${shipOrder.orderId})">
-                                            <i class="fas fa-user-plus"></i> Gán Shipper
-                                        </button>
-                                    </td>
-                                </tr>
-                            </c:forEach>
-                        </tbody>
-                    </table>
+            <!-- Statistics Cards -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-primary">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-value">${data.totalProducts != null ? data.totalProducts : 0}</div>
+                    <div class="stat-label">Tổng sản phẩm</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-success">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-value">${data.newOrdersCount != null ? data.newOrdersCount : 0}</div>
+                    <div class="stat-label">Đơn hàng mới</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-value">${data.pendingApprovals != null ? data.pendingApprovals : 0}</div>
+                    <div class="stat-label">Chờ phê duyệt</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-info">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="stat-value">${not empty data.pendingShippingOrders ? fn:length(data.pendingShippingOrders) : 0}</div>
+                    <div class="stat-label">Cần giao hàng</div>
                 </div>
             </div>
-        </div>
-    </c:if>
         </c:otherwise>
     </c:choose>
 </div>
@@ -1469,6 +1440,201 @@
                 </button>
                 <button type="button" class="btn btn-primary" onclick="submitAddProduct()">
                     <i class="fas fa-paper-plane"></i> Gửi yêu cầu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Chỉnh sửa sản phẩm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProductForm">
+                    <input type="hidden" name="productId" id="editProductId">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Tên sản phẩm *</label>
+                            <input type="text" class="form-control" name="name" id="editName" required
+                                   placeholder="Nhập tên sản phẩm">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Danh mục *</label>
+                            <select class="form-select" name="categoryId" id="editCategoryId" required>
+                                <option value="">Chọn danh mục...</option>
+                                <option value="1">Laptop</option>
+                                <option value="2">Điện thoại</option>
+                                <option value="3">Tablet</option>
+                                <option value="4">Tai nghe</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Thương hiệu *</label>
+                            <input type="text" class="form-control" name="brand" id="editBrand" required
+                                   placeholder="VD: Apple, Dell, Samsung...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giá bán (VNĐ) *</label>
+                            <input type="number" class="form-control" name="basePrice" id="editBasePrice" min="0" step="1000" required
+                                   placeholder="Nhập giá bán">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Trạng thái *</label>
+                            <select class="form-select" name="status" id="editStatus" required>
+                                <option value="Active">Hoạt động</option>
+                                <option value="Inactive">Không hoạt động</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả sản phẩm</label>
+                        <textarea class="form-control" name="description" id="editDescription" rows="3"
+                                  placeholder="Nhập mô tả chi tiết về sản phẩm..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Thông số kỹ thuật</label>
+                        <textarea class="form-control" name="specifications" id="editSpecifications" rows="2"
+                                  placeholder="VD: CPU: Intel Core i7, RAM: 16GB, SSD: 512GB"></textarea>
+                    </div>
+                </form>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Lưu ý:</strong> Thay đổi sẽ được gửi yêu cầu phê duyệt đến Admin.
+                    Sản phẩm sẽ không thay đổi cho đến khi được duyệt.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Hủy
+                </button>
+                <button type="button" class="btn btn-warning" onclick="submitEditProduct()">
+                    <i class="fas fa-paper-plane"></i> Gửi yêu cầu cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-shopping-cart"></i> Chi tiết đơn hàng
+                    <span id="orderDetailsNumber" class="text-muted"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Order Information -->
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin đơn hàng</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">Mã đơn hàng:</small>
+                                        <div id="orderDetailsId" class="fw-bold"></div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">Ngày đặt:</small>
+                                        <div id="orderDetailsDate"></div>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">Trạng thái:</small>
+                                        <div id="orderDetailsStatus"></div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">Tổng tiền:</small>
+                                        <div id="orderDetailsTotal" class="fw-bold text-success"></div>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">Phí ship:</small>
+                                        <div id="orderDetailsShipping"></div>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <small class="text-muted">Giảm giá:</small>
+                                        <div id="orderDetailsDiscount"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Customer Information -->
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="fas fa-user"></i> Thông tin khách hàng</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="orderDetailsCustomer">
+                                    <div class="text-center">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <small class="text-muted">Đang tải...</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Address -->
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="orderDetailsAddress">
+                            <div class="text-center">
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <small class="text-muted">Đang tải...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Items -->
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0"><i class="fas fa-box"></i> Chi tiết sản phẩm</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="orderDetailsItems">
+                            <div class="text-center">
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <small class="text-muted">Đang tải...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Đóng
                 </button>
             </div>
         </div>
@@ -1571,7 +1737,82 @@
 
     // View Order Details
     function viewOrderDetails(orderId) {
-        window.location.href = '${pageContext.request.contextPath}/vendor?action=orderDetail&id=' + orderId;
+        // Clear previous data
+        document.getElementById('orderDetailsId').innerHTML = '';
+        document.getElementById('orderDetailsDate').innerHTML = '';
+        document.getElementById('orderDetailsStatus').innerHTML = '';
+        document.getElementById('orderDetailsTotal').innerHTML = '';
+        document.getElementById('orderDetailsShipping').innerHTML = '';
+        document.getElementById('orderDetailsDiscount').innerHTML = '';
+        document.getElementById('orderDetailsCustomer').innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div><small class="text-muted">Đang tải...</small></div>';
+        document.getElementById('orderDetailsAddress').innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div><small class="text-muted">Đang tải...</small></div>';
+        document.getElementById('orderDetailsItems').innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div><small class="text-muted">Đang tải...</small></div>';
+
+        // Fetch order details
+        fetch('${pageContext.request.contextPath}/vendor?action=getOrderDetails&orderId=' + orderId, {
+            method: 'GET'
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.success && result.data) {
+                const order = result.data.order;
+                const customer = order.customer || {};
+                const address = order.address || {};
+                const items = result.data.orderItems || [];
+
+                // Populate order information
+                document.getElementById('orderDetailsId').innerHTML = '#' + order.orderNumber;
+                document.getElementById('orderDetailsDate').innerHTML = new Date(order.orderDate).toLocaleString('vi-VN');
+                document.getElementById('orderDetailsStatus').innerHTML = order.status;
+                document.getElementById('orderDetailsTotal').innerHTML = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.totalPrice);
+                document.getElementById('orderDetailsShipping').innerHTML = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.shippingFee || 0);
+                document.getElementById('orderDetailsDiscount').innerHTML = '0đ'; // DTO doesn't include discount, set to 0
+
+                // Populate customer information
+                document.getElementById('orderDetailsCustomer').innerHTML = `
+                    <strong>${customer.firstName || ''} ${customer.lastName || ''}</strong><br>
+                    <i class="fas fa-envelope text-muted"></i> ${customer.email || 'N/A'}<br>
+                    <i class="fas fa-phone text-muted"></i> ${customer.phone || 'N/A'}
+                `;
+
+                // Populate address information
+                document.getElementById('orderDetailsAddress').innerHTML = `
+                    <strong>${address.street || 'N/A'}</strong><br>
+                    ${address.district || ''}, ${address.city || ''}
+                    ${address.ward ? ', ' + address.ward : ''}
+                `;
+
+                // Populate order items
+                const itemsContainer = document.getElementById('orderDetailsItems');
+                itemsContainer.innerHTML = ''; // Clear previous items
+                if (items.length > 0) {
+                    items.forEach(item => {
+                        const total = item.quantity * item.price;
+                        const div = document.createElement('div');
+                        div.classList.add('mb-2');
+                        div.innerHTML = `
+                            <strong>\${item.productName}</strong> (x\${item.quantity})<br>
+                            <small class="text-muted">
+                                Giá: \${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}<br>
+                                Thành tiền: \${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}
+                            </small>
+                        `;
+                        itemsContainer.appendChild(div);
+                    });
+                } else {
+                    itemsContainer.innerHTML = '<small class="text-muted">Không có sản phẩm nào</small>';
+                }
+
+                // Show the modal
+                const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+                modal.show();
+            } else {
+                alert('Không tìm thấy thông tin đơn hàng');
+            }
+        })
+        .catch(err => {
+            alert('Có lỗi xảy ra khi tải thông tin đơn hàng: ' + err.message);
+        });
     }
 
     // Show Assign Shipper Modal
@@ -1629,17 +1870,182 @@
         .catch(err => alert('✗ Có lỗi xảy ra: ' + err.message));
     }
 
-    // Edit Product (redirect to edit page or show modal)
+    // Edit Product
     function editProduct(productId) {
-        // You can implement edit modal similar to add modal
-        alert('Chức năng chỉnh sửa sản phẩm #' + productId);
+        // Fetch product data and populate the edit modal
+        fetch('${pageContext.request.contextPath}/vendor?action=getProduct&productId=' + productId, {
+            method: 'GET'
+        })
+        .then(res => res.json())
+        .then(product => {
+            if (product) {
+                document.getElementById('editProductId').value = product.productId;
+                document.getElementById('editName').value = product.name;
+                document.getElementById('editCategoryId').value = product.categoryId;
+                document.getElementById('editBrand').value = product.brand;
+                document.getElementById('editBasePrice').value = product.basePrice;
+                document.getElementById('editStatus').value = product.status;
+                document.getElementById('editDescription').value = product.description || '';
+                document.getElementById('editSpecifications').value = product.specifications || '';
+
+                const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+                modal.show();
+            } else {
+                alert('Không tìm thấy sản phẩm');
+            }
+        })
+        .catch(err => {
+            alert('Có lỗi xảy ra khi tải dữ liệu sản phẩm: ' + err.message);
+        });
     }
 
-    // Show Product Modal
-    function showProductModal() {
-        alert('Chức năng quản lý sản phẩm sẽ được triển khai ở trang riêng');
+    // Submit Edit Product
+    function submitEditProduct() {
+        const form = document.getElementById('editProductForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        fetch('${pageContext.request.contextPath}/vendor?action=updateProduct&productId=' + data.productId, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.success) {
+                alert('✓ ' + result.message);
+                bootstrap.Modal.getInstance(document.getElementById('editProductModal')).hide();
+                location.reload();
+            } else {
+                alert('✗ Lỗi: ' + result.message);
+            }
+        })
+        .catch(err => {
+            alert('✗ Có lỗi xảy ra: ' + err.message);
+        });
     }
 
+    // Assign Shipper
+    function assignShipper(orderId) {
+        // Fetch order details and available shippers
+        fetch('${pageContext.request.contextPath}/vendor?action=getOrderDetails&orderId=' + orderId, {
+            method: 'GET'
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.success && result.data) {
+                const orderData = result.data.order;
+                const orderItems = result.data.orderItems;
+
+                // Populate order details in the modal
+                document.getElementById('assignOrderId').value = orderData.orderId;
+                document.getElementById('assignOrderNumber').textContent = '#' + orderData.orderNumber;
+
+                // Customer and address info using DTO structure
+                document.getElementById('modalCustomerInfo').innerHTML = `
+                    <strong>\${orderData.customer.firstName} \${orderData.customer.lastName}</strong><br>
+                    <i class="fas fa-envelope text-muted"></i> \${orderData.customer.email}<br>
+                    <i class="fas fa-phone text-muted"></i> \${orderData.customer.phone}
+                `;
+                document.getElementById('modalAddressInfo').innerHTML = `
+                    <strong>\${orderData.address.street}</strong><br>
+                    \${orderData.address.district}, \${orderData.address.city}
+                    \${orderData.address.ward ? ', ' + orderData.address.ward : ''}
+                `;
+
+                // Load available shippers
+                loadAvailableShippers(orderData.orderId);
+
+                const modal = new bootstrap.Modal(document.getElementById('assignShipperModal'));
+                modal.show();
+            } else {
+                alert('Không tìm thấy đơn hàng: ' + (result.message || 'Unknown error'));
+            }
+        })
+        .catch(err => {
+            console.error('Error loading order details:', err);
+            alert('Có lỗi xảy ra khi tải dữ liệu đơn hàng: ' + err.message);
+        });
+    }
+
+    // Load available shippers for an order
+    function loadAvailableShippers(orderId) {
+        fetch('${pageContext.request.contextPath}/vendor?action=getAvailableShippers&orderId=' + orderId, {
+            method: 'GET'
+        })
+        .then(res => res.json())
+        .then(shippers => {
+            const shipperSelect = document.getElementById('shipperSelect');
+            shipperSelect.innerHTML = '<option value="">Chọn shipper...</option>'; // Reset options
+
+            if (shippers && shippers.length > 0) {
+                shippers.forEach(shipper => {
+                    const option = document.createElement('option');
+                    option.value = shipper.id;
+                    option.textContent = `\${shipper.name} - \${shipper.phone}`;
+                    shipperSelect.appendChild(option);
+                });
+            } else {
+                shipperSelect.innerHTML = '<option value="">Không có shipper khả dụng</option>';
+            }
+        })
+        .catch(err => {
+            alert('Có lỗi xảy ra khi tải danh sách shipper: ' + err.message);
+        });
+    }
+
+    // Change Shipper
+    function changeShipper(orderId, orderNumber) {
+        document.getElementById('assignOrderId').value = orderId;
+        document.getElementById('assignOrderNumber').textContent = '#' + orderNumber;
+        loadAvailableShippers(orderId); // Reload shippers
+        new bootstrap.Modal(document.getElementById('assignShipperModal')).show();
+    }
+
+    // Load shipper information for each order
+    function loadShipperInfo() {
+        // Find all shipper info elements
+        const shipperInfoElements = document.querySelectorAll('[id^="shipper-info-"]');
+
+        shipperInfoElements.forEach(element => {
+            const orderId = element.id.replace('shipper-info-', '');
+
+            fetch('${pageContext.request.contextPath}/vendor?action=getShipper&orderId=' + orderId, {
+                method: 'GET'
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.success && result.data && result.data.shipper) {
+                    const shipper = result.data.shipper;
+                    element.innerHTML = `
+                        <small class="text-success">
+                            <i class="fas fa-user-tie"></i>
+                            <strong>\${shipper.firstName} \${shipper.lastName}</strong><br>
+                            <i class="fas fa-phone"></i> \${shipper.phone}
+                        </small>
+                    `;
+                } else {
+                    element.innerHTML = '<small class="text-muted">Chưa gán shipper</small>';
+                }
+            })
+            .catch(err => {
+                element.innerHTML = '<small class="text-danger">Lỗi tải dữ liệu</small>';
+            });
+        });
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load shipper info if on shipping page
+        if (window.location.href.includes('action=shipping')) {
+            loadShipperInfo();
+        }
+    });
 </script>
 </body>
 </html>

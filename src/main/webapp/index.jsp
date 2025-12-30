@@ -16,6 +16,8 @@
 
     <!-- CSS riêng -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
+
 </head>
 <body>
 
@@ -25,7 +27,6 @@
     const isLoggedIn = ${not empty sessionScope.user};
 </script>
 
-<!-- HEADER -->
 <!-- HEADER -->
 <header>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
@@ -57,21 +58,34 @@
                 <!-- Kiểm tra user đã đăng nhập chưa -->
                 <c:choose>
                     <c:when test="${not empty sessionScope.user}">
-                        <!-- Đã đăng nhập: Hiển thị tên user với tooltip full name -->
+                        <!-- Đã đăng nhập: Hiển thị avatar + tên -->
                         <div class="items-header dropdown"
                              data-bs-toggle="tooltip"
                              data-bs-placement="bottom"
                              title="${sessionScope.user.firstName} ${sessionScope.user.lastName}">
                             <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown"
                                     data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="bi bi-person-circle me-1"></i>
+                                <!-- Avatar thay vì icon -->
+                                <c:choose>
+                                    <c:when test="${not empty sessionScope.user.avatar and sessionScope.user.avatar != ''}">
+                                        <img src="${sessionScope.user.avatar}"
+                                             alt="Avatar"
+                                             class="user-avatar-small me-1"
+                                             onerror="this.src='${pageContext.request.contextPath}/assets/img/default-avatar.jpg'">
+                                    </c:when>
+                                    <c:otherwise>
+                                        <img src="${pageContext.request.contextPath}/assets/img/default-avatar.jpg"
+                                             alt="Avatar"
+                                             class="user-avatar-small me-1">
+                                    </c:otherwise>
+                                </c:choose>
                                 <span class="user-name">
                                     ${sessionScope.user.firstName} ${sessionScope.user.lastName}
                                 </span>
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
-                                    <i class="bi bi-person"></i> Thông tin cá nhân
+                                    <i class="bi bi-person"></i> Tài khoản cá nhân
                                 </a></li>
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">
                                     <i class="bi bi-box"></i> Đơn hàng của tôi
@@ -100,44 +114,47 @@
 </header>
 
 <!-- THÔNG BÁO -->
-<%
-    String successMessage = (String) session.getAttribute("successMessage");
-    String errorMessage = (String) session.getAttribute("errorMessage");
-    String infoMessage = (String) session.getAttribute("infoMessage");
-%>
-
-<% if (successMessage != null && !successMessage.isEmpty()) { %>
-<div class="container mt-3">
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        <strong>Thành công!</strong> <%= successMessage %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- ✅ SUCCESS MESSAGE -->
+<c:if test="${not empty sessionScope.successMessage}">
+    <div class="alert-container">
+        <div class="container">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <strong>Thành công!</strong> ${sessionScope.successMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
     </div>
-</div>
-<% session.removeAttribute("successMessage"); %>
-<% } %>
+    <c:remove var="successMessage" scope="session"/>
+</c:if>
 
-<% if (errorMessage != null && !errorMessage.isEmpty()) { %>
-<div class="container mt-3">
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <strong>Lỗi!</strong> <%= errorMessage %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- ✅ ERROR MESSAGE -->
+<c:if test="${not empty sessionScope.errorMessage}">
+    <div class="alert-container">
+        <div class="container">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Lỗi!</strong> ${sessionScope.errorMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
     </div>
-</div>
-<% session.removeAttribute("errorMessage"); %>
-<% } %>
+    <c:remove var="errorMessage" scope="session"/>
+</c:if>
 
-<% if (infoMessage != null && !infoMessage.isEmpty()) { %>
-<div class="container mt-3">
-    <div class="alert alert-info alert-dismissible fade show" role="alert">
-        <i class="bi bi-info-circle-fill me-2"></i>
-        <%= infoMessage %>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+<!-- ✅ INFO MESSAGE -->
+<c:if test="${not empty sessionScope.infoMessage}">
+    <div class="alert-container">
+        <div class="container">
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                    ${sessionScope.infoMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
     </div>
-</div>
-<% session.removeAttribute("infoMessage"); %>
-<% } %>
+    <c:remove var="infoMessage" scope="session"/>
+</c:if>
 
 <!-- CATEGORY -->
 <section class="categories">
@@ -166,62 +183,71 @@
         </c:when>
         <c:otherwise>
             <c:forEach var="phone" items="${products}">
-                <div class="product">
-                    <!-- Badges -->
-                    <div class="product-badges">
-                        <c:if test="${phone.discountPercent > 0}">
-                            <span class="badge discount">Giảm ${phone.discountPercent}%</span>
-                        </c:if>
-                        <span class="badge installment">Trả góp 0%</span>
-                    </div>
-
-                    <!-- Hình ảnh -->
-                    <div class="product-image">
-                        <img src="${pageContext.request.contextPath}/uploads/phones/${phone.primaryImage}"
-                             alt="${phone.name}"
-                             onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'">
-                    </div>
-
-                    <!-- Tên sản phẩm -->
-                    <h3 class="product-name">${phone.name} | Chính hãng</h3>
-
-                    <!-- Giá -->
-                    <div class="product-price">
-                        <fmt:formatNumber value="${phone.price}" type="number" groupingUsed="true"/>đ
-                        <c:if test="${phone.oldPrice > phone.price}">
-                            <span class="old-price">
-                                <fmt:formatNumber value="${phone.oldPrice}" type="number" groupingUsed="true"/>đ
-                            </span>
-                        </c:if>
-                    </div>
-
-                    <!-- Giảm thêm cho member -->
-                    <c:if test="${phone.memberDiscount > 0}">
-                        <div class="member-discount">
-                            Smember giảm đến <fmt:formatNumber value="${phone.memberDiscount}" type="number" groupingUsed="true"/>đ
+                <a href="${pageContext.request.contextPath}/product?id=${phone.id}" class="product-link">
+                    <div class="product">
+                        <!-- Badges -->
+                        <div class="product-badges">
+                            <c:if test="${phone.discountPercent > 0}">
+                                <span class="badge discount">Giảm ${phone.discountPercent}%</span>
+                            </c:if>
+                            <span class="badge installment">Trả góp 0%</span>
                         </div>
-                    </c:if>
 
-                    <!-- Thông tin trả góp -->
-                    <div class="installment-info">
-                        Trả góp 0% - 0đ phụ thu - 0đ trả trước - Kỳ hạn đến 6 tháng
-                    </div>
+                        <!-- Hình ảnh: Chỉ hiển thị nếu primaryImage không rỗng -->
+                        <c:if test="${not empty phone.primaryImage}">
+                            <div class="product-image">
+                                <img src="${pageContext.request.contextPath}/uploads/phones/${phone.primaryImage}"
+                                     alt="${phone.name}"
+                                     onerror="this.src='${pageContext.request.contextPath}/assets/images/no-image.png'">
+                            </div>
+                        </c:if>
+                        <!-- Nếu không có ảnh, có thể thêm placeholder text nếu muốn -->
+                        <c:if test="${empty phone.primaryImage}">
+                            <div class="product-image-placeholder text-center py-3">
+                                <p class="text-muted">Chưa có ảnh sản phẩm</p>
+                            </div>
+                        </c:if>
 
-                    <!-- Footer -->
-                    <div class="product-footer">
-                        <div class="rating">
-                            <span class="stars">★ ${phone.rating}</span>
-                            <span class="like">Yêu thích</span>
+                        <!-- Tên sản phẩm -->
+                        <h3 class="product-name">${phone.name} | Chính hãng</h3>
+
+                        <!-- Giá -->
+                        <div class="product-price">
+                            <fmt:formatNumber value="${phone.price}" type="number" groupingUsed="true"/>đ
+                            <c:if test="${phone.oldPrice > phone.price}">
+                                <span class="old-price">
+                                    <fmt:formatNumber value="${phone.oldPrice}" type="number" groupingUsed="true"/>đ
+                                </span>
+                            </c:if>
+                        </div>
+
+                        <!-- Giảm thêm cho member -->
+                        <c:if test="${phone.memberDiscount > 0}">
+                            <div class="member-discount">
+                                Smember giảm đến <fmt:formatNumber value="${phone.memberDiscount}" type="number" groupingUsed="true"/>đ
+                            </div>
+                        </c:if>
+
+                        <!-- Thông tin trả góp -->
+                        <div class="installment-info">
+                            Trả góp 0% - 0đ phụ thu - 0đ trả trước - Kỳ hạn đến 6 tháng
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="product-footer">
+                            <div class="rating">
+                                <span class="stars">★ ${phone.rating}</span>
+                                <span class="like">Yêu thích</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </a>
             </c:forEach>
         </c:otherwise>
     </c:choose>
 </section>
 
-<!-- Modal Smember - Phiên bản ĐẸP LUNG LINH 2025 -->
-<!-- Modal Smember - Minimalist & Đẹp như CellphoneS -->
+<!-- Modal Smember -->
 <div class="modal fade" id="smemberModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content smember-modal-content">

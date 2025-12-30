@@ -99,7 +99,7 @@ public class RegisterServlet extends HttpServlet {
         // ✅ Đặt flag: user mới đăng ký (để hiển thị welcome message)
         SessionUtil.setAttribute(req, "isNewUser", true);
 
-        SessionUtil.setSuccessMessage(req, "Chào mừng " + newCustomer.getFirstName() +
+        SessionUtil.setSuccessMessage(req, "Chào mừng " + newCustomer.getFirstName() + " " + newCustomer.getLastName() +
                 " đến với VietTech! 🎉");
 
         // Lưu cookie
@@ -108,7 +108,7 @@ public class RegisterServlet extends HttpServlet {
         CookieUtil.addCookie(resp, "userName", fullName, COOKIE_MAX_AGE);
 
         // ✅ Redirect về profile
-        resp.sendRedirect(req.getContextPath() + "/profile");
+        resp.sendRedirect(req.getContextPath() + "/");
     }
 
     /**

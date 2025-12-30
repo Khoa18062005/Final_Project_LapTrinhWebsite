@@ -16,13 +16,14 @@ import java.util.Random;
 
 /**
  * Email Utility using Brevo API (formerly Sendinblue)
+ * Refactored for reusability
  * @author VietTech Team
  */
 public class EmailUtilBrevo {
 
     private static final Logger logger = LoggerFactory.getLogger(EmailUtilBrevo.class);
     private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
-    private static final String SENDER_EMAIL = "huyalex009@gmail.com"; // ← Email gửi đi
+    private static final String SENDER_EMAIL = "huyalex009@gmail.com";
     private static final String SENDER_NAME = "VietTech";
 
     /**
@@ -30,26 +31,40 @@ public class EmailUtilBrevo {
      */
     public static String generateOTP() {
         Random random = new Random();
-        int otp = 100000 + random.nextInt(900000); // 100000 - 999999
+        int otp = 100000 + random.nextInt(900000);
         return String.valueOf(otp);
     }
 
     /**
-     * Gửi OTP qua email bằng Brevo API
-     * @param toEmail Email người nhận
-     * @param otp Mã OTP
-     * @return true nếu gửi thành công, false nếu thất bại
+     * Gửi OTP đăng ký tài khoản
      */
-    public static boolean sendOTP(String toEmail, String otp) {
+    public static boolean sendRegistrationOTP(String toEmail, String otp) {
         String subject = "Mã OTP xác thực tài khoản VietTech";
-        String htmlContent = buildOTPEmailTemplate(otp);
-        
+        String htmlContent = buildRegistrationOTPTemplate(otp);
+
         try {
             sendMail(toEmail, SENDER_EMAIL, subject, htmlContent, true);
-            logger.info("✓ OTP sent successfully to: {}", toEmail);
+            logger.info("✓ Registration OTP sent to: {}", toEmail);
             return true;
         } catch (IOException e) {
-            logger.error("✗ Failed to send OTP to: {}", toEmail, e);
+            logger.error("✗ Failed to send registration OTP to: {}", toEmail, e);
+            return false;
+        }
+    }
+
+    /**
+     * Gửi OTP đổi email
+     */
+    public static boolean sendEmailChangeOTP(String toEmail, String otp, String userName) {
+        String subject = "Mã OTP xác thực đổi email - VietTech";
+        String htmlContent = buildEmailChangeOTPTemplate(otp, userName);
+
+        try {
+            sendMail(toEmail, SENDER_EMAIL, subject, htmlContent, true);
+            logger.info("✓ Email change OTP sent to: {}", toEmail);
+            return true;
+        } catch (IOException e) {
+            logger.error("✗ Failed to send email change OTP to: {}", toEmail, e);
             return false;
         }
     }
@@ -146,7 +161,7 @@ public class EmailUtilBrevo {
             return false;
         }
 
-        // Kiểm tra thời gian (5 phút = 300000ms)
+        // Kiểm tra thời gian (90 giây)
         long currentTime = System.currentTimeMillis();
         long otpAge = currentTime - createdTime;
         if (otpAge > 90000) {
@@ -159,9 +174,35 @@ public class EmailUtilBrevo {
     }
 
     /**
-     * Template email OTP đẹp
+     * Template OTP đăng ký tài khoản
      */
-    private static String buildOTPEmailTemplate(String otp) {
+    private static String buildRegistrationOTPTemplate(String otp) {
+        return buildOTPTemplate(
+                "🎉 Chào mừng đến với VietTech!",
+                "Cảm ơn bạn đã đăng ký tài khoản tại <strong>VietTech</strong>. Để hoàn tất đăng ký, vui lòng nhập mã OTP bên dưới:",
+                otp,
+                "Nếu bạn không yêu cầu đăng ký tài khoản, vui lòng bỏ qua email này."
+        );
+    }
+
+    /**
+     * Template OTP đổi email
+     */
+    private static String buildEmailChangeOTPTemplate(String otp, String userName) {
+        return buildOTPTemplate(
+                "🔐 Xác thực đổi email",
+                "Xin chào <strong>" + userName + "</strong>,<br><br>" +
+                        "Bạn đang thực hiện thay đổi địa chỉ email trên hệ thống <strong>VietTech</strong>. " +
+                        "Để xác nhận đây là bạn, vui lòng nhập mã OTP bên dưới:",
+                otp,
+                "Nếu bạn không thực hiện thao tác này, vui lòng bỏ qua email này và bảo mật tài khoản của bạn."
+        );
+    }
+
+    /**
+     * Template OTP chung (tái sử dụng)
+     */
+    private static String buildOTPTemplate(String title, String description, String otp, String footer) {
         return String.format("""
                 <!DOCTYPE html>
                 <html lang="vi">
@@ -179,7 +220,7 @@ public class EmailUtilBrevo {
                                     <tr>
                                         <td align="center" style="padding: 30px 20px; background: linear-gradient(135deg, #0d6efd, #1e40af); border-radius: 10px 10px 0 0;">
                                             <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
-                                                🎉 Chào mừng đến với VietTech!
+                                                %s
                                             </h1>
                                         </td>
                                     </tr>
@@ -188,8 +229,7 @@ public class EmailUtilBrevo {
                                     <tr>
                                         <td style="padding: 40px 30px;">
                                             <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
-                                                Cảm ơn bạn đã đăng ký tài khoản tại <strong>VietTech</strong>. 
-                                                Để hoàn tất đăng ký, vui lòng nhập mã OTP bên dưới:
+                                                %s
                                             </p>
                                             
                                             <!-- OTP Box -->
@@ -218,7 +258,7 @@ public class EmailUtilBrevo {
                                             </p>
                                             
                                             <p style="margin: 20px 0; font-size: 14px; color: #999999; line-height: 1.6;">
-                                                Nếu bạn không yêu cầu đăng ký tài khoản, vui lòng bỏ qua email này.
+                                                %s
                                             </p>
                                         </td>
                                     </tr>
@@ -240,7 +280,7 @@ public class EmailUtilBrevo {
                     </table>
                 </body>
                 </html>
-                """, otp);
+                """, title, description, otp, footer);
     }
 
     private EmailUtilBrevo() {

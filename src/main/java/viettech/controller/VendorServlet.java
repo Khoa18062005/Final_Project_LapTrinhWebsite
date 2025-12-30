@@ -3,9 +3,13 @@ package viettech.controller;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import viettech.dao.OrderDAO;
 import viettech.dto.Vendor_dto;
 import viettech.entity.delivery.DeliveryAssignment;
+import viettech.entity.user.Shipper;
 import viettech.entity.order.Order;
+import viettech.entity.order.OrderDetail;
+import viettech.entity.product.Product;
 import viettech.entity.product.ProductApproval;
 import viettech.entity.user.User;
 import viettech.service.VendorService;
@@ -19,6 +23,7 @@ import javax.servlet.http.HttpSession;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +33,7 @@ public class VendorServlet extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(VendorServlet.class);
     private final VendorService vendorService = new VendorService();
+    private final OrderDAO orderDAO = new OrderDAO();
     private final Gson gson = new Gson();
 
     @Override
@@ -56,7 +62,10 @@ public class VendorServlet extends HttpServlet {
             // Get dashboard data for all pages (contains vendor info, stats, etc.)
             Vendor_dto data = vendorService.getDashboardData(vendorId);
             if (data == null) {
+                logger.warn("VendorService returned null for vendor {}", vendorId);
                 data = new Vendor_dto();
+            } else {
+                logger.info("Successfully got dashboard data for vendor {}", vendorId);
             }
             request.setAttribute("data", data);
 
@@ -81,6 +90,125 @@ public class VendorServlet extends HttpServlet {
                 // Lấy đơn hàng cần giao
                 List<Order> orders = vendorService.getOrdersReadyForShipping(vendorId);
                 request.setAttribute("orders", orders);
+            } else if (action.equals("products")) {
+                // Lấy tất cả sản phẩm của vendor
+                List<Product> products = vendorService.getAllProductsByVendor(vendorId);
+                request.setAttribute("products", products);
+            } else if (action.equals("getProduct")) {
+                // Lấy thông tin sản phẩm để chỉnh sửa
+                String productIdStr = request.getParameter("productId");
+                if (productIdStr != null) {
+                    try {
+                        int productId = Integer.parseInt(productIdStr);
+                        Product product = vendorService.getProductById(productId, vendorId);
+                        if (product != null) {
+                            sendJsonResponse(response, true, "Product retrieved successfully", product);
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        sendJsonResponse(response, false, "Invalid product ID format", null);
+                        return;
+                    }
+                }
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                sendJsonResponse(response, false, "Product not found", null);
+                return;
+            } else if (action.equals("orderDetails")) {
+                // Lấy chi tiết đơn hàng
+                String orderIdStr = request.getParameter("orderId");
+                if (orderIdStr != null) {
+                    try {
+                        int orderId = Integer.parseInt(orderIdStr);
+                        List<OrderDetail> orderDetails = vendorService.getOrderDetails(orderId, vendorId);
+                        if (orderDetails != null && !orderDetails.isEmpty()) {
+                            sendJsonResponse(response, true, "Order details retrieved successfully", orderDetails);
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        sendJsonResponse(response, false, "Invalid order ID format", null);
+                        return;
+                    }
+                }
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                sendJsonResponse(response, false, "Order not found or access denied", null);
+                return;
+            } else if (action.equals("getShipper")) {
+                // Lấy thông tin shipper cho đơn hàng
+                String orderIdStr = request.getParameter("orderId");
+                if (orderIdStr != null) {
+                    try {
+                        int orderId = Integer.parseInt(orderIdStr);
+                        Shipper shipper = vendorService.getShipperForOrder(orderId, vendorId);
+                        Map<String, Object> responseData = new HashMap<>();
+                        if (shipper != null) {
+                            // Use a simple map instead of the entity to avoid serialization issues
+                            Map<String, Object> shipperData = new HashMap<>();
+                            shipperData.put("userId", shipper.getUserId());
+                            shipperData.put("firstName", shipper.getFirstName());
+                            shipperData.put("lastName", shipper.getLastName());
+                            shipperData.put("email", shipper.getEmail());
+                            shipperData.put("phone", shipper.getPhone());
+                            responseData.put("shipper", shipperData);
+                        }
+                        responseData.put("hasShipper", shipper != null);
+                        sendJsonResponse(response, true, shipper != null ? "Shipper information retrieved" : "No shipper assigned", responseData);
+                        return;
+                    } catch (NumberFormatException e) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        sendJsonResponse(response, false, "Invalid order ID format", null);
+                        return;
+                    } catch (Exception e) {
+                        logger.error("Error getting shipper for order {}", orderIdStr, e);
+                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        sendJsonResponse(response, false, "Error retrieving shipper information", null);
+                        return;
+                    }
+                }
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                sendJsonResponse(response, false, "Order ID required", null);
+                return;
+            } else if (action.equals("getOrderDetails")) {
+                // Lấy chi tiết đơn hàng bao gồm sản phẩm
+                String orderIdStr = request.getParameter("orderId");
+                if (orderIdStr != null) {
+                    try {
+                        int orderId = Integer.parseInt(orderIdStr);
+                        List<OrderDetail> orderDetails = vendorService.getOrderDetails(orderId, vendorId);
+                        // Use findByIdWithRelations to fetch customer and address eagerly
+                        Order order = orderDAO.findByIdWithRelations(orderId);
+                        if (order != null && order.getVendorId() == vendorId && orderDetails != null) {
+                            // Use DTOs to avoid JSON serialization issues
+                            VendorService.OrderInfoDTO orderDTO = new VendorService.OrderInfoDTO(order);
+                            List<VendorService.OrderItemDTO> itemDTOs = orderDetails.stream()
+                                .map(VendorService.OrderItemDTO::new)
+                                .toList();
+
+                            Map<String, Object> responseData = new HashMap<>();
+                            responseData.put("order", orderDTO);
+                            responseData.put("orderItems", itemDTOs);
+                            sendJsonResponse(response, true, "Order details retrieved successfully", responseData);
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        sendJsonResponse(response, false, "Invalid order ID format", null);
+                        return;
+                    } catch (Exception e) {
+                        logger.error("Error getting order details for order {}", orderIdStr, e);
+                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        sendJsonResponse(response, false, "Error retrieving order details", null);
+                        return;
+                    }
+                }
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                sendJsonResponse(response, false, "Order not found or access denied", null);
+                return;
+            } else if (action.equals("getAvailableShippers")) {
+                // Lấy danh sách shipper khả dụng
+                handleGetAvailableShippers(request, response, vendorId);
+                return;
             }
 
             // Forward to vendor.jsp - let JSP handle routing based on action parameter
@@ -135,6 +263,9 @@ public class VendorServlet extends HttpServlet {
                     break;
                 case "assignShipper":
                     handleAssignShipper(request, response, vendorId);
+                    break;
+                case "getAvailableShippers":
+                    handleGetAvailableShippers(request, response, vendorId);
                     break;
                 default:
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -284,6 +415,20 @@ public class VendorServlet extends HttpServlet {
         } catch (Exception e) {
             logger.error("Error assigning shipper", e);
             sendJsonResponse(response, false, "Không thể phân chia shipper: " + e.getMessage(), null);
+        }
+    }
+
+    private void handleGetAvailableShippers(HttpServletRequest request, HttpServletResponse response, int vendorId)
+            throws IOException {
+        try {
+            // For now, return a mock list of shippers
+            // In a real application, you would query the database for available shippers
+            List<Map<String, Object>> shippers = new ArrayList<>();
+
+            sendJsonResponse(response, true, "Available shippers retrieved successfully", shippers);
+        } catch (Exception e) {
+            logger.error("Error getting available shippers", e);
+            sendJsonResponse(response, false, "Không thể tải danh sách shipper: " + e.getMessage(), null);
         }
     }
 
