@@ -5,8 +5,6 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 
-<body>
-
 <script>
     // Dùng để JS biết có đang login hay không
     const isLoggedIn = ${not empty sessionScope.user};
@@ -83,18 +81,14 @@
                         </div>
                     </c:when>
                     <c:otherwise>
-                        <!-- Chưa đăng nhập - 🔥 Tạo URL với returnUrl -->
-                        <c:set var="currentUrl" value="${pageContext.request.requestURI}" />
-                        <c:if test="${not empty pageContext.request.queryString}">
-                            <c:set var="currentUrl" value="${currentUrl}?${pageContext.request.queryString}" />
-                        </c:if>
-
-                        <a href="${pageContext.request.contextPath}/login?returnUrl=${currentUrl}"
-                           class="items-header login-trigger text-decoration-none"
-                           style="cursor: pointer;">
+                        <!-- Chưa đăng nhập -->
+                        <div class="items-header login-trigger"
+                             data-bs-toggle="modal"
+                             data-bs-target="#smemberModal"
+                             style="cursor: pointer;">
                             <i class="bi bi-person-circle fs-4 text-white"></i>
                             <h5>Đăng nhập</h5>
-                        </a>
+                        </div>
                     </c:otherwise>
                 </c:choose>
             </div>
@@ -105,43 +99,43 @@
 <!-- THÔNG BÁO -->
 <!-- ✅ SUCCESS MESSAGE -->
 <c:if test="${not empty sessionScope.successMessage}">
-<div class="alert-container">
-    <div class="container">
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <strong>Thành công!</strong> ${sessionScope.successMessage}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="alert-container">
+        <div class="container">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <strong>Thành công!</strong> ${sessionScope.successMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
     </div>
-</div>
     <c:remove var="successMessage" scope="session"/>
 </c:if>
 
 <!-- ✅ ERROR MESSAGE -->
 <c:if test="${not empty sessionScope.errorMessage}">
-<div class="alert-container">
-    <div class="container">
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <strong>Lỗi!</strong> ${sessionScope.errorMessage}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="alert-container">
+        <div class="container">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Lỗi!</strong> ${sessionScope.errorMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
     </div>
-</div>
     <c:remove var="errorMessage" scope="session"/>
 </c:if>
 
 <!-- ✅ INFO MESSAGE -->
 <c:if test="${not empty sessionScope.infoMessage}">
-<div class="alert-container">
-    <div class="container">
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <i class="bi bi-info-circle-fill me-2"></i>
-                ${sessionScope.infoMessage}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="alert-container">
+        <div class="container">
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="bi bi-info-circle-fill me-2"></i>
+                    ${sessionScope.infoMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
     </div>
-</div>
     <c:remove var="infoMessage" scope="session"/>
 </c:if>
 
