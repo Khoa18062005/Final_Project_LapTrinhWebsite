@@ -32,6 +32,7 @@ public class LaptopDetailDTO extends ProductDetailDTO {
     private boolean fingerprintSensor;
     private boolean discreteGpu;
     private boolean thunderbolt;
+    private String imageUrl;
 
     // Constructor mặc định
     public LaptopDetailDTO() {
@@ -79,10 +80,10 @@ public class LaptopDetailDTO extends ProductDetailDTO {
                            int refreshRate, String colorGamut, int batteryCapacity, int batteryLife,
                            String ports, String os, String keyboardType, boolean keyboardBacklight,
                            String webcam, String speakers, String microphone, boolean touchScreen,
-                           boolean fingerprintSensor, boolean discreteGpu, boolean thunderbolt) {
+                           boolean fingerprintSensor, boolean discreteGpu, boolean thunderbolt, String imageUrl) {
         super(productId, vendorId, categoryId, name, slug, basePrice, description, brand, specifications,
                 status, conditions, weight, dimensions, createdAt, updatedAt, averageRating, totalReviews,
-                totalSold, viewCount, isFeatured);
+                totalSold, viewCount, isFeatured, imageUrl);
         this.cpu = cpu;
         this.cpuGeneration = cpuGeneration;
         this.cpuSpeed = cpuSpeed;

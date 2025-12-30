@@ -74,10 +74,10 @@ public class HeadphoneDetailDTO extends ProductDetailDTO {
                               String waterproofRating, String connectivity, String bluetoothVersion,
                               String bluetoothCodecs, String wiredConnection, boolean multipoint,
                               String soundProfile, boolean appControl, boolean customEQ,
-                              boolean surroundSound, boolean foldable) {
+                              boolean surroundSound, boolean foldable, String imageUrl) {
         super(productId, vendorId, categoryId, name, slug, basePrice, description, brand, specifications,
                 status, conditions, weight, dimensions, createdAt, updatedAt, averageRating, totalReviews,
-                totalSold, viewCount, isFeatured);
+                totalSold, viewCount, isFeatured, imageUrl);
         this.type = type;
         this.formFactor = formFactor;
         this.batteryLife = batteryLife;

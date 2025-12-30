@@ -23,6 +23,7 @@ public abstract class ProductDetailDTO {
     private int totalSold;
     private int viewCount;
     private boolean isFeatured;
+    private String primaryImageUrl;
 
     // Constructor mặc định
     public ProductDetailDTO() {
@@ -46,6 +47,7 @@ public abstract class ProductDetailDTO {
         this.totalSold = 0;
         this.viewCount = 0;
         this.isFeatured = false;
+        this.primaryImageUrl = "";
     }
 
     // Constructor all-arg
@@ -53,7 +55,7 @@ public abstract class ProductDetailDTO {
                             double basePrice, String description, String brand, String specifications,
                             String status, String conditions, double weight, String dimensions,
                             Date createdAt, Date updatedAt, double averageRating, int totalReviews,
-                            int totalSold, int viewCount, boolean isFeatured) {
+                            int totalSold, int viewCount, boolean isFeatured, String imageUrl) {
         this.productId = productId;
         this.vendorId = vendorId;
         this.categoryId = categoryId;
@@ -74,6 +76,7 @@ public abstract class ProductDetailDTO {
         this.totalSold = totalSold;
         this.viewCount = viewCount;
         this.isFeatured = isFeatured;
+        this.primaryImageUrl = imageUrl;
     }
 
     // Getters và Setters
@@ -235,5 +238,13 @@ public abstract class ProductDetailDTO {
 
     public void setFeatured(boolean featured) {
         isFeatured = featured;
+    }
+
+    public String getPrimaryImageUrl() {
+        return primaryImageUrl;
+    }
+
+    public void setPrimaryImageUrl(String primaryImageUrl) {
+        this.primaryImageUrl = primaryImageUrl;
     }
 }

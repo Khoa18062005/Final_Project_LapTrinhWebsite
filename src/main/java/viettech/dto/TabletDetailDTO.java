@@ -67,10 +67,10 @@ public class TabletDetailDTO extends ProductDetailDTO {
                            boolean simSupport, String networkSupport, String connectivity,
                            boolean stylusSupport, boolean stylusIncluded, boolean keyboardSupport,
                            String speakers, boolean audioJack, String waterproofRating,
-                           boolean faceRecognition, boolean fingerprintSensor) {
+                           boolean faceRecognition, boolean fingerprintSensor, String imageUrl) {
         super(productId, vendorId, categoryId, name, slug, basePrice, description, brand, specifications,
                 status, conditions, weight, dimensions, createdAt, updatedAt, averageRating, totalReviews,
-                totalSold, viewCount, isFeatured);
+                totalSold, viewCount, isFeatured, imageUrl);
         this.screenSize = screenSize;
         this.screenResolution = screenResolution;
         this.screenType = screenType;

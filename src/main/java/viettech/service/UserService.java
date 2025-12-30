@@ -7,6 +7,7 @@ import viettech.dto.Register_dto;
 import viettech.entity.user.Customer;
 import viettech.util.PasswordUtil;
 
+import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,6 +20,10 @@ public class UserService {
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
     private final CustomerDAO customerDAO;
+    private static final String USERNAME_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Bỏ I, O, 0, 1 dễ nhầm
+    private static final int USERNAME_LENGTH = 8;
+    private static final SecureRandom random = new SecureRandom();
+
 
     public UserService() {
         this.customerDAO = new CustomerDAO();
@@ -89,7 +94,7 @@ public class UserService {
         customer.setGender(trimOrEmpty(dto.getGender()));
 
         // Set username (dùng email làm username)
-        customer.setUsername(generateUsername(dto));
+        customer.setUsername(generateUsername());
 
         // Set avatar mặc định
         customer.setAvatar("");
@@ -110,18 +115,15 @@ public class UserService {
     /**
      * Generate username từ email hoặc phone
      */
-    private String generateUsername(Register_dto dto) {
-        String email = dto.getEmail();
-        if (email != null && !email.trim().isEmpty()) {
-            return email.trim();
+    private String generateUsername() {
+        StringBuilder username = new StringBuilder("user_");
+
+        for (int i = 0; i < USERNAME_LENGTH; i++) {
+            int index = random.nextInt(USERNAME_CHARS.length());
+            username.append(USERNAME_CHARS.charAt(index));
         }
 
-        String phone = dto.getPhone();
-        if (phone != null && !phone.trim().isEmpty()) {
-            return phone.trim();
-        }
-
-        return "user_" + System.currentTimeMillis();
+        return username.toString();
     }
     /**
      * Parse date of birth từ String (yyyy-MM-dd) sang Date

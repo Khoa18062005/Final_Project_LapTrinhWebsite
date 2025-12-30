@@ -166,6 +166,26 @@ public class OrderDAO {
         }
     }
 
+    /**
+     * Lấy danh sách đơn hàng cho thống kê Dashboard
+     * Chỉ lấy các field cơ bản (orderId, status, totalPrice, orderDate)
+     * Tránh load các relationship có thể gây lỗi duplicate
+     */
+    public List<Object[]> findAllForStatistics() {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT o.orderId, o.status, o.totalPrice, o.orderDate FROM Order o ORDER BY o.orderDate DESC";
+            List<Object[]> results = em.createQuery(jpql, Object[].class).getResultList();
+            logger.debug("✓ Retrieved {} order(s) for statistics", results.size());
+            return results;
+        } catch (Exception e) {
+            logger.error("✗ Error retrieving orders for statistics", e);
+            throw new RuntimeException("Failed to retrieve orders for statistics", e);
+        } finally {
+            em.close();
+        }
+    }
+
     // UPDATE
     public void update(Order order) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();

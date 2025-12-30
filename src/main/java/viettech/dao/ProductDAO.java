@@ -358,5 +358,30 @@ public class ProductDAO {
             em.close();
         }
     }
+    /**
+     * Lấy danh sách sản phẩm theo category và JOIN FETCH images để load ảnh cùng lúc
+     */
+    public List<Product> findByCategoryIdWithImages(int categoryId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT DISTINCT p FROM Product p " +
+                    "LEFT JOIN FETCH p.images " +
+                    "WHERE p.categoryId = :categoryId " +
+                    "ORDER BY p.createdAt DESC";
+
+            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
+            query.setParameter("categoryId", categoryId);
+
+            List<Product> products = query.getResultList();
+
+            logger.debug("Found {} product(s) with images for category ID: {}", products.size(), categoryId);
+            return products;
+        } catch (Exception e) {
+            logger.error("Error finding products with images by category ID: {}", categoryId, e);
+            throw new RuntimeException("Failed to find products with images", e);
+        } finally {
+            em.close();
+        }
+    }
 }
 

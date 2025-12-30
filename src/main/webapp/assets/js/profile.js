@@ -42,6 +42,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('📋 Original Values:', originalValues);
 
+    // ===== FUNCTION: NORMALIZE DATE VALUE =====
+    function normalizeDateValue(value) {
+        if (!value) return '';
+        // Convert to number to remove leading zeros
+        const num = parseInt(value, 10);
+        return isNaN(num) ? value.toString().trim() : num.toString();
+    }
+
     // ===== FUNCTION: CHECK IF FORM HAS CHANGES =====
     function checkForChanges() {
         let hasChanges = false;
@@ -100,21 +108,23 @@ document.addEventListener('DOMContentLoaded', function() {
             changes.push(`gender: "${originalValues.gender}" → "${selectedGender}"`);
         }
 
-        // Check day
-        const day = (document.getElementById('daySelect')?.value || '').trim();
-        if (day !== originalValues.day) {
+        // Check day (normalize để so sánh)
+        const day = normalizeDateValue((document.getElementById('daySelect')?.value || '').trim());
+        const originalDay = normalizeDateValue(originalValues.day);
+        if (day !== originalDay) {
             hasChanges = true;
-            changes.push(`day: "${originalValues.day}" → "${day}"`);
+            changes.push(`day: "${originalDay}" → "${day}" (raw: ${originalValues.day} → ${document.getElementById('daySelect')?.value})`);
         }
 
-        // Check month
-        const month = (document.getElementById('monthSelect')?.value || '').trim();
-        if (month !== originalValues.month) {
+        // Check month (normalize để so sánh)
+        const month = normalizeDateValue((document.getElementById('monthSelect')?.value || '').trim());
+        const originalMonth = normalizeDateValue(originalValues.month);
+        if (month !== originalMonth) {
             hasChanges = true;
-            changes.push(`month: "${originalValues.month}" → "${month}"`);
+            changes.push(`month: "${originalMonth}" → "${month}" (raw: ${originalValues.month} → ${document.getElementById('monthSelect')?.value})`);
         }
 
-        // Check year
+        // Check year (giữ nguyên vì năm có 4 chữ số)
         const year = (document.getElementById('yearSelect')?.value || '').trim();
         if (year !== originalValues.year) {
             hasChanges = true;
@@ -252,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let countdownTimer = null;
     const OTP_DURATION = 90;
 
-// ===== EMAIL: GỬI OTP =====
+    // ===== EMAIL: GỬI OTP =====
     if (sendOtpBtn) {
         sendOtpBtn.addEventListener('click', function() {
             const newEmail = emailInput.value.trim();
@@ -304,7 +314,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-// ===== COUNTDOWN TIMER =====
+    // ===== COUNTDOWN TIMER =====
     function startOtpCountdown(duration) {
         const timerEl = document.getElementById('otpTimer');
         let timeLeft = duration;
@@ -338,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1000);
     }
 
-// ===== OTP INPUT: Enable Save Button khi đủ 6 số =====
+    // ===== OTP INPUT: Enable Save Button khi đủ 6 số =====
     const emailOtpInput = document.getElementById('emailOtp');
     if (emailOtpInput) {
         emailOtpInput.addEventListener('input', function() {
@@ -535,3 +545,59 @@ function showAlert(message, type = 'info') {
         }
     }, 5000);
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Chức năng copy mã giới thiệu
+    const copyBtn = document.getElementById('copyReferralBtn');
+    const referralCodeText = document.getElementById('referralCodeText');
+    const copySuccessMessage = document.getElementById('copySuccessMessage');
+
+    if (copyBtn && referralCodeText) {
+        copyBtn.addEventListener('click', function() {
+            const referralCode = referralCodeText.textContent.trim();
+
+            // Tạo một textarea ẩn để copy
+            const textArea = document.createElement('textarea');
+            textArea.value = referralCode;
+            textArea.style.position = 'fixed';
+            textArea.style.opacity = '0';
+            document.body.appendChild(textArea);
+            textArea.select();
+            textArea.setSelectionRange(0, 99999); // Cho mobile
+
+            try {
+                // Thực hiện copy
+                const successful = document.execCommand('copy');
+
+                if (successful) {
+                    // Hiển thị thông báo thành công
+                    copySuccessMessage.style.display = 'block';
+
+                    // Đổi icon tạm thời
+                    const icon = copyBtn.querySelector('i');
+                    icon.className = 'bi bi-check2';
+
+                    // Khôi phục icon sau 2 giây
+                    setTimeout(() => {
+                        copySuccessMessage.style.display = 'none';
+                        icon.className = 'bi bi-clipboard';
+                    }, 2000);
+
+                    // Thay đổi tooltip tạm thời
+                    const tooltip = bootstrap.Tooltip.getInstance(copyBtn);
+                    if (tooltip) {
+                        tooltip.setContent({'.tooltip-inner': 'Đã sao chép!'});
+                        setTimeout(() => {
+                            tooltip.setContent({'.tooltip-inner': 'Sao chép mã'});
+                        }, 2000);
+                    }
+                }
+            } catch (err) {
+                console.error('Lỗi khi sao chép: ', err);
+            }
+
+            // Xóa textarea
+            document.body.removeChild(textArea);
+        });
+    }
+});

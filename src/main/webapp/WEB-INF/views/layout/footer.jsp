@@ -1,4 +1,33 @@
 <footer class="footer bg-dark text-light mt-5">
+  <div class="modal fade" id="smemberModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content smember-modal-content">
+        <!-- Nút đóng góc trên PHẢI -->
+        <button type="button" class="btn-close smember-close-btn" data-bs-dismiss="modal" aria-label="Close"></button>
+
+        <div class="modal-body text-center py-5 px-4">
+          <!-- Tiêu đề Smember gradient xanh -->
+          <h1 class="smember-title mb-5">Smember</h1>
+
+          <!-- Nội dung -->
+          <p class="smember-text mb-5">
+            Vui lòng đăng nhập tài khoản Smember để<br>
+            <strong>xem ưu đãi và thanh toán dễ dàng hơn.</strong>
+          </p>
+
+          <!-- Hai nút pill -->
+          <div class="d-flex flex-column flex-sm-row justify-content-center gap-4">
+            <a href="${pageContext.request.contextPath}/register" class="smember-btn-register">
+              Đăng ký
+            </a>
+            <a href="${pageContext.request.contextPath}/login" class="smember-btn-login">
+              Đăng nhập
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <div class="container py-5">
     <div class="row">
 
@@ -45,5 +74,3 @@
 <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 
-</body>
-</html>

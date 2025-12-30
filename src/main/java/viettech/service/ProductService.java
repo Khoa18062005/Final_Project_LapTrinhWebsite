@@ -1,9 +1,14 @@
 package viettech.service;
 
 import viettech.dao.ProductDAO;
+import viettech.dao.ProductImageDAO;
+import viettech.dao.VariantAttributeDAO;
+import viettech.dao.VariantDAO;
 import viettech.dto.*;
 import viettech.entity.product.*;
 
+import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductService {
@@ -23,7 +28,7 @@ public class ProductService {
             dto.setName(p.getName());
             dto.setPrice(p.getBasePrice());
             dto.setRating(p.getAverageRating());
-            dto.setPrimaryImage("");
+            dto.setPrimaryImage(getImagesById(p.getProductId()));
             dto.setMemberDiscount(0);
             return dto;
         }).toList();
@@ -32,6 +37,11 @@ public class ProductService {
     public int getCategoryById(int productId) {
         Product product = productDAO.findById(productId);
         return product != null ? product.getCategoryId() : -1;
+    }
+
+    public String getImagesById(int productId) {
+        ProductImageDAO imageDAO = new ProductImageDAO();
+        return imageDAO.findPrimaryByProductId(productId).getUrl();
     }
 
     /**
@@ -91,6 +101,7 @@ public class ProductService {
         dto.setTotalSold(phone.getTotalSold());
         dto.setViewCount(phone.getViewCount());
         dto.setFeatured(phone.isFeatured());
+        dto.setPrimaryImageUrl(getImagesById(phone.getProductId()));
 
         // Map từ Phone (specific fields)
         dto.setScreenSize(phone.getScreenSize());
@@ -149,6 +160,7 @@ public class ProductService {
         dto.setTotalSold(laptop.getTotalSold());
         dto.setViewCount(laptop.getViewCount());
         dto.setFeatured(laptop.isFeatured());
+        dto.setPrimaryImageUrl(getImagesById(laptop.getProductId()));
 
         // Map từ Laptop (specific fields)
         dto.setCpu(laptop.getCpu());
@@ -211,6 +223,8 @@ public class ProductService {
         dto.setTotalSold(tablet.getTotalSold());
         dto.setViewCount(tablet.getViewCount());
         dto.setFeatured(tablet.isFeatured());
+        dto.setPrimaryImageUrl(getImagesById(tablet.getProductId()));
+
 
         // Map từ Tablet (specific fields)
         dto.setScreenSize(tablet.getScreenSize());
@@ -268,6 +282,8 @@ public class ProductService {
         dto.setTotalSold(headphone.getTotalSold());
         dto.setViewCount(headphone.getViewCount());
         dto.setFeatured(headphone.isFeatured());
+        dto.setPrimaryImageUrl(getImagesById(headphone.getProductId()));
+
 
         // Map từ Headphone (specific fields)
         dto.setType(headphone.getType());
@@ -316,5 +332,107 @@ public class ProductService {
             default:
                 return "Unknown";
         }
+    }
+    /**
+     * Phương thức chung: lấy tất cả sản phẩm thuộc một category
+     * @param categoryId ID của category
+     * @return List<ProductCardDTO> chứa toàn bộ sản phẩm của category đó
+     */
+    private List<ProductCardDTO> getAllProductsByCategory(int categoryId) {
+        // CHÚ Ý: Cần sửa DAO để JOIN FETCH images (xem bước 2 bên dưới)
+        List<Product> products = productDAO.findByCategoryIdWithImages(categoryId);
+
+        return products.stream()
+                .map(p -> {
+                    ProductCardDTO dto = new ProductCardDTO();
+                    dto.setId(p.getProductId());
+                    dto.setName(p.getName());
+                    dto.setPrice(p.getBasePrice());
+                    dto.setRating(p.getAverageRating());
+                    dto.setMemberDiscount(0); // có thể tính sau
+                    dto.setOldPrice(p.getBasePrice()); // tạm thời
+                    dto.setDiscountPercent(0); // tạm thời
+
+                    // ===== LẤY ẢNH CHÍNH TỪ DANH SÁCH IMAGES =====
+                    String primaryImageUrl = "";
+
+                    if (p.getImages() != null && !p.getImages().isEmpty()) {
+                        // Ưu tiên ảnh có isPrimary = true
+                        primaryImageUrl = p.getImages().stream()
+                                .filter(img -> img.isPrimary())
+                                .map(ProductImage::getUrl)
+                                .findFirst()
+                                .orElse("");
+
+                        // Nếu không có ảnh primary, lấy ảnh có sortOrder nhỏ nhất (thường là ảnh chính)
+                        if (primaryImageUrl.isEmpty()) {
+                            primaryImageUrl = p.getImages().stream()
+                                    .min(java.util.Comparator.comparingInt(ProductImage::getSortOrder))
+                                    .map(ProductImage::getUrl)
+                                    .orElse("");
+                        }
+                    }
+
+                    dto.setPrimaryImage(primaryImageUrl);
+                    // ==========================================
+
+                    return dto;
+                })
+                .toList();
+    }
+
+    /**
+     * Lấy tất cả điện thoại
+     */
+    public List<ProductCardDTO> getAllPhones() {
+        return getAllProductsByCategory(CATEGORY_PHONE);
+    }
+
+    /**
+     * Lấy tất cả laptop
+     */
+    public List<ProductCardDTO> getAllLaptops() {
+        return getAllProductsByCategory(CATEGORY_LAPTOP);
+    }
+
+    /**
+     * Lấy tất cả tablet
+     */
+    public List<ProductCardDTO> getAllTablets() {
+        return getAllProductsByCategory(CATEGORY_TABLET);
+    }
+
+    /**
+     * Lấy tất cả tai nghe
+     */
+    public List<ProductCardDTO> getAllHeadphones() {
+        return getAllProductsByCategory(CATEGORY_HEADPHONE);
+    }
+    // =================================================================================
+
+    public List<VariantDTO> getAllVariantsById(int productId) {
+        List<VariantDTO> list = new ArrayList<>();
+        VariantDAO variantDAO = new VariantDAO();
+        VariantAttributeDAO variantAttributeDAO = new VariantAttributeDAO();
+
+        List<Variant> variants = variantDAO.findByProductId(productId);
+        for(Variant variant : variants) {
+            VariantDTO dto = new VariantDTO();
+            dto.setVariantId(variant.getVariantId());
+            dto.setActive(variant.isActive());
+            dto.setFinalPrice(variant.getFinalPrice());
+            List<AttributeDTO> attributeDTO = new ArrayList<>();
+            List<VariantAttribute> variantAttributes = variantAttributeDAO.findByVariantId(variant.getVariantId());
+            for(VariantAttribute variantAttribute : variantAttributes) {
+                AttributeDTO attr = new AttributeDTO();
+                attr.setAttributeId(variantAttribute.getAttributeId());
+                attr.setAttributeName(variantAttribute.getAttributeName());
+                attr.setAttributeValue(variantAttribute.getAttributeValue());
+                attributeDTO.add(attr);
+            }
+            dto.setAttributes(attributeDTO);
+            list.add(dto);
+        }
+        return list;
     }
 }
