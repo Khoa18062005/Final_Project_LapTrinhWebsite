@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 <c:set var="pageTitle" value="Hồ Sơ Của Tôi" />
 <%@ include file="components/header.jsp" %>
 <%@ include file="components/sidebar.jsp" %>
@@ -138,6 +139,33 @@
                                     </c:forEach>
                                 </select>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Mã giới thiệu -->
+                    <div class="form-group-custom referral-code-section">
+                        <label>Mã giới thiệu</label>
+                        <div class="referral-code-display">
+                            <div class="referral-code-container">
+                                <span class="referral-code-text" id="referralCodeText">
+                                    <c:if test="${not empty user.username}">
+                                        ${fn:substring(user.username, 5, fn:length(user.username))}
+                                    </c:if>
+                                </span>
+                                <button type="button" class="btn-copy" id="copyReferralBtn"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-placement="top"
+                                        title="Sao chép mã">
+                                    <i class="bi bi-clipboard"></i>
+                                </button>
+                            </div>
+                            <i class="bi bi-info-circle referral-info-icon"
+                               data-bs-toggle="tooltip"
+                               data-bs-placement="top"
+                               title="Mã giới thiệu của bạn dùng để mời bạn bè tham gia VietTech"></i>
+                        </div>
+                        <div id="copySuccessMessage" class="copy-success-message" style="display: none;">
+                            <i class="bi bi-check-circle-fill me-1"></i> Đã sao chép mã vào clipboard!
                         </div>
                     </div>
 
