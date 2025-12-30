@@ -1,4 +1,5 @@
 <footer class="footer bg-dark text-light mt-5">
+  <!-- Modal Smember -->
   <div class="modal fade" id="smemberModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content smember-modal-content">
@@ -28,9 +29,9 @@
       </div>
     </div>
   </div>
+
   <div class="container py-5">
     <div class="row">
-
       <!-- About -->
       <div class="col-md-4 mb-4">
         <h5 class="fw-bold">VietTech</h5>
@@ -58,7 +59,6 @@
         <p><i class="bi bi-telephone"></i> 1900 9999</p>
         <p><i class="bi bi-envelope"></i> support@viettech.vn</p>
       </div>
-
     </div>
 
     <hr class="border-secondary">
@@ -69,10 +69,11 @@
   </div>
 </footer>
 
-<!-- JS -->
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 
 </body>
 </html>

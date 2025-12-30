@@ -24,6 +24,54 @@ body {
 .navbar {
     background-color: var(--primary-color) !important;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    position: relative !important;
+}
+
+/* ===== FIX HEADER STICKY VÀ KHÔNG BỊ GIẬT ===== */
+/* Header chính (chứa navbar) */
+header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1030 !important;
+    background-color: var(--primary-color) !important;
+}
+
+/* Navbar bên trong header */
+header .navbar {
+    position: relative !important;
+    top: 0 !important;
+    z-index: 1030 !important;
+    background-color: var(--primary-color) !important;
+}
+
+/* Categories sẽ sticky bên dưới header */
+.categories {
+    position: sticky !important;
+    top: 80px !important; /* Chiều cao của header */
+    z-index: 1020 !important;
+}
+
+/* Trang không có categories (profile) */
+body:not(:has(.categories)) header {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .categories {
+        top: 70px !important; /* Chiều cao header trên mobile */
+    }
+}
+
+/* Đảm bảo dropdown thông báo hiển thị đúng */
+.notification-dropdown {
+    z-index: 1050 !important;
+}
+
+/* Fix cho body không cần padding-top vì header là sticky */
+body {
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .navbar-brand {
@@ -97,6 +145,28 @@ body {
     color: var(--primary-color) !important;
 }
 
+/* ===== FIX HOVER CHO NOTIFICATION BELL ===== */
+/* Áp dụng cho notification bell khi hover */
+.header-right-items .items-header.notification-bell:hover {
+    background-color: white !important;
+}
+
+.header-right-items .items-header.notification-bell:hover h5,
+.header-right-items .items-header.notification-bell:hover i {
+    color: var(--primary-color) !important;
+}
+
+/* Khi dropdown notification đang mở */
+.header-right-items .items-header.notification-bell.show {
+    background-color: white !important;
+}
+
+.header-right-items .items-header.notification-bell.show h5,
+.header-right-items .items-header.notification-bell.show i {
+    color: var(--primary-color) !important;
+}
+
+
 /* --- Button Search --- */
 .btn-search {
     background-color: white !important;
@@ -115,6 +185,93 @@ body {
     color: var(--primary-dark) !important;
 }
 
+nav.navbar.navbar-expand-lg.navbar-dark.bg-primary {
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+/* Container trong navbar */
+nav.navbar .container {
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+}
+
+/* Logo thẳng hàng */
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    height: 60px;
+}
+
+.navbar-brand img {
+    height: 60px;
+    width: auto;
+}
+
+/* Ô tìm kiếm thẳng hàng */
+.navbar form.d-flex {
+    height: 42px;
+    display: flex;
+    align-items: center;
+}
+
+.navbar form.d-flex .form-control {
+    height: 100%;
+}
+
+/* Các items bên phải thẳng hàng */
+.header-right-items {
+    height: 42px;
+    display: flex;
+    align-items: center;
+}
+
+.items-header {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Dropdown thẳng hàng */
+.items-header.dropdown .dropdown-toggle {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* Đảm bảo avatar có kích thước cố định */
+.user-avatar-small {
+    height: 32px;
+    width: 32px;
+    object-fit: cover;
+}
+
+/* Khi header không có categories (trang profile) */
+body:not(:has(.categories)) header {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    nav.navbar.navbar-expand-lg.navbar-dark.bg-primary {
+        min-height: 70px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .navbar-brand img {
+        height: 50px;
+    }
+
+    .header-right-items {
+        height: 38px;
+    }
+}
 /* ===== CATEGORY (DANH MỤC) ===== */
 .categories {
     display: flex;
@@ -725,5 +882,420 @@ section.products {
     .notification-bell {
         min-width: auto;
         padding: 0 10px;
+    }
+}
+
+/* ===== HEADER NOTIFICATION DROPDOWN ===== */
+.notification-dropdown {
+    border-radius: 12px !important;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 0 !important;
+    overflow: hidden;
+    max-height: 500px;
+}
+
+.notification-dropdown-header {
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    color: white;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notification-dropdown-header h6 {
+    color: white;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.notification-dropdown-header small {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.85rem;
+}
+
+.notification-dropdown-body {
+    max-height: 350px;
+    overflow-y: auto;
+    padding: 0;
+}
+
+.notification-dropdown-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px 20px;
+    border-bottom: 1px solid #f0f2f5;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.notification-dropdown-item:hover {
+    background-color: #f8f9fa;
+    text-decoration: none;
+}
+
+.notification-dropdown-item.unread {
+    background-color: #f8f9ff;
+}
+
+.notification-dropdown-item.read {
+    opacity: 0.8;
+}
+
+.notification-dropdown-item.read:hover {
+    opacity: 1;
+}
+
+.notification-item-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #f0f2f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.notification-dropdown-item.unread .notification-item-icon {
+    background-color: #e3f2fd;
+}
+
+.notification-item-content {
+    flex: 1;
+    min-width: 0; /* Quan trọng để text không bị tràn */
+}
+
+.notification-item-title {
+    font-weight: 600;
+    color: #1a1a1a;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.notification-dropdown-item.read .notification-item-title {
+    font-weight: 500;
+    color: #666;
+}
+
+.notification-item-message {
+    font-size: 0.85rem;
+    color: #666;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.notification-item-time {
+    font-size: 0.75rem;
+    color: #999;
+}
+
+.notification-item-unread-dot {
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
+    flex-shrink: 0;
+}
+
+.notification-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6b7280;
+}
+
+.notification-empty i {
+    font-size: 2.5rem;
+    color: #d1d5db;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.notification-empty p {
+    margin-bottom: 0;
+    font-size: 0.95rem;
+}
+
+.notification-dropdown-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #e5e7eb;
+    background-color: #f8f9fa;
+}
+
+/* Scrollbar cho dropdown */
+.notification-dropdown-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-dropdown-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.notification-dropdown-body::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.notification-dropdown-body::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
+}
+
+/* Fix cho badge khi có số lớn */
+.notification-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: #dc3545;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    border: 2px solid white;
+}
+
+/* Animation cho badge khi có thông báo mới */
+@keyframes badgePulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.notification-badge.new {
+    animation: badgePulse 0.5s ease-in-out 3;
+}
+
+/* Fix cho dropdown thông báo không bị đóng khi click */
+.notification-dropdown {
+    pointer-events: auto !important;
+}
+
+/* Đảm bảo các liên kết trong dropdown click được */
+.notification-dropdown a {
+    pointer-events: auto !important;
+}
+
+/* Tạm thời disable Bootstrap auto-close cho dropdown thông báo */
+.notification-bell.dropdown .dropdown-menu {
+    pointer-events: auto !important;
+}
+
+/* Fix cho dropdown thông báo không bị đóng */
+.notification-bell.dropdown {
+    cursor: pointer;
+}
+
+/* Đảm bảo dropdown menu hiển thị đúng vị trí */
+.notification-dropdown {
+    transform: translate3d(0px, 40px, 0px) !important;
+    top: 0 !important;
+    left: auto !important;
+    right: 0 !important;
+    will-change: transform;
+}
+
+/* Tắt transition gây lag */
+.notification-dropdown.show {
+    display: block !important;
+}
+
+/* Ngăn không cho dropdown đóng khi click bên trong */
+.notification-dropdown {
+    pointer-events: auto !important;
+}
+
+.notification-dropdown * {
+    pointer-events: auto !important;
+}
+
+/* Tạm thời disable click outside để đóng dropdown */
+body:has(.notification-dropdown.show) {
+    pointer-events: none;
+}
+
+body:has(.notification-dropdown.show) .notification-dropdown {
+    pointer-events: auto !important;
+}
+
+/* Fix cho dropdown thông báo */
+.notification-bell.dropdown {
+    position: relative;
+}
+
+.notification-dropdown {
+    z-index: 99999 !important; /* Đảm bảo hiển thị trên tất cả */
+}
+
+/* Ngăn dropdown đóng khi click vào liên kết bên trong */
+.notification-dropdown a {
+    pointer-events: auto !important;
+}
+
+/* Đảm bảo dropdown hiển thị đúng khi mở */
+.notification-dropdown.show {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Fix cho liên kết trong dropdown */
+.notification-dropdown-item {
+    cursor: pointer !important;
+}
+
+/* Hover effect cho liên kết */
+.notification-dropdown-item:hover {
+    background-color: #f8f9fa !important;
+}
+
+/* ===== NOTIFICATION DROPDOWN FIX ===== */
+.notification-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* Đảm bảo dropdown hiển thị đúng vị trí - XÓA CÁC DÒNG SAI */
+/* .notification-dropdown {
+    position: absolute !important;
+    top: 100% !important;
+    left: auto !important;
+    right: 0 !important;
+    margin-top: 8px !important;
+    transform: none !important;
+    will-change: auto !important;
+    z-index: 10001 !important;
+} */
+
+/* Reset Bootstrap styles */
+.notification-dropdown.dropdown-menu {
+    display: none;
+}
+
+.notification-dropdown.dropdown-menu.show {
+    display: block !important;
+}
+
+/* Đảm bảo dropdown không bị che */
+.navbar {
+    overflow: visible !important;
+}
+
+.header-right-items {
+    overflow: visible !important;
+    position: relative;
+}
+
+/* Fix vị trí cho các dropdown khác */
+.items-header.dropdown .dropdown-menu {
+    z-index: 10000 !important;
+}
+
+/* Responsive cho dropdown */
+@media (max-width: 768px) {
+    .notification-dropdown {
+        position: fixed !important;
+        top: 70px !important;
+        right: 10px !important;
+        left: auto !important;
+        width: 95% !important;
+        max-width: 400px !important;
+        margin: 0 !important;
+    }
+}
+
+/* Đảm bảo dropdown có hiệu ứng đẹp */
+.notification-dropdown {
+    animation: dropdownFadeIn 0.3s ease forwards;
+}
+
+@keyframes dropdownFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* QUAN TRỌNG: Thêm CSS để dropdown không đóng khi click vào liên kết */
+.notification-dropdown a,
+.notification-dropdown button {
+    pointer-events: auto !important;
+}
+
+/* Đảm bảo dropdown item click được */
+.notification-dropdown-item {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+}
+
+
+/* ===== FIX CHO NÚT "XEM TẤT CẢ THÔNG BÁO" TRONG DROPDOWN ===== */
+.notification-dropdown-footer .btn-outline-primary {
+    border: 2px solid var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-radius: 8px !important;
+    padding: 8px 16px !important;
+    font-size: 0.875rem !important;
+    text-align: center;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 100% !important;
+}
+
+.notification-dropdown-footer .btn-outline-primary:hover {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25) !important;
+}
+
+.notification-dropdown-footer .btn-outline-primary:active {
+    transform: translateY(0);
+}
+
+.notification-dropdown-footer .btn-outline-primary i {
+    margin-right: 6px;
+    font-size: 1rem;
+}
+
+/* Đảm bảo nút không bị Bootstrap ghi đè */
+.notification-dropdown-footer a.btn {
+    text-decoration: none !important;
+    display: block !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .notification-dropdown-footer .btn-outline-primary {
+        padding: 6px 12px !important;
+        font-size: 0.85rem !important;
     }
 }

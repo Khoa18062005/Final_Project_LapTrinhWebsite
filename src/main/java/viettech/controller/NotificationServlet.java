@@ -34,16 +34,10 @@ public class NotificationServlet extends HttpServlet  {
         request.setAttribute("totalNotifications", notifications.size());
         String path = request.getServletPath();
         String page = path.substring(path.lastIndexOf('/') + 1); // Extract "info", "bank", etc.
-
     // Forward to JSP
         request.getRequestDispatcher("/WEB-INF/views/profile/" + page + ".jsp")
             .forward(request, response);
 
 
     }
-
-
-
-
-
 }
