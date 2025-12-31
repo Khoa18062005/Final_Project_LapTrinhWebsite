@@ -189,14 +189,30 @@
                     </button>
                 </form>
 
-                <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post" id="buy-now-form">
-                    <input type="hidden" name="productId" value="${product.productId}">
-                    <input type="hidden" name="quantity" value="1">
-                    <input type="hidden" name="variantId" id="buy-now-variant-id" value="">
-                    <button type="submit" class="btn btn-secondary" id="buy-now-btn">
-                        Mua ngay
-                    </button>
-                </form>
+                <!-- Kiểm tra đăng nhập cho nút Mua ngay -->
+                <c:choose>
+                    <c:when test="${not empty sessionScope.user}">
+                        <!-- Đã đăng nhập: Hiển thị form mua ngay bình thường -->
+                        <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post" id="buy-now-form">
+                            <input type="hidden" name="productId" value="${product.productId}">
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="variantId" id="buy-now-variant-id" value="">
+                            <button type="submit" class="btn btn-secondary" id="buy-now-btn">
+                                Mua ngay
+                            </button>
+                        </form>
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Chưa đăng nhập: Hiển thị nút mở modal Smember -->
+                        <button type="button"
+                                class="btn btn-secondary"
+                                id="buy-now-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#smemberModal">
+                            Mua ngay
+                        </button>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
     </div>
