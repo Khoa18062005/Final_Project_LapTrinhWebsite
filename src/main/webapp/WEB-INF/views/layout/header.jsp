@@ -35,7 +35,7 @@
             <div class="header-right-items">
                 <!-- Wrapper cho chuông thông báo và dropdown -->
                 <div class="notification-wrapper position-relative">
-                    <!-- Chuông thông báo - THÊM LẠI THUỘC TÍNH BOOTSTRAP -->
+                    <!-- Chuông thông báo -->
                     <div class="items-header notification-bell dropdown"
                          id="notificationBell"
                          data-bs-toggle="dropdown"
@@ -51,7 +51,7 @@
                         </c:if>
                     </div>
 
-                    <!-- Dropdown thông báo - THÊM LẠI CLASS "dropdown-menu" -->
+                    <!-- Dropdown thông báo -->
                     <div class="dropdown-menu dropdown-menu-end notification-dropdown"
                          aria-labelledby="notificationBell"
                          style="min-width: 350px; max-width: 400px; padding: 0;">
@@ -147,7 +147,7 @@
                              title="${sessionScope.user.firstName} ${sessionScope.user.lastName}">
                             <button class="btn btn-light dropdown-toggle" type="button" id="userDropdown"
                                     data-bs-toggle="dropdown" aria-expanded="false">
-                                <!-- Avatar thay vì icon -->
+                                <!-- Avatar -->
                                 <c:choose>
                                     <c:when test="${not empty sessionScope.user.avatar and sessionScope.user.avatar != ''}">
                                         <img src="${sessionScope.user.avatar}"
@@ -180,15 +180,10 @@
                         </div>
                     </c:when>
                     <c:otherwise>
-                        <!-- Chưa đăng nhập -->
-                        <c:set var="currentUrl" value="${pageContext.request.requestURI}" />
-                        <c:if test="${not empty pageContext.request.queryString}">
-                            <c:set var="currentUrl" value="${currentUrl}?${pageContext.request.queryString}" />
-                        </c:if>
-
-                        <a href="${pageContext.request.contextPath}/login?returnUrl=${fn:escapeXml(currentUrl)}"
-                           class="items-header login-trigger text-decoration-none"
-                           style="cursor: pointer;">
+                        <div class="items-header login-trigger"
+                             data-bs-toggle="modal"
+                             data-bs-target="#smemberModal"
+                             style="cursor: pointer;">
                             <i class="bi bi-person-circle fs-4 text-white"></i>
                             <h5>Đăng nhập</h5>
                         </div>
@@ -241,22 +236,3 @@
     </div>
     <c:remove var="infoMessage" scope="session"/>
 </c:if>
-
-<!-- CATEGORY -->
-<section class="categories">
-    <div class="category-items">
-        <i class="bi bi-phone fs-5"></i> <h7>Điện thoại</h7>
-    </div>
-    <div class="category-items">
-        <i class="bi bi-laptop fs-5"></i> <h7>Laptop</h7>
-    </div>
-    <div class="category-items">
-        <i class="bi bi-tablet-landscape fs-5"></i> <h7>Máy tính bảng</h7>
-    </div>
-    <div class="category-items">
-        <i class="bi bi-earbuds fs-5"></i> <h7>Tai nghe</h7>
-    </div>
-    <div class="category-items">
-        <i class="bi bi-mouse fs-5"></i> <h7>Phụ kiện điện tử</h7>
-    </div>
-</section>
