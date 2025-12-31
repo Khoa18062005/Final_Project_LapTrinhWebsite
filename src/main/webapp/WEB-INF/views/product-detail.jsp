@@ -50,12 +50,14 @@
             ]
         };
         </c:if>
+
     </script>
 </head>
 
 <body>
 <%--<jsp:include page="/WEB-INF/views/layout/header.jsp" />--%>
 <%--<jsp:include page="${pageContext.request.contextPath}/header.jsp" />--%>
+
 <jsp:include page="/header.jsp" />
 <div class="container">
     <!-- Breadcrumb -->
@@ -810,5 +812,16 @@
 </div>
 
 <jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+
+<!-- Biến JavaScript để kiểm tra trạng thái đăng nhập (truyền từ server) -->
+<script>
+    // Biến toàn cục cho JavaScript - QUAN TRỌNG: PHẢI CÓ
+    const contextPath = "${pageContext.request.contextPath}";
+    const isLoggedIn = ${not empty sessionScope.user};
+</script>
+
+<!-- Script riêng cho popup login -->
+<script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 </body>
 </html>

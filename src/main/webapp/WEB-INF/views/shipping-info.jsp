@@ -22,7 +22,7 @@
 
 <body>
 <!-- Header -->
-<jsp:include page="/WEB-INF/views/layout/header.jsp" />
+<jsp:include page="/header.jsp" />
 
 <div class="container mt-4 mb-5">
   <!-- Breadcrumb -->
