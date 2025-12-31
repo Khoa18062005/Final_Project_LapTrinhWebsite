@@ -169,7 +169,15 @@
 
 <!-- Footer -->
 <jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+<script>
+  // Biến toàn cục cho JavaScript - QUAN TRỌNG: PHẢI CÓ
+  const contextPath = "${pageContext.request.contextPath}";
+  const isLoggedIn = ${not empty sessionScope.user};
+</script>
 
+<!-- Script riêng cho popup login -->
+<script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 <script>
   // Xử lý form submission
   document.getElementById('addressForm').addEventListener('submit', function(e) {
