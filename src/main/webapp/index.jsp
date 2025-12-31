@@ -421,7 +421,5 @@
 <!-- Script riêng cho popup login -->
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
-
-
 </body>
 </html>
