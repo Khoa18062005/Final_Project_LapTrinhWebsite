@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/variant-selector.css">
 
+
     <!-- JavaScript cho chọn variant -->
     <script src="${pageContext.request.contextPath}/assets/js/variant-selector.js" defer></script>
     <script>
@@ -53,8 +54,9 @@
 </head>
 
 <body>
-<jsp:include page="/WEB-INF/views/layout/header.jsp" />
-
+<%--<jsp:include page="/WEB-INF/views/layout/header.jsp" />--%>
+<%--<jsp:include page="${pageContext.request.contextPath}/header.jsp" />--%>
+<jsp:include page="/header.jsp" />
 <div class="container">
     <!-- Breadcrumb -->
     <div class="breadcrumb">
