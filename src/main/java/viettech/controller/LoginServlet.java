@@ -49,28 +49,59 @@ public class LoginServlet extends HttpServlet {
         Login_dto dto = new Login_dto();
         dto.setEmail(request.getParameter("email"));
         dto.setPassword(request.getParameter("password"));
-            logger.debug("Login attempt for email: {}", dto.getEmail());
+        logger.debug("Login attempt for email: {}", dto.getEmail());
 
         // Gọi service để xác thực
         AuthResult authResult = loginService.authenticate(dto);
 
         if (authResult != null) {
-            // ✅ Đăng nhập thành công
+            // ========== KIỂM TRA TÀI KHOẢN CÓ BỊ KHÓA KHÔNG ==========
+            User user = authResult.getUser();
+
+            if (!user.isActive()) {
+                // ❌ TÀI KHOẢN BỊ KHÓA
+                handleAccountLocked(request, response, dto, user);
+                return;
+            }
+
+            // ✅ Tài khoản active → Đăng nhập thành công
             handleSuccessfulLogin(request, response, authResult);
         } else {
-            // ❌ Đăng nhập thất bại
+            // ❌ Đăng nhập thất bại (sai email/password)
             handleLoginFailure(request, response, dto);
         }
     }
 
+    /**
+     * ========== XỬ LÝ KHI TÀI KHOẢN BỊ KHÓA ==========
+     */
+    private void handleAccountLocked(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     Login_dto dto,
+                                     User user) throws ServletException, IOException {
+
+        logger.warn("✗ Account locked for email: {} (user_id: {})", dto.getEmail(), user.getUserId());
+
+        // Set thông báo lỗi
+        request.setAttribute("errorMessage",
+                "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin để được hỗ trợ.");
+
+        // Giữ lại email để user không phải nhập lại
+        request.setAttribute("email", dto.getEmail());
+
+        // Forward về trang login
+        request.getRequestDispatcher("/WEB-INF/views/login.jsp")
+                .forward(request, response);
+    }
+
+    /**
+     * ========== XỬ LÝ KHI ĐĂNG NHẬP THÀNH CÔNG ==========
+     */
     private void handleSuccessfulLogin(HttpServletRequest request,
                                        HttpServletResponse response,
                                        AuthResult authResult) throws IOException {
-        Object userObject = authResult.getUser();
+        User user = authResult.getUser();
         String role = authResult.getRole();
-
-        // ✅ Cast về User (vì tất cả đều extends User)
-        User user = (User) userObject;
 
         // ✅ Lưu user vào session
         SessionUtil.setAttribute(request, "user", user);
@@ -95,7 +126,7 @@ public class LoginServlet extends HttpServlet {
     }
 
     /**
-     * Xử lý khi đăng nhập thất bại
+     * ========== XỬ LÝ KHI ĐĂNG NHẬP THẤT BẠI ==========
      */
     private void handleLoginFailure(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -110,7 +141,7 @@ public class LoginServlet extends HttpServlet {
     }
 
     /**
-     * Redirect theo role của user
+     * ========== REDIRECT THEO ROLE ==========
      */
     private void redirectByRole(HttpSession session,
                                 HttpServletRequest request,

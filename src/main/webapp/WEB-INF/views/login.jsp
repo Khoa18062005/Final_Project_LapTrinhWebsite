@@ -29,7 +29,6 @@
         <!-- THÔNG BÁO LỖI (nếu có) -->
         <c:if test="${not empty errorMessage}">
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 <strong>Lỗi!</strong> ${errorMessage}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
