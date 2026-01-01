@@ -32,32 +32,5 @@
 <!-- HEADER -->
 <jsp:include page="/header.jsp" />
 
-<!-- THÔNG BÁO -->
-<c:if test="${not empty sessionScope.successMessage}">
-<div class="alert-container">
-  <div class="container">
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-      <i class="bi bi-check-circle-fill me-2"></i>
-      <strong>Thành công!</strong> ${sessionScope.successMessage}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  </div>
-</div>
-  <c:remove var="successMessage" scope="session"/>
-</c:if>
-
-<c:if test="${not empty sessionScope.errorMessage}">
-<div class="alert-container">
-  <div class="container">
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <i class="bi bi-exclamation-triangle-fill me-2"></i>
-      <strong>Lỗi!</strong> ${sessionScope.errorMessage}
-      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-  </div>
-</div>
-  <c:remove var="errorMessage" scope="session"/>
-</c:if>
-
 <div class="container-fluid mt-4 mb-5">
   <div class="row">

@@ -28,49 +28,6 @@
     const isLoggedIn = ${not empty sessionScope.user};
 </script>
 
-<!-- THÔNG BÁO -->
-<!-- ✅ SUCCESS MESSAGE -->
-<c:if test="${not empty sessionScope.successMessage}">
-    <div class="alert-container">
-        <div class="container">
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                <strong>Thành công!</strong> ${sessionScope.successMessage}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        </div>
-    </div>
-    <c:remove var="successMessage" scope="session"/>
-</c:if>
-
-<!-- ✅ ERROR MESSAGE -->
-<c:if test="${not empty sessionScope.errorMessage}">
-    <div class="alert-container">
-        <div class="container">
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                <strong>Lỗi!</strong> ${sessionScope.errorMessage}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        </div>
-    </div>
-    <c:remove var="errorMessage" scope="session"/>
-</c:if>
-
-<!-- ✅ INFO MESSAGE -->
-<c:if test="${not empty sessionScope.infoMessage}">
-    <div class="alert-container">
-        <div class="container">
-            <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <i class="bi bi-info-circle-fill me-2"></i>
-                    ${sessionScope.infoMessage}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        </div>
-    </div>
-    <c:remove var="infoMessage" scope="session"/>
-</c:if>
-
 <!-- CATEGORY -->
 <section class="categories">
     <a class="category-items" href="#dien-thoai">
@@ -384,40 +341,8 @@
         </c:choose>
     </div>
 </section>
-<!-- Modal Smember -->
-<div class="modal fade" id="smemberModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content smember-modal-content">
-            <!-- Nút đóng góc trên PHẢI -->
-            <button type="button" class="btn-close smember-close-btn" data-bs-dismiss="modal" aria-label="Close"></button>
 
-            <div class="modal-body text-center py-5 px-4">
-                <!-- Tiêu đề Smember gradient xanh -->
-                <h1 class="smember-title mb-5">Smember</h1>
-
-                <!-- Nội dung -->
-                <p class="smember-text mb-5">
-                    Vui lòng đăng nhập tài khoản Smember để<br>
-                    <strong>xem ưu đãi và thanh toán dễ dàng hơn.</strong>
-                </p>
-
-                <!-- Hai nút pill -->
-                <div class="d-flex flex-column flex-sm-row justify-content-center gap-4">
-                    <a href="${pageContext.request.contextPath}/register" class="smember-btn-register">
-                        Đăng ký
-                    </a>
-                    <a href="${pageContext.request.contextPath}/login" class="smember-btn-login">
-                        Đăng nhập
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
+<jsp:include page="footer.jsp" />
 <!-- Script riêng cho popup login -->
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>

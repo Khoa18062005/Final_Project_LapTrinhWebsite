@@ -101,7 +101,7 @@
                   <div class="notification-empty">
                     <i class="bi bi-person-circle"></i>
                     <p>Vui lòng đăng nhập để xem thông báo</p>
-                    <a href="${pageContext.request.contextPath}/login" class="btn btn-sm btn-primary mt-2">
+                    <a href="${pageContext.request.contextPath}/login" class="notification-login-btn mt-2">
                       Đăng nhập ngay
                     </a>
                   </div>
@@ -119,7 +119,6 @@
             </c:if>
           </div>
         </div>
-
         <!-- Hotline gọi điện -->
         <a href="tel:0866448892" class="call-button">
           <div class="items-header">
@@ -188,3 +187,74 @@
     </div>
   </nav>
 </header>
+<!-- THÔNG BÁO -->
+<!-- ✅ SUCCESS MESSAGE -->
+<c:if test="${not empty sessionScope.successMessage}">
+  <div class="alert-container">
+    <div class="container">
+      <div class="alert alert-success alert-dismissible fade show auto-hide" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <div class="alert-content">
+          <strong>Thành công!</strong> ${sessionScope.successMessage}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+  <c:remove var="successMessage" scope="session"/>
+</c:if>
+
+<!-- ✅ ERROR MESSAGE - FIX KHÔNG DÙNG fn:contains -->
+<c:if test="${not empty sessionScope.errorMessage}">
+  <c:set var="errorMsg" value="${sessionScope.errorMessage}" />
+  <c:set var="shouldShowError" value="true" />
+
+  <%-- Kiểm tra bằng Java trong JSP --%>
+  <c:if test="${not empty sessionScope.user}">
+    <%
+      String errorMsg = (String) pageContext.getAttribute("errorMsg");
+      if (errorMsg != null) {
+        String lowerError = errorMsg.toLowerCase();
+        boolean containsLoginMsg = lowerError.contains("vui lòng đăng nhập") ||
+                lowerError.contains("đăng nhập để tiếp tục") ||
+                lowerError.contains("yêu cầu đăng nhập") ||
+                lowerError.contains("phải đăng nhập");
+
+        if (containsLoginMsg) {
+          pageContext.setAttribute("shouldShowError", false);
+        }
+      }
+    %>
+  </c:if>
+
+  <c:if test="${shouldShowError}">
+    <div class="alert-container">
+      <div class="container">
+        <div class="alert alert-danger alert-dismissible fade show auto-hide" role="alert">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>
+          <div class="alert-content">
+            <strong>Lỗi!</strong> ${sessionScope.errorMessage}
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      </div>
+    </div>
+  </c:if>
+  <c:remove var="errorMessage" scope="session"/>
+</c:if>
+
+<!-- ✅ INFO MESSAGE -->
+<c:if test="${not empty sessionScope.infoMessage}">
+  <div class="alert-container">
+    <div class="container">
+      <div class="alert alert-info alert-dismissible fade show auto-hide" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <div class="alert-content">
+            ${sessionScope.infoMessage}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+  <c:remove var="infoMessage" scope="session"/>
+</c:if>
