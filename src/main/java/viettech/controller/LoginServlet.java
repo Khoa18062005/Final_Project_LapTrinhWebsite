@@ -2,10 +2,13 @@ package viettech.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import viettech.dto.Login_dto;
+import viettech.entity.Notification;
 import viettech.entity.user.User;
 import viettech.service.LoginService;
 import viettech.service.LoginService.AuthResult;
+import viettech.service.NotificationService;
 import viettech.util.CookieUtil;
+import viettech.util.NotificationTemplateUtil;
 import viettech.util.SessionUtil;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -20,6 +23,7 @@ public class LoginServlet extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginServlet.class);
     private final LoginService loginService = new LoginService();
+    private final NotificationService notificationService = new NotificationService();
     private static final int COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 ngày
 
     @Override
@@ -110,7 +114,28 @@ public class LoginServlet extends HttpServlet {
         // ✅ Đặt flag: user đăng nhập (không phải mới đăng ký)
         SessionUtil.setAttribute(request, "isNewUser", false);
 
-        // ✅ Set success message - GIỜ ĐÃ LẤY ĐƯỢC firstName!
+        // ========== TẠO THÔNG BÁO ĐĂNG NHẬP ==========
+        try {
+            logger.debug("Creating login notification for user: {}", user.getUserId());
+
+            // Tạo notification từ template
+            Notification loginNotification = NotificationTemplateUtil.createLoginNotification(
+                    user.getUserId(),
+                    user.getFirstName(),
+                    user.getLastName()
+            );
+
+            // Lưu vào database thông qua service
+            notificationService.createNotification(loginNotification);
+
+            logger.info("✓ Login notification created for user: {}", user.getUserId());
+
+        } catch (Exception e) {
+            // Không cho lỗi notification ảnh hưởng đến đăng nhập
+            logger.error("✗ Failed to create login notification for user: {}", user.getUserId(), e);
+        }
+
+        // ✅ Set success message
         SessionUtil.setSuccessMessage(request,
                 "Chào mừng quay trở lại, " + user.getFirstName() + " " + user.getLastName() +  "! 👋");
 
