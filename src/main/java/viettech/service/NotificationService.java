@@ -17,6 +17,32 @@ public class NotificationService {
         this.notificationDAO = new NotificationDAO();
     }
 
+    // ========== METHOD MỚI: TẠO NOTIFICATION ==========
+    /**
+     * Tạo thông báo mới và lưu vào database
+     * @param notification Notification object cần lưu
+     * @return true nếu thành công, false nếu thất bại
+     */
+    public boolean createNotification(Notification notification) {
+        try {
+            if (notification == null) {
+                System.out.println("❌ Service: Notification is null");
+                return false;
+            }
+
+            System.out.println("📝 Service: Creating notification for user " + notification.getUserId());
+            notificationDAO.insert(notification);
+            System.out.println("✅ Service: Notification created successfully");
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("❌ Service Exception: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     public List<Notification> getNotificationsByUserId(int userId) {
         return notificationDAO.findByUserId(userId);
     }

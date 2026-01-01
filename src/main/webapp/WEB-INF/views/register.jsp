@@ -130,6 +130,15 @@
               </div>
             </div>
 
+            <!-- Mã giới thiệu (KHÔNG BẮT BUỘC) -->
+            <div class="mb-3">
+              <label class="form-label">Mã giới thiệu <span class="text-muted small">(Không bắt buộc)</span></label>
+              <input type="text" name="referralCode" class="form-control"
+                     placeholder="Nhập mã giới thiệu nếu có" value="${dto.referralCode}"
+                     maxlength="20">
+              <small class="text-muted">Nếu bạn có mã giới thiệu từ người dùng khác, hãy nhập vào đây</small>
+            </div>
+
             <!-- Buttons -->
             <div class="d-grid gap-2">
               <button type="submit" class="btn btn-primary" id="registerBtn" disabled>
