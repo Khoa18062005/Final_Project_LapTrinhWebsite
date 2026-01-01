@@ -811,7 +811,7 @@
     </div>
 </div>
 
-<jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+<jsp:include page="/footer.jsp" />
 
 <!-- Biến JavaScript để kiểm tra trạng thái đăng nhập (truyền từ server) -->
 <script>

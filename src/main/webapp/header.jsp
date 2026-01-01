@@ -101,7 +101,7 @@
                   <div class="notification-empty">
                     <i class="bi bi-person-circle"></i>
                     <p>Vui lòng đăng nhập để xem thông báo</p>
-                    <a href="${pageContext.request.contextPath}/login" class="btn btn-sm btn-primary mt-2">
+                    <a href="${pageContext.request.contextPath}/login" class="notification-login-btn mt-2">
                       Đăng nhập ngay
                     </a>
                   </div>
@@ -187,3 +187,51 @@
     </div>
   </nav>
 </header>
+<!-- THÔNG BÁO -->
+<!-- ✅ SUCCESS MESSAGE -->
+<c:if test="${not empty sessionScope.successMessage}">
+  <div class="alert-container">
+    <div class="container">
+      <div class="alert alert-success alert-dismissible fade show auto-hide" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <div class="alert-content">
+          <strong>Thành công!</strong> ${sessionScope.successMessage}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+  <c:remove var="successMessage" scope="session"/>
+</c:if>
+
+<!-- ✅ ERROR MESSAGE -->
+<c:if test="${not empty sessionScope.errorMessage}">
+  <div class="alert-container">
+    <div class="container">
+      <div class="alert alert-danger alert-dismissible fade show auto-hide" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <div class="alert-content">
+          <strong>Lỗi!</strong> ${sessionScope.errorMessage}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+  <c:remove var="errorMessage" scope="session"/>
+</c:if>
+
+<!-- ✅ INFO MESSAGE -->
+<c:if test="${not empty sessionScope.infoMessage}">
+  <div class="alert-container">
+    <div class="container">
+      <div class="alert alert-info alert-dismissible fade show auto-hide" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <div class="alert-content">
+            ${sessionScope.infoMessage}
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+  <c:remove var="infoMessage" scope="session"/>
+</c:if>

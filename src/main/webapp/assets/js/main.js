@@ -1,70 +1,56 @@
-// ===== XÓA HOÀN TOÀN ALERT CONTAINER KHI ĐÓNG =====
+// main.js - FIXED VERSION
 document.addEventListener('DOMContentLoaded', function() {
-    // Lắng nghe sự kiện đóng alert
-    const alerts = document.querySelectorAll('.alert-dismissible');
+    // ===== 1. XỬ LÝ ALERTS KHÔNG TỰ ĐỘNG ĐÓNG =====
+    // Vô hiệu hóa auto-hide mặc định của Bootstrap
+    const alerts = document.querySelectorAll('.alert');
 
     alerts.forEach(function(alert) {
-        alert.addEventListener('closed.bs.alert', function() {
-            // Lấy container cha (.alert-container)
-            const container = this.closest('.alert-container');
+        // Xóa class 'fade' và 'show' mặc định của Bootstrap
+        alert.classList.remove('fade');
+        alert.classList.add('show');
 
-            // Xóa luôn container để không còn khoảng trắng
-            if (container) {
-                container.remove();
-            }
-        });
+        // Ngăn Bootstrap tự động đóng alert
+        const alertInstance = bootstrap.Alert.getOrCreateInstance(alert);
+        if (alertInstance) {
+            // Override phương thức đóng
+            alertInstance._config.autohide = false;
+            alertInstance._config.delay = 15000; // 15 giây
+        }
     });
-});
 
-// ===== HÀM MỞ MODAL KHUYẾN KHÍCH ĐĂNG NHẬP =====
-function showLoginModal() {
-    const loginModalElement = document.getElementById('loginModal');
-    if (loginModalElement) {
-        const myModal = new bootstrap.Modal(loginModalElement);
-        myModal.show();
-    }
-}
+    // ===== 2. TỰ ĐỘNG ĐÓNG SAU 15s (TÙY CHỈNH) =====
+    const autoHideAlerts = document.querySelectorAll('.alert.auto-hide');
 
-// Hàm cập nhật badge thông báo (giữ nguyên)
-function updateNotificationBadge() {
-    if (!window.isLoggedIn) return;
-
-    fetch(`${contextPath}/api/notifications/unread-count`)
-        .then(response => response.json())
-        .then(data => {
-            const badge = document.querySelector('.notification-badge');
-            if (data.count > 0) {
-                if (!badge) {
-                    // Tạo badge nếu chưa có
-                    const bell = document.querySelector('.notification-bell');
-                    if (bell) {
-                        const newBadge = document.createElement('span');
-                        newBadge.className = 'notification-badge new';
-                        newBadge.textContent = data.count;
-                        bell.appendChild(newBadge);
-                    }
-                } else {
-                    badge.textContent = data.count;
-                    badge.classList.add('new');
-                    setTimeout(() => badge.classList.remove('new'), 1500);
-                }
-            } else if (badge) {
-                badge.remove();
+    autoHideAlerts.forEach(function(alert) {
+        // Chỉ đóng sau 15 giây
+        setTimeout(function() {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            if (bsAlert) {
+                bsAlert.close();
             }
-        })
-        .catch(error => console.error('Error updating notification badge:', error));
-}
+        }, 15000); // 15000ms = 15s
+    });
 
-// Cập nhật mỗi 30 giây
-if (window.isLoggedIn) {
-    updateNotificationBadge();
-    setInterval(updateNotificationBadge, 30000);
-}
+    // ===== 3. XÓA CONTAINER KHI ALERT BỊ ĐÓNG =====
+    document.addEventListener('closed.bs.alert', function(event) {
+        const alertElement = event.target;
+        const container = alertElement.closest('.alert-container');
 
-// ===== HIỆU ỨNG HEADER KHI CUỘN =====
-document.addEventListener('DOMContentLoaded', function() {
+        if (container) {
+            // Thêm hiệu ứng fade out trước khi xóa
+            container.style.transition = 'opacity 0.3s';
+            container.style.opacity = '0';
+
+            setTimeout(function() {
+                if (container.parentNode) {
+                    container.remove();
+                }
+            }, 300);
+        }
+    });
+
+    // ===== 4. HIỆU ỨNG HEADER KHI CUỘN =====
     const navbar = document.querySelector('.navbar');
-
     if (navbar) {
         window.addEventListener('scroll', function() {
             if (window.scrollY > 50) {
@@ -74,4 +60,49 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // ===== 5. CẬP NHẬT THÔNG BÁO (GIỮ NGUYÊN) =====
+    function updateNotificationBadge() {
+        if (!window.isLoggedIn) return;
+
+        fetch(`${contextPath}/api/notifications/unread-count`)
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.querySelector('.notification-badge');
+                if (data.count > 0) {
+                    if (!badge) {
+                        const bell = document.querySelector('.notification-bell');
+                        if (bell) {
+                            const newBadge = document.createElement('span');
+                            newBadge.className = 'notification-badge new';
+                            newBadge.textContent = data.count;
+                            bell.appendChild(newBadge);
+                        }
+                    } else {
+                        badge.textContent = data.count;
+                        badge.classList.add('new');
+                        setTimeout(() => badge.classList.remove('new'), 1500);
+                    }
+                } else if (badge) {
+                    badge.remove();
+                }
+            })
+            .catch(error => console.error('Error updating notification badge:', error));
+    }
+
+    // Cập nhật thông báo mỗi 30s nếu đã đăng nhập
+    if (window.isLoggedIn) {
+        updateNotificationBadge();
+        setInterval(updateNotificationBadge, 30000);
+    }
+
+    // ===== 6. TẮT ANIMATION COUNTDOWN TRONG CSS (nếu không muốn) =====
+    // Thêm style để tạm thời vô hiệu hóa thanh đếm ngược
+    const style = document.createElement('style');
+    style.textContent = `
+        .alert::after {
+            display: none !important;
+        }
+    `;
+    document.head.appendChild(style);
 });
