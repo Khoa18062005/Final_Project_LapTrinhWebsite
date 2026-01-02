@@ -57,7 +57,7 @@
 </head>
 
 <body>
-<%--<jsp:include page="${pageContext.request.contextPath}/header.jsp" />--%>
+<jsp:include page="/header.jsp" />
 
 <!-- Toast Container -->
 <div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
@@ -73,7 +73,7 @@
     </div>
 </div>
 
-<jsp:include page="/header.jsp" />
+
 <div class="container">
     <!-- Breadcrumb -->
     <div class="breadcrumb">

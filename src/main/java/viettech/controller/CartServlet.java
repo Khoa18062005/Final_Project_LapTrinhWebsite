@@ -48,6 +48,18 @@ public class CartServlet extends HttpServlet {
             request.setAttribute("itemCount", cartItems.size());
             request.setAttribute("cartCount", cartCount);
 
+            System.out.println("Cart items size: " + cartItems.size());
+            for (CartItemDTO item : cartItems) {
+                System.out.println("Item: productId=" + item.getProductId() +
+                        ", variantId=" + item.getVariantId() +
+                        ", quantity=" + item.getQuantity() +
+                        ", price=" + item.getPrice() +
+                        ", productName=" + item.getProductName() +
+                        ", imageUrl=" + item.getImageUrl() +
+                        ", variantInfo=" + (item.getVariantInfo() != null ? item.getVariantInfo().getAttributes() : "null") +
+                        ", selected=" + item.isSelected());
+            }
+
             request.getRequestDispatcher("/WEB-INF/views/cart.jsp").forward(request, response);
         } catch (Exception e) {
             // Handle error, ví dụ forward error page hoặc redirect

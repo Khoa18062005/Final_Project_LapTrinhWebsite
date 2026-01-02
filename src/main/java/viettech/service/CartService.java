@@ -161,7 +161,7 @@ public class CartService {
                 variant.ifPresent(dto::setVariantInfo);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Error converting item: productId=" + item.getProductId() + ", variantId=" + item.getVariantId() + ", error=" + e.getMessage());
         }
 
         return dto;
