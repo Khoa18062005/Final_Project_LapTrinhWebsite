@@ -40,8 +40,15 @@
                 </div>
                 <!-- Giỏ hàng -->
                 <div class="items-header">
-                    <i class="bi bi-cart3 fs-4 text-white"></i>
-                    <h5>Giỏ hàng</h5>
+                    <a class="nav-link position-relative" href="${pageContext.request.contextPath}/cart">
+                        <i class="bi bi-cart3 fs-4 text-white"></i>
+                        <!-- Badge hiển thị số lượng -->
+                        <h5> Giỏ hàng</h5>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count-badge"
+                              style="display: ${empty cartCount or cartCount == 0 ? 'none' : 'block'};">
+                            ${empty cartCount ? 0 : cartCount}
+                        </span>
+                    </a>
                 </div>
 
                 <!-- Kiểm tra user đã đăng nhập chưa -->

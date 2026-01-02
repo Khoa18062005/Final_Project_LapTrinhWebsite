@@ -92,6 +92,7 @@ public class RegisterServlet extends HttpServlet {
                                               HttpServletResponse resp,
                                               Register_dto dto) throws IOException {
         Customer newCustomer = userService.findCustomerByEmail(dto.getEmail());
+        userService.addCart(newCustomer);
 
         // ✅ Lưu user vào session
         SessionUtil.setAttribute(req, "user", newCustomer);

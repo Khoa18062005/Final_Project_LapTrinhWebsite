@@ -23,6 +23,8 @@
 
     <!-- JavaScript cho chọn variant -->
     <script src="${pageContext.request.contextPath}/assets/js/variant-selector.js" defer></script>
+    <script src="${pageContext.request.contextPath}/assets/js/cart-ajax.js" defer></script>
+
     <script>
         // Khởi tạo biến toàn cục từ dữ liệu JSP
         <c:if test="${not empty variants}">
@@ -54,6 +56,20 @@
 
 <body>
 <jsp:include page="/WEB-INF/views/layout/header.jsp" />
+
+<!-- Toast Container -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
+    <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong class="me-auto">Thành công</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <span id="toast-message">Đã thêm sản phẩm vào giỏ hàng!</span>
+        </div>
+    </div>
+</div>
 
 <div class="container">
     <!-- Breadcrumb -->
@@ -178,7 +194,7 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <form action="${pageContext.request.contextPath}/cart/add" method="POST"
+                <form action="${pageContext.request.contextPath}/cart" method="POST"
                       class="d-inline" id="add-to-cart-form">
                     <input type="hidden" name="productId" value="${product.productId}">
                     <input type="hidden" name="quantity" value="1">

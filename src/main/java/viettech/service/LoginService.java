@@ -2,15 +2,15 @@ package viettech.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import viettech.dao.AdminDAO;
-import viettech.dao.CustomerDAO;
-import viettech.dao.ShipperDAO;
-import viettech.dao.VendorDAO;
+import viettech.dao.*;
 import viettech.dto.Login_dto;
+import viettech.entity.cart.Cart;
+import viettech.entity.user.Customer;
 import viettech.entity.user.User;
 import viettech.util.PasswordUtil;
 
 import java.lang.reflect.Method;
+import java.util.Date;
 
 /**
  * Login Service - Xử lý xác thực người dùng
@@ -118,5 +118,18 @@ public class LoginService {
         public String getRole() {
             return role;
         }
+    }
+
+    public boolean checkCart(Customer customer) {
+        CartDAO cartDAO = new CartDAO();
+        return cartDAO.findByCustomerId(customer.getUserId()) == null;
+    }
+
+    public void addCart(Customer customer) {
+        Date currentDate = new Date();
+        CartDAO cartDAO = new CartDAO();
+        Cart cart = new Cart();
+        cart.setCustomerId(customer.getUserId());
+        cartDAO.insert(cart);
     }
 }

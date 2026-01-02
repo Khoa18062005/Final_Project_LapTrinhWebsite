@@ -1,7 +1,9 @@
 package viettech.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import viettech.dao.CustomerDAO;
 import viettech.dto.Login_dto;
+import viettech.entity.user.Customer;
 import viettech.entity.user.User;
 import viettech.service.LoginService;
 import viettech.service.LoginService.AuthResult;
@@ -14,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.util.Objects;
 
 @WebServlet("/login")
 public class LoginServlet extends HttpServlet {
@@ -71,6 +74,14 @@ public class LoginServlet extends HttpServlet {
 
         // ✅ Cast về User (vì tất cả đều extends User)
         User user = (User) userObject;
+        if (role.equals("customer")){
+            CustomerDAO customerDAO = new CustomerDAO();
+            Customer customer = customerDAO.findByEmail(user.getEmail());
+            LoginService loginService = new LoginService();
+            if(loginService.checkCart(customer)){
+                loginService.addCart(customer);
+            }
+        }
 
         // ✅ Lưu user vào session
         SessionUtil.setAttribute(request, "user", user);

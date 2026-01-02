@@ -2,8 +2,10 @@ package viettech.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import viettech.dao.CartDAO;
 import viettech.dao.CustomerDAO;
 import viettech.dto.Register_dto;
+import viettech.entity.cart.Cart;
 import viettech.entity.user.Customer;
 import viettech.util.PasswordUtil;
 
@@ -171,5 +173,14 @@ public class UserService {
 
     public void UpdateLastLoginAt(Customer customer) {
         customerDAO.update(customer);
+    }
+
+    public void addCart(Customer customer) {
+        Date currentDate = new Date();
+        CartDAO cartDAO = new CartDAO();
+        Cart cart = new Cart();
+        cart.setCustomerId(customer.getUserId());
+        cart.setUpdatedAt(currentDate);
+        cartDAO.insert(cart);
     }
 }
