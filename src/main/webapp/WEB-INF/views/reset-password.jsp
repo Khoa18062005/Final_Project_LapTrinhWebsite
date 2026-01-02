@@ -11,8 +11,6 @@
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
     body {
@@ -73,13 +71,24 @@
     .strength-fair { background-color: #ffc107; width: 50%; }
     .strength-good { background-color: #198754; width: 75%; }
     .strength-strong { background-color: #0d6efd; width: 100%; }
+    .card-header h3 {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .card-header p {
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
+    .input-group-text {
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
 <div class="card">
   <div class="card-header">
-    <h3><i class="bi bi-lock me-2"></i>Đặt Lại Mật Khẩu</h3>
+    <h3>Đặt Lại Mật Khẩu</h3>
     <p class="mb-0">Tạo mật khẩu mới cho tài khoản của bạn</p>
   </div>
   <div class="card-body">
@@ -107,11 +116,11 @@
                  autofocus
                  minlength="6">
           <button class="btn btn-outline-secondary" type="button" id="toggleNewPassword">
-            <i class="bi bi-eye"></i>
+            Hiện
           </button>
         </div>
         <div class="password-strength" id="passwordStrength"></div>
-        <small class="text-muted">Tối thiểu 6 ký tự, bao gồm chữ và số</small>
+        <small class="text-muted">Tối thiểu 6 ký tự</small>
       </div>
 
       <!-- Xác nhận mật khẩu -->
@@ -126,15 +135,14 @@
                  required
                  minlength="6">
           <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-            <i class="bi bi-eye"></i>
+            Hiện
           </button>
         </div>
-        <div class="mt-1" id="passwordMatch"></div>
+        <div class="mt-2" id="passwordMatch"></div>
       </div>
 
       <!-- Nút đặt lại mật khẩu -->
       <button type="submit" class="btn btn-primary w-100" id="submitBtn">
-        <i class="bi bi-check-circle me-2"></i>
         Đặt Lại Mật Khẩu
       </button>
     </form>
@@ -142,7 +150,6 @@
     <!-- Các liên kết phụ -->
     <div class="text-center mt-4">
       <a href="${pageContext.request.contextPath}/login" class="text-decoration-none">
-        <i class="bi bi-arrow-left me-1"></i>
         Quay lại đăng nhập
       </a>
     </div>
@@ -166,13 +173,13 @@
     toggleNewPassword.addEventListener('click', function() {
       const type = newPassword.getAttribute('type') === 'password' ? 'text' : 'password';
       newPassword.setAttribute('type', type);
-      this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+      this.textContent = type === 'password' ? 'Hiện' : 'Ẩn';
     });
 
     toggleConfirmPassword.addEventListener('click', function() {
       const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
       confirmPassword.setAttribute('type', type);
-      this.innerHTML = type === 'password' ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+      this.textContent = type === 'password' ? 'Hiện' : 'Ẩn';
     });
 
     // Kiểm tra độ mạnh mật khẩu
@@ -251,10 +258,10 @@
       }
 
       if (pass1 === pass2 && pass1.length >= 6) {
-        passwordMatch.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Mật khẩu trùng khớp</span>';
+        passwordMatch.innerHTML = '<span class="text-success">✓ Mật khẩu trùng khớp</span>';
         submitBtn.disabled = false;
       } else if (pass1 !== pass2) {
-        passwordMatch.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Mật khẩu không khớp</span>';
+        passwordMatch.innerHTML = '<span class="text-danger">✗ Mật khẩu không khớp</span>';
         submitBtn.disabled = true;
       } else {
         passwordMatch.innerHTML = '';

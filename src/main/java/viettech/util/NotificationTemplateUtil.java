@@ -16,10 +16,14 @@ public class NotificationTemplateUtil {
     public static final String TYPE_ACCOUNT = "account";
     public static final String TYPE_ORDER = "order";
     public static final String TYPE_PROMOTION = "promotion";
+    public static final String TYPE_SECURITY = "security";  // ← THÊM MỚI
+
 
     // ========== IMAGE URLS ==========
     private static final String IMG_LOGIN = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767279453/login_ndmwr5.png";
     private static final String IMG_REGISTER = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767279473/register_iozsha.png";
+    private static final String IMG_PASSWORD = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767339496/reset_password_gudomz.png";  // ← THÊM MỚI (bạn có thể đổi URL)
+
 
     /**
      * ========== THÔNG BÁO ĐĂNG NHẬP THÀNH CÔNG ==========
@@ -133,6 +137,50 @@ public class NotificationTemplateUtil {
         notification.setData(null);
         notification.setActionUrl(null);
         
+        return notification;
+    }
+
+    /**
+     * ========== THÔNG BÁO ĐỔI MẬT KHẨU THÀNH CÔNG ==========
+     * ← METHOD MỚI
+     * Được gọi khi user đặt lại mật khẩu thành công
+     *
+     * @param userId ID của user
+     * @param firstName Tên của user
+     * @param lastName Họ của user
+     * @return Notification object đã được điền đầy đủ thông tin
+     */
+    public static Notification createPasswordResetNotification(int userId, String firstName, String lastName) {
+        Notification notification = new Notification();
+
+        // ===== THÔNG TIN CƠ BẢN =====
+        notification.setUserId(userId);
+        notification.setType(TYPE_SECURITY);  // Dùng type SECURITY vì liên quan bảo mật
+
+        // ===== TIÊU ĐỀ VÀ NỘI DUNG =====
+        notification.setTitle("🔐 Mật khẩu đã được thay đổi thành công!");
+        notification.setMessage(
+                String.format("Xin chào %s %s! Mật khẩu của bạn đã được thay đổi thành công vào lúc %s. " +
+                                "Nếu bạn không thực hiện thay đổi này, vui lòng liên hệ bộ phận hỗ trợ ngay lập tức để bảo vệ tài khoản của bạn.",
+                        firstName, lastName,
+                        new java.text.SimpleDateFormat("HH:mm:ss dd/MM/yyyy").format(new Date()))
+        );
+
+        // ===== HÌNH ẢNH =====
+        notification.setImageUrl(IMG_PASSWORD);  // Có thể dùng ảnh khóa/bảo mật
+
+        // ===== TRẠNG THÁI =====
+        notification.setRead(false);  // Chưa đọc
+        notification.setReadAt(null); // Chưa đọc nên null
+
+        // ===== THỜI GIAN =====
+        notification.setCreatedAt(new Date()); // Thời điểm tạo
+        notification.setExpiresAt(null);       // Không hết hạn
+
+        // ===== CÁC TRƯỜNG KHÔNG DÙNG =====
+        notification.setData(null);
+        notification.setActionUrl(null);
+
         return notification;
     }
 

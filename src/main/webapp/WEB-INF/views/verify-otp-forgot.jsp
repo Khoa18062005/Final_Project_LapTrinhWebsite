@@ -11,8 +11,6 @@
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap Icons -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
   <style>
     body {
@@ -69,10 +67,11 @@
       border-left: 4px solid #0d6efd;
     }
     .otp-input {
-      font-size: 2rem;
+      font-size: 1.5rem;
       text-align: center;
-      letter-spacing: 10px;
+      letter-spacing: 5px;
       font-weight: bold;
+      padding: 1rem;
     }
     .timer {
       font-size: 1.2rem;
@@ -81,20 +80,27 @@
     .text-success { color: #198754; }
     .text-warning { color: #ffc107; }
     .text-danger { color: #dc3545; }
+    .card-header h3 {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .card-header p {
+      opacity: 0.9;
+      font-size: 0.95rem;
+    }
   </style>
 </head>
 <body>
 
 <div class="card">
   <div class="card-header">
-    <h3><i class="bi bi-shield-check me-2"></i>Xác Thực OTP</h3>
+    <h3>Xác Thực OTP</h3>
     <p class="mb-0">Nhập mã xác thực từ email của bạn</p>
   </div>
   <div class="card-body">
 
     <!-- THÔNG BÁO EMAIL -->
     <div class="email-info">
-      <i class="bi bi-envelope-check text-primary me-2"></i>
       <c:choose>
         <c:when test="${not empty maskedEmail}">
           <strong>Mã OTP đã được gửi đến:</strong><br>
@@ -133,7 +139,7 @@
                name="otp"
                maxlength="6"
                pattern="[0-9]{6}"
-               placeholder="000000"
+               placeholder="Nhập 6 chữ số"
                required
                autofocus
                <c:if test="${isExpired}">disabled</c:if>>
@@ -149,7 +155,6 @@
               class="btn btn-primary w-100 mb-3"
               id="verifyBtn"
               <c:if test="${isExpired}">disabled</c:if>>
-        <i class="bi bi-check-circle me-2"></i>
         Xác Thực OTP
       </button>
 
@@ -170,13 +175,11 @@
     <!-- Các liên kết phụ -->
     <div class="text-center mt-4">
       <a href="${pageContext.request.contextPath}/forgot-password" class="text-decoration-none">
-        <i class="bi bi-arrow-left me-1"></i>
         Nhập email khác
       </a>
     </div>
     <div class="text-center mt-2">
       <a href="${pageContext.request.contextPath}/login" class="text-decoration-none">
-        <i class="bi bi-box-arrow-in-right me-1"></i>
         Quay lại đăng nhập
       </a>
     </div>

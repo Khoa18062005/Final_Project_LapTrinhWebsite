@@ -11,8 +11,6 @@
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
         body {
@@ -59,13 +57,21 @@
         .text-center a {
             text-decoration: none;
         }
+        .card-header h3 {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .card-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div class="card-header">
-        <h3><i class="bi bi-key me-2"></i>Quên Mật Khẩu</h3>
+        <h3>Quên Mật Khẩu</h3>
         <p class="mb-0">Nhập email để nhận mã OTP đặt lại mật khẩu</p>
     </div>
     <div class="card-body">
@@ -95,7 +101,7 @@
                        class="form-control"
                        id="email"
                        name="email"
-                       placeholder="nhập email của bạn"
+                       placeholder="Nhập email của bạn"
                        required
                        autofocus>
                 <small class="text-muted">Chúng tôi sẽ gửi mã OTP đến email này</small>
@@ -103,7 +109,6 @@
 
             <!-- Nút gửi OTP -->
             <button type="submit" class="btn btn-primary w-100">
-                <i class="bi bi-send-check me-2"></i>
                 Gửi mã OTP
             </button>
         </form>
@@ -111,7 +116,6 @@
         <!-- Các liên kết phụ -->
         <div class="text-center mt-4">
             <a href="${pageContext.request.contextPath}/login" class="text-decoration-none">
-                <i class="bi bi-arrow-left me-1"></i>
                 Quay lại đăng nhập
             </a>
         </div>
