@@ -17,6 +17,7 @@
     <!-- CSS riêng -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/chatbot.css">
 
 </head>
 <body>
@@ -346,5 +347,7 @@
 <!-- Script riêng cho popup login -->
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
+<!-- VietTech ChatBot -->
+<script src="${pageContext.request.contextPath}/assets/js/chatbot.js"></script>
 </body>
 </html>
