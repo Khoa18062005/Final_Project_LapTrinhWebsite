@@ -12,60 +12,8 @@
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .card {
-            border: none;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            max-width: 450px;
-            width: 100%;
-        }
-        .card-header {
-            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
-            color: white;
-            text-align: center;
-            padding: 2rem;
-        }
-        .card-body {
-            padding: 2.5rem;
-        }
-        .form-control {
-            border-radius: 10px;
-            padding: 0.8rem 1rem;
-            border: 1px solid #ced4da;
-        }
-        .btn-primary {
-            border-radius: 10px;
-            padding: 0.8rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
-            border: none;
-        }
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #0b5ed7, #094ab2);
-        }
-        .text-center a {
-            text-decoration: none;
-        }
-        .card-header h3 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-        .card-header p {
-            opacity: 0.9;
-            font-size: 0.95rem;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/forgot-password.css">
+
 </head>
 <body>
 
