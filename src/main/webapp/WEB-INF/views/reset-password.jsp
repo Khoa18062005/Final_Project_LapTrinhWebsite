@@ -11,8 +11,10 @@
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons (chỉ cho trang này) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- CSS riêng -->
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/reset-password.css">
-
 
 </head>
 <body>
@@ -47,7 +49,7 @@
                  autofocus
                  minlength="6">
           <button class="btn btn-outline-secondary" type="button" id="toggleNewPassword">
-            Hiện
+            <i class="bi bi-eye"></i>
           </button>
         </div>
         <div class="password-strength" id="passwordStrength"></div>
@@ -66,7 +68,7 @@
                  required
                  minlength="6">
           <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPassword">
-            Hiện
+            <i class="bi bi-eye"></i>
           </button>
         </div>
         <div class="mt-2" id="passwordMatch"></div>
@@ -90,8 +92,8 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- JavaScript riêng -->
 <script src="${pageContext.request.contextPath}/assets/js/reset-password.js"></script>
-
 
 </body>
 </html>

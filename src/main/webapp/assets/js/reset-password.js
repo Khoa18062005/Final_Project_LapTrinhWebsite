@@ -1,3 +1,4 @@
+// reset-password.js
 document.addEventListener('DOMContentLoaded', function() {
     const newPassword = document.getElementById('newPassword');
     const confirmPassword = document.getElementById('confirmPassword');
@@ -9,15 +10,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Toggle hiển thị mật khẩu
     toggleNewPassword.addEventListener('click', function() {
+        const icon = this.querySelector('i');
         const type = newPassword.getAttribute('type') === 'password' ? 'text' : 'password';
         newPassword.setAttribute('type', type);
-        this.textContent = type === 'password' ? 'Hiện' : 'Ẩn';
+        // Đổi icon
+        icon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
     });
 
     toggleConfirmPassword.addEventListener('click', function() {
+        const icon = this.querySelector('i');
         const type = confirmPassword.getAttribute('type') === 'password' ? 'text' : 'password';
         confirmPassword.setAttribute('type', type);
-        this.textContent = type === 'password' ? 'Hiện' : 'Ẩn';
+        // Đổi icon
+        icon.className = type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
     });
 
     // Kiểm tra độ mạnh mật khẩu

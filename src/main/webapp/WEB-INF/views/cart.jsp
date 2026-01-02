@@ -22,7 +22,7 @@
 </head>
 
 <body>
-<jsp:include page="/WEB-INF/views/layout/header.jsp" />
+<jsp:include page="../../header.jsp" />
 
 <div class="container my-5">
     <h1 class="mb-4">Giỏ hàng của bạn</h1>
@@ -230,7 +230,7 @@
     </c:choose>
 </div>
 
-<jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+<jsp:include page="../../footer.jsp" />
 
 <!-- Modal đăng nhập -->
 <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
