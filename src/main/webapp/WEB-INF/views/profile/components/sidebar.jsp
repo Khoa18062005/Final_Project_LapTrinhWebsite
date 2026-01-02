@@ -18,9 +18,11 @@
       </div>
       <div class="user-name-box">
         <h6 class="mb-0">${user.lastName} ${user.firstName}</h6>
-        <small class="text-muted">
-          <i class="bi bi-pencil"></i> Sửa Hồ Sơ
-        </small>
+        <a href="${pageContext.request.contextPath}/profile/info" ${activePage == 'info' ? 'active' : ''}">
+          <small class="text-muted">
+            <i class="bi bi-pencil"></i> Sửa Hồ Sơ
+          </small>
+        </a>
       </div>
     </div>
 
