@@ -75,10 +75,10 @@ public class CartItemDAO {
     }
 
     // READ - Tìm theo Cart ID và Variant ID
-    public CartItem findByCartIdAndVariantId(int cartId, int variantId) {
+    public CartItem findByCartIdAndVariantIdandProductId(int cartId, int variantId, int productId) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            String jpql = "SELECT ci FROM CartItem ci WHERE ci.cartId = :cartId AND ci.variantId = :variantId";
+            String jpql = "SELECT ci FROM CartItem ci WHERE ci.cartId = :cartId AND ci.variantId = :variantId AND ci.productId = :productId";
             TypedQuery<CartItem> query = em.createQuery(jpql, CartItem.class);
             query.setParameter("cartId", cartId);
             query.setParameter("variantId", variantId);

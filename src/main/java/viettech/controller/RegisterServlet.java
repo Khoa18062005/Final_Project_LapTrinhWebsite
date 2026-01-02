@@ -96,6 +96,7 @@ public class RegisterServlet extends HttpServlet {
                                               HttpServletResponse resp,
                                               Register_dto dto) throws IOException {
         Customer newCustomer = userService.findCustomerByEmail(dto.getEmail());
+        userService.addCart(newCustomer);
 
         if (newCustomer == null) {
             logger.error("✗ Failed to retrieve newly registered customer: {}", dto.getEmail());

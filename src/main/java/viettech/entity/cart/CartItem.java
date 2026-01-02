@@ -30,6 +30,9 @@ public class CartItem {
     )
     private Cart cart;
 
+    @Column(name = "product_id", nullable = false)
+    private int productId;
+
     @Column(name = "variant_id", nullable = false)
     private int variantId;
 
@@ -52,6 +55,7 @@ public class CartItem {
 
     public CartItem() {
         this.cartId = 0;
+        this.productId = 0;
         this.variantId = 0;
         this.quantity = 0;
         this.priceAtAdd = 0.0;
@@ -60,11 +64,13 @@ public class CartItem {
     }
 
     public CartItem(int cartId,
+                    int productId,
                     int variantId,
                     int quantity,
                     double priceAtAdd) {
 
         this.cartId = cartId;
+        this.productId = productId;
         this.variantId = variantId;
         this.quantity = quantity;
         this.priceAtAdd = priceAtAdd;
@@ -84,6 +90,34 @@ public class CartItem {
         return cartId;
     }
 
+    public void setCartId(int cartId) {
+        this.cartId = cartId;
+    }
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
+    }
+
+    public int getProductId() {
+        return productId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public void setVariantId(int variantId) {
+        this.variantId = variantId;
+    }
+
+    public void setSubtotal(double subtotal) {
+        this.subtotal = subtotal;
+    }
+
+    public void setAddedAt(Date addedAt) {
+        this.addedAt = addedAt;
+    }
+
     public Cart getCart() {
         return cart;
     }
@@ -98,7 +132,6 @@ public class CartItem {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
-        recalculateSubtotal();
     }
 
     public double getPriceAtAdd() {
@@ -107,7 +140,6 @@ public class CartItem {
 
     public void setPriceAtAdd(double priceAtAdd) {
         this.priceAtAdd = priceAtAdd;
-        recalculateSubtotal();
     }
 
     public double getSubtotal() {
@@ -118,11 +150,4 @@ public class CartItem {
         return addedAt;
     }
 
-    /* =========================
-       BUSINESS METHOD
-       ========================= */
-
-    private void recalculateSubtotal() {
-        this.subtotal = this.quantity * this.priceAtAdd;
-    }
 }
