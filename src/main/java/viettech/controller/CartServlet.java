@@ -4,6 +4,7 @@ import viettech.dto.CartItemDTO;
 import viettech.entity.user.User;
 import viettech.service.CartService;
 import viettech.service.ProductService;
+import viettech.util.SessionUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -29,9 +30,9 @@ public class CartServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
-
+        User user = (User) SessionUtil.getAttribute(request, "user");
         // Check login
-        if (session.getAttribute("user") == null) {
+        if (user == null) {
             // Redirect to login với redirect back (như code redirectURL trước của bạn)
             response.sendRedirect(request.getContextPath() + "/login?redirect=cart");
             return;

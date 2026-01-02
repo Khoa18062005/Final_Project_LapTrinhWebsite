@@ -110,8 +110,7 @@ public class LoginServlet extends HttpServlet {
         User user = authResult.getUser();
         String role = authResult.getRole();
 
-        // ✅ Cast về User (vì tất cả đều extends User)
-        User user = (User) userObject;
+
         if (role.equals("customer")){
             CustomerDAO customerDAO = new CustomerDAO();
             Customer customer = customerDAO.findByEmail(user.getEmail());

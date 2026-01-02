@@ -15,7 +15,18 @@ public class CartItemDTO {
     public CartItemDTO() {
         this.selected = true; // Mặc định chọn
     }
-    
+
+    public CartItemDTO(int productId, boolean selected, VariantDTO variantInfo, double price, int variantId, String imageUrl, String productName, int quantity) {
+        this.productId = productId;
+        this.selected = selected;
+        this.variantInfo = variantInfo;
+        this.price = price;
+        this.variantId = variantId;
+        this.imageUrl = imageUrl;
+        this.productName = productName;
+        this.quantity = quantity;
+    }
+
     // Getters and Setters
     public int getProductId() {
         return productId;
@@ -85,19 +96,5 @@ public class CartItemDTO {
     public double getSubtotal() {
         return price * quantity;
     }
-    
-    public String getVariantDisplay() {
-        if (variantInfo != null && variantInfo.getAttributes() != null) {
-            StringBuilder sb = new StringBuilder();
-            List<AttributeDTO> attributes = variantInfo.getAttributes();
-            for (int i = 0; i < attributes.size(); i++) {
-                sb.append(attributes.get(i).getAttributeValue());
-                if (i < attributes.size() - 1) {
-                    sb.append(" - ");
-                }
-            }
-            return sb.toString();
-        }
-        return "";
-    }
+
 }
