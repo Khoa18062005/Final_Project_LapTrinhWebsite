@@ -20,7 +20,6 @@ import java.io.IOException;
 
 @WebServlet("/register")
 public class RegisterServlet extends HttpServlet {
-
     private static final Logger logger = LoggerFactory.getLogger(RegisterServlet.class);
     private final UserService userService = new UserService();
     private final NotificationService notificationService = new NotificationService();
