@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/variant-selector.css">
 
+
     <!-- JavaScript cho chọn variant -->
     <script src="${pageContext.request.contextPath}/assets/js/variant-selector.js" defer></script>
     <script src="${pageContext.request.contextPath}/assets/js/cart-ajax.js" defer></script>
@@ -51,11 +52,12 @@
             ]
         };
         </c:if>
+
     </script>
 </head>
 
 <body>
-<jsp:include page="/WEB-INF/views/layout/header.jsp" />
+<%--<jsp:include page="${pageContext.request.contextPath}/header.jsp" />--%>
 
 <!-- Toast Container -->
 <div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
@@ -71,6 +73,7 @@
     </div>
 </div>
 
+<jsp:include page="/header.jsp" />
 <div class="container">
     <!-- Breadcrumb -->
     <div class="breadcrumb">
@@ -205,14 +208,30 @@
                     </button>
                 </form>
 
-                <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post" id="buy-now-form">
-                    <input type="hidden" name="productId" value="${product.productId}">
-                    <input type="hidden" name="quantity" value="1">
-                    <input type="hidden" name="variantId" id="buy-now-variant-id" value="">
-                    <button type="submit" class="btn btn-secondary" id="buy-now-btn">
-                        Mua ngay
-                    </button>
-                </form>
+                <!-- Kiểm tra đăng nhập cho nút Mua ngay -->
+                <c:choose>
+                    <c:when test="${not empty sessionScope.user}">
+                        <!-- Đã đăng nhập: Hiển thị form mua ngay bình thường -->
+                        <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post" id="buy-now-form">
+                            <input type="hidden" name="productId" value="${product.productId}">
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="variantId" id="buy-now-variant-id" value="">
+                            <button type="submit" class="btn btn-secondary" id="buy-now-btn">
+                                Mua ngay
+                            </button>
+                        </form>
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Chưa đăng nhập: Hiển thị nút mở modal Smember -->
+                        <button type="button"
+                                class="btn btn-secondary"
+                                id="buy-now-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#smemberModal">
+                            Mua ngay
+                        </button>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
     </div>
@@ -807,6 +826,17 @@
     </div>
 </div>
 
-<jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+<jsp:include page="/footer.jsp" />
+
+<!-- Biến JavaScript để kiểm tra trạng thái đăng nhập (truyền từ server) -->
+<script>
+    // Biến toàn cục cho JavaScript - QUAN TRỌNG: PHẢI CÓ
+    const contextPath = "${pageContext.request.contextPath}";
+    const isLoggedIn = ${not empty sessionScope.user};
+</script>
+
+<!-- Script riêng cho popup login -->
+<script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 </body>
 </html>

@@ -9,8 +9,9 @@
 <!-- MAIN CONTENT -->
 <div class="col-lg-10 col-md-9">
     <div class="profile-content">
+        <!-- Thêm icon person với hiệu ứng nhảy -->
         <div class="profile-header">
-            <h4>Hồ Sơ Của Tôi</h4>
+            <h4><i class="bi bi-person me-2"></i>Hồ Sơ Của Tôi</h4>
             <p class="text-muted">Quản lý thông tin hồ sơ để bảo mật tài khoản</p>
         </div>
 

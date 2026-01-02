@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![VietTech Logo](./docs/images/logo.png)
+![VietTech Logo](src/main/webapp/assets/PNG/LogoVT.png)
 
 **"Mua công nghệ - Chọn VietTech"**
 

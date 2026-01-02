@@ -364,3 +364,50 @@ a:hover {
         gap: 20px;
     }
 }
+
+/* ===== STYLE CHO MÃ GIỚI THIỆU ===== */
+/* Chú thích "Không bắt buộc" */
+.text-muted.small {
+    font-size: 0.85em;
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+/* Input mã giới thiệu có style nhẹ hơn để thể hiện không bắt buộc */
+input[name="referralCode"] {
+    background-color: #fafafa;
+    border-color: #d1d5db;
+}
+
+input[name="referralCode"]:focus {
+    background-color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Style cho placeholder của mã giới thiệu */
+input[name="referralCode"]::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* Style cho small text chú thích mã giới thiệu */
+.mb-3 small.text-muted {
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.4;
+    margin-top: 4px;
+    display: block;
+}
+
+/* Responsive cho mã giới thiệu */
+@media (max-width: 576px) {
+    .text-muted.small {
+        font-size: 0.8em;
+    }
+
+    input[name="referralCode"] {
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+}

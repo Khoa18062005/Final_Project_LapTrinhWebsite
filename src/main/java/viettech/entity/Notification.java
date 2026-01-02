@@ -188,9 +188,13 @@ public class Notification {
         this.readAt = readAt;
     }
 
+    public void setCreatedAt(Date createdAt) {this.createdAt = createdAt;}
+
     public Date getCreatedAt() {
         return createdAt;
     }
+
+
 
     public Date getExpiresAt() {
         return expiresAt;

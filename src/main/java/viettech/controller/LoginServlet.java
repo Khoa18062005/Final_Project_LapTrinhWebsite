@@ -4,10 +4,13 @@ import org.slf4j.LoggerFactory;
 import viettech.dao.CustomerDAO;
 import viettech.dto.Login_dto;
 import viettech.entity.user.Customer;
+import viettech.entity.Notification;
 import viettech.entity.user.User;
 import viettech.service.LoginService;
 import viettech.service.LoginService.AuthResult;
+import viettech.service.NotificationService;
 import viettech.util.CookieUtil;
+import viettech.util.NotificationTemplateUtil;
 import viettech.util.SessionUtil;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -23,6 +26,7 @@ public class LoginServlet extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginServlet.class);
     private final LoginService loginService = new LoginService();
+    private final NotificationService notificationService = new NotificationService();
     private static final int COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 ngày
 
     @Override
@@ -52,24 +56,58 @@ public class LoginServlet extends HttpServlet {
         Login_dto dto = new Login_dto();
         dto.setEmail(request.getParameter("email"));
         dto.setPassword(request.getParameter("password"));
-            logger.debug("Login attempt for email: {}", dto.getEmail());
+        logger.debug("Login attempt for email: {}", dto.getEmail());
 
         // Gọi service để xác thực
         AuthResult authResult = loginService.authenticate(dto);
 
         if (authResult != null) {
-            // ✅ Đăng nhập thành công
+            // ========== KIỂM TRA TÀI KHOẢN CÓ BỊ KHÓA KHÔNG ==========
+            User user = authResult.getUser();
+
+            if (!user.isActive()) {
+                // ❌ TÀI KHOẢN BỊ KHÓA
+                handleAccountLocked(request, response, dto, user);
+                return;
+            }
+
+            // ✅ Tài khoản active → Đăng nhập thành công
             handleSuccessfulLogin(request, response, authResult);
         } else {
-            // ❌ Đăng nhập thất bại
+            // ❌ Đăng nhập thất bại (sai email/password)
             handleLoginFailure(request, response, dto);
         }
     }
 
+    /**
+     * ========== XỬ LÝ KHI TÀI KHOẢN BỊ KHÓA ==========
+     */
+    private void handleAccountLocked(HttpServletRequest request,
+                                     HttpServletResponse response,
+                                     Login_dto dto,
+                                     User user) throws ServletException, IOException {
+
+        logger.warn("✗ Account locked for email: {} (user_id: {})", dto.getEmail(), user.getUserId());
+
+        // Set thông báo lỗi
+        request.setAttribute("errorMessage",
+                "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin để được hỗ trợ.");
+
+        // Giữ lại email để user không phải nhập lại
+        request.setAttribute("email", dto.getEmail());
+
+        // Forward về trang login
+        request.getRequestDispatcher("/WEB-INF/views/login.jsp")
+                .forward(request, response);
+    }
+
+    /**
+     * ========== XỬ LÝ KHI ĐĂNG NHẬP THÀNH CÔNG ==========
+     */
     private void handleSuccessfulLogin(HttpServletRequest request,
                                        HttpServletResponse response,
                                        AuthResult authResult) throws IOException {
-        Object userObject = authResult.getUser();
+        User user = authResult.getUser();
         String role = authResult.getRole();
 
         // ✅ Cast về User (vì tất cả đều extends User)
@@ -90,7 +128,28 @@ public class LoginServlet extends HttpServlet {
         // ✅ Đặt flag: user đăng nhập (không phải mới đăng ký)
         SessionUtil.setAttribute(request, "isNewUser", false);
 
-        // ✅ Set success message - GIỜ ĐÃ LẤY ĐƯỢC firstName!
+        // ========== TẠO THÔNG BÁO ĐĂNG NHẬP ==========
+        try {
+            logger.debug("Creating login notification for user: {}", user.getUserId());
+
+            // Tạo notification từ template
+            Notification loginNotification = NotificationTemplateUtil.createLoginNotification(
+                    user.getUserId(),
+                    user.getFirstName(),
+                    user.getLastName()
+            );
+
+            // Lưu vào database thông qua service
+            notificationService.createNotification(loginNotification);
+
+            logger.info("✓ Login notification created for user: {}", user.getUserId());
+
+        } catch (Exception e) {
+            // Không cho lỗi notification ảnh hưởng đến đăng nhập
+            logger.error("✗ Failed to create login notification for user: {}", user.getUserId(), e);
+        }
+
+        // ✅ Set success message
         SessionUtil.setSuccessMessage(request,
                 "Chào mừng quay trở lại, " + user.getFirstName() + " " + user.getLastName() +  "! 👋");
 
@@ -106,7 +165,7 @@ public class LoginServlet extends HttpServlet {
     }
 
     /**
-     * Xử lý khi đăng nhập thất bại
+     * ========== XỬ LÝ KHI ĐĂNG NHẬP THẤT BẠI ==========
      */
     private void handleLoginFailure(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -121,7 +180,7 @@ public class LoginServlet extends HttpServlet {
     }
 
     /**
-     * Redirect theo role của user
+     * ========== REDIRECT THEO ROLE ==========
      */
     private void redirectByRole(HttpSession session,
                                 HttpServletRequest request,
