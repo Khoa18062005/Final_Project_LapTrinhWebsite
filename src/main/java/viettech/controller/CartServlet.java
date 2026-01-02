@@ -54,6 +54,7 @@ public class CartServlet extends HttpServlet {
                         ", variantId=" + item.getVariantId() +
                         ", quantity=" + item.getQuantity() +
                         ", price=" + item.getPrice() +
+                        ", price=" + item.getPrice() +
                         ", productName=" + item.getProductName() +
                         ", imageUrl=" + item.getImageUrl() +
                         ", variantInfo=" + (item.getVariantInfo() != null ? item.getVariantInfo().getAttributes() : "null") +
@@ -125,6 +126,8 @@ public class CartServlet extends HttpServlet {
             response.setContentType("application/json");
             response.getWriter().write("{\"success\": true, \"count\": " + 
                                       cartService.getCartCount(session) + "}");
+            response.sendRedirect(request.getContextPath() + "/product");
+
         } catch (Exception e) {
             response.setContentType("application/json");
             response.getWriter().write("{\"success\": false, \"error\": \"" + 

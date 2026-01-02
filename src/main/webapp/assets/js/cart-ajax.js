@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.contextPath = contextMeta ? contextMeta.content : '';
 
     // Xử lý form "Thêm vào giỏ hàng" trên trang chi tiết sản phẩm
-    const addToCartForm = document.getElementById('add-to-cart-form');
+    const addToCartForm = document.getElementById('add-to-cart-btn');
     if (addToCartForm) {
         addToCartForm.addEventListener('submit', function(e) {
             e.preventDefault();
