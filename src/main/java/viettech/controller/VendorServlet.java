@@ -89,10 +89,12 @@ public class VendorServlet extends HttpServlet {
             } else if (action.equals("shipping")) {
                 // Lấy đơn hàng cần giao
                 List<Order> orders = vendorService.getOrdersReadyForShipping(vendorId);
+                logger.info("Setting {} orders for shipping page", orders != null ? orders.size() : 0);
                 request.setAttribute("orders", orders);
             } else if (action.equals("products")) {
                 // Lấy tất cả sản phẩm của vendor
                 List<Product> products = vendorService.getAllProductsByVendor(vendorId);
+                logger.info("Setting {} products for products page", products != null ? products.size() : 0);
                 request.setAttribute("products", products);
             } else if (action.equals("getProduct")) {
                 // Lấy thông tin sản phẩm để chỉnh sửa
@@ -102,7 +104,19 @@ public class VendorServlet extends HttpServlet {
                         int productId = Integer.parseInt(productIdStr);
                         Product product = vendorService.getProductById(productId, vendorId);
                         if (product != null) {
-                            sendJsonResponse(response, true, "Product retrieved successfully", product);
+                            // Convert to Map to avoid LazyInitializationException and circular references
+                            // with Gson
+                            Map<String, Object> productData = new HashMap<>();
+                            productData.put("productId", product.getProductId());
+                            productData.put("name", product.getName());
+                            productData.put("categoryId", product.getCategoryId());
+                            productData.put("brand", product.getBrand());
+                            productData.put("basePrice", product.getBasePrice());
+                            productData.put("status", product.getStatus());
+                            productData.put("description", product.getDescription());
+                            productData.put("specifications", product.getSpecifications());
+
+                            sendJsonResponse(response, true, "Product retrieved successfully", productData);
                             return;
                         }
                     } catch (NumberFormatException e) {
@@ -153,7 +167,9 @@ public class VendorServlet extends HttpServlet {
                             responseData.put("shipper", shipperData);
                         }
                         responseData.put("hasShipper", shipper != null);
-                        sendJsonResponse(response, true, shipper != null ? "Shipper information retrieved" : "No shipper assigned", responseData);
+                        sendJsonResponse(response, true,
+                                shipper != null ? "Shipper information retrieved" : "No shipper assigned",
+                                responseData);
                         return;
                     } catch (NumberFormatException e) {
                         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -182,8 +198,8 @@ public class VendorServlet extends HttpServlet {
                             // Use DTOs to avoid JSON serialization issues
                             VendorService.OrderInfoDTO orderDTO = new VendorService.OrderInfoDTO(order);
                             List<VendorService.OrderItemDTO> itemDTOs = orderDetails.stream()
-                                .map(VendorService.OrderItemDTO::new)
-                                .toList();
+                                    .map(VendorService.OrderItemDTO::new)
+                                    .toList();
 
                             Map<String, Object> responseData = new HashMap<>();
                             responseData.put("order", orderDTO);
