@@ -64,8 +64,8 @@
             <i class="bi bi-bell-slash fs-1 text-muted mb-3 d-block"></i>
             <h5>Không có thông báo nào</h5>
             <p class="text-muted">Bạn chưa nhận được thông báo nào từ VietTech</p>
-            <a href="${pageContext.request.contextPath}/" class="btn btn-primary mt-2">
-              <i class="bi bi-arrow-left me-2"></i> Về trang chủ
+            <a href="${pageContext.request.contextPath}/" class="btn btn-primary btn-sm mt-1">
+              <i class="bi bi-arrow-left me-1"></i> Về trang chủ
             </a>
           </div>
         </c:when>
