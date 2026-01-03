@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
-
+<html lang="vi" data-bs-theme="light">
 <div class="col-lg-2 col-md-3">
   <div class="profile-sidebar">
     <!-- User info -->
@@ -17,7 +17,7 @@
         </c:choose>
       </div>
       <div class="user-name-box">
-        <h6 class="mb-0">${user.lastName} ${user.firstName}</h6>
+        <h6 class="mb-0">${user.firstName} ${user.lastName}</h6>
         <a href="${pageContext.request.contextPath}/profile/info" ${activePage == 'info' ? 'active' : ''}">
           <small class="text-muted">
             <i class="bi bi-pencil"></i> Sửa Hồ Sơ

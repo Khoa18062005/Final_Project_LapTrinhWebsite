@@ -71,6 +71,7 @@
 /* Menu Styles */
 .profile-menu {
     padding: 12px 0;
+    background-color: white!important;
 }
 
 .menu-item {
@@ -1104,7 +1105,14 @@ a.menu-item i {
 .voucher-middle .text-muted {
     color: black !important;
 }
+.text-muted{
+    margin-top: 20px;
+    margin-left: 20px;
+}
 
+.text-muted:hover{
+    color: white!important;
+}
 /* Progress Bar */
 .voucher-middle .progress {
     height: 8px;
@@ -3041,13 +3049,16 @@ select.success:focus {
 /* User Info Box với gradient background */
 .user-info-box {
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 16px;
     padding: 30px 24px;
     background: linear-gradient(135deg, #f8faff 0%, #f0f7ff 100%);
     border-bottom: 1px solid rgba(13, 110, 253, 0.1);
     position: relative;
     overflow: hidden;
+    background-color: white!important;
 }
 
 .user-info-box::before {
@@ -3061,8 +3072,8 @@ select.success:focus {
 }
 
 .user-avatar {
-    width: 60px;
-    height: 60px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
@@ -3358,37 +3369,37 @@ a.menu-sub-item.active::before {
 }
 
 /* Dark mode support (tùy chọn) */
-@media (prefers-color-scheme: dark) {
-    .profile-sidebar {
-        background: #1e293b;
-        border-color: rgba(13, 110, 253, 0.2);
-    }
+/*@media (prefers-color-scheme: dark) {*/
+/*    .profile-sidebar {*/
+/*        background: #1e293b;*/
+/*        border-color: rgba(13, 110, 253, 0.2);*/
+/*    }*/
 
-    .user-info-box {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        border-bottom-color: rgba(13, 110, 253, 0.2);
-    }
+/*    .user-info-box {*/
+/*        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);*/
+/*        border-bottom-color: rgba(13, 110, 253, 0.2);*/
+/*    }*/
 
-    .user-name-box h6 {
-        color: #f8fafc;
-    }
+/*    .user-name-box h6 {*/
+/*        color: #f8fafc;*/
+/*    }*/
 
-    .menu-item, a.menu-item {
-        color: #cbd5e1;
-    }
+/*    .menu-item, a.menu-item {*/
+/*        color: #cbd5e1;*/
+/*    }*/
 
-    a.menu-sub-item {
-        color: #94a3b8;
-    }
+/*    a.menu-sub-item {*/
+/*        color: #94a3b8;*/
+/*    }*/
 
-    .menu-item:hover, a.menu-item:hover, a.menu-sub-item:hover {
-        background: linear-gradient(90deg, rgba(13, 110, 253, 0.2) 0%, rgba(13, 110, 253, 0.1) 100%);
-    }
+/*    .menu-item:hover, a.menu-item:hover, a.menu-sub-item:hover {*/
+/*        background: linear-gradient(90deg, rgba(13, 110, 253, 0.2) 0%, rgba(13, 110, 253, 0.1) 100%);*/
+/*    }*/
 
-    .menu-item.active, a.menu-item.active, a.menu-sub-item.active {
-        background: linear-gradient(90deg, rgba(13, 110, 253, 0.3) 0%, rgba(13, 110, 253, 0.15) 100%);
-    }
-}
+/*    .menu-item.active, a.menu-item.active, a.menu-sub-item.active {*/
+/*        background: linear-gradient(90deg, rgba(13, 110, 253, 0.3) 0%, rgba(13, 110, 253, 0.15) 100%);*/
+/*    }*/
+/*}*/
 
 /* Scrollbar styling cho sidebar */
 .profile-sidebar::-webkit-scrollbar {

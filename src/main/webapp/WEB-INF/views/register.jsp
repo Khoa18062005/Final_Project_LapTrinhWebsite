@@ -26,7 +26,7 @@
 
 <div class="container mt-5">
   <div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="col-md-4">
       <div class="card shadow">
         <div class="card-header text-white text-center">
           <h3>Đăng ký tài khoản</h3>
