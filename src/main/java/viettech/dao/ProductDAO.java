@@ -383,5 +383,47 @@ public class ProductDAO {
             em.close();
         }
     }
+    /**
+     * Tìm kiếm sản phẩm theo tên + JOIN FETCH images để load ảnh cùng lúc
+     */
+    public List<Product> searchByNameWithImages(String keyword) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT DISTINCT p FROM Product p " +
+                    "LEFT JOIN FETCH p.images " +
+                    "WHERE LOWER(p.name) LIKE LOWER(:keyword) " +
+                    "ORDER BY p.createdAt DESC";
+            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
+            query.setParameter("keyword", "%" + keyword + "%");
+            List<Product> products = query.getResultList();
+            logger.debug("✓ Found {} product(s) matching '{}' with images loaded", products.size(), keyword);
+            return products;
+        } catch (Exception e) {
+            logger.error("✗ Error searching products with images by name: {}", keyword, e);
+            throw new RuntimeException("Failed to search products with images", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Lấy tất cả sản phẩm + JOIN FETCH images (dùng khi không có keyword)
+     */
+    public List<Product> findAllWithImages() {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT DISTINCT p FROM Product p " +
+                    "LEFT JOIN FETCH p.images " +
+                    "ORDER BY p.createdAt DESC";
+            List<Product> products = em.createQuery(jpql, Product.class).getResultList();
+            logger.debug("✓ Retrieved {} product(s) with images loaded", products.size());
+            return products;
+        } catch (Exception e) {
+            logger.error("✗ Error retrieving all products with images", e);
+            throw new RuntimeException("Failed to retrieve products with images", e);
+        } finally {
+            em.close();
+        }
+    }
 }
 

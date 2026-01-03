@@ -16,9 +16,18 @@
       </a>
 
       <!-- Ô tìm kiếm -->
-      <form class="d-flex w-50 mx-3">
-        <input class="form-control me-2" type="search" placeholder="Hôm nay bạn muốn tìm gì...">
-        <button class="btn-search" type="submit">
+      <form action="${pageContext.request.contextPath}/search"
+            method="get"
+            class="d-flex w-50 mx-3"
+            role="search">
+        <input class="form-control me-2"
+               type="search"
+               name="q"
+               placeholder="Hôm nay bạn muốn tìm gì..."
+               aria-label="Tìm kiếm sản phẩm"
+               value="${not empty keyword ? keyword : ''}"
+               autocomplete="off">
+        <button class="btn-search" type="submit" title="Tìm kiếm">
           <i class="bi bi-search text-dark"></i>
         </button>
       </form>
