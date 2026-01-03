@@ -292,7 +292,7 @@
                                         </c:if>
                                         <span class="badge installment">Trả góp 0%</span>
                                     </div>
-
+f
                                     <c:choose>
                                         <c:when test="${not empty phone.primaryImage}">
                                             <div class="product-image">
