@@ -8,8 +8,14 @@ import viettech.dto.*;
 import viettech.entity.product.*;
 
 import java.awt.*;
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Pattern;
+import org.apache.commons.text.similarity.LevenshteinDistance;
+
 
 public class ProductService {
     private ProductDAO productDAO = new ProductDAO();
@@ -434,5 +440,118 @@ public class ProductService {
             list.add(dto);
         }
         return list;
+    }
+
+    /**
+     * Tìm kiếm sản phẩm fuzzy (hỗ trợ lỗi chính tả, bỏ dấu tiếng Việt)
+     */
+    public List<ProductCardDTO> searchProducts(String keyword) {
+        if (keyword == null || (keyword = keyword.trim()).isEmpty()) {
+            return getFeaturedOrNewestAsCardDTO(20);
+        }
+
+        String normalizedKeyword = normalizeVietnamese(keyword.toLowerCase());
+
+        // Bước 1: Lọc thô bằng LIKE + load images ngay
+        List<Product> candidates = productDAO.searchByNameWithImages(keyword);
+
+        List<Product> finalResults;
+
+        if (candidates.size() <= 50) {
+            finalResults = applyFuzzyFilterAndSort(candidates, normalizedKeyword);
+        } else {
+            // Tìm rộng hơn bằng tên không dấu + load images
+            List<Product> allProducts = productDAO.findAllWithImages();
+            finalResults = allProducts.stream()
+                    .filter(p -> normalizeVietnamese(p.getName().toLowerCase()).contains(normalizedKeyword))
+                    .toList();
+
+            finalResults = applyFuzzySort(finalResults, normalizedKeyword);
+        }
+
+        // Giới hạn kết quả
+        return finalResults.stream()
+                .limit(50)
+                .map(this::convertProductToCardDTO)
+                .toList();
+    }
+
+// Các method phụ - BẮT BUỘC PHẢI CÓ (nếu chưa có thì copy vào dưới đây)
+
+    private String normalizeVietnamese(String input) {
+        if (input == null || input.isEmpty()) return "";
+        String temp = Normalizer.normalize(input, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(temp).replaceAll("").toLowerCase();
+    }
+
+    private List<Product> applyFuzzyFilterAndSort(List<Product> products, String keyword) {
+        if (products.isEmpty()) return Collections.emptyList();
+
+        LevenshteinDistance distanceAlgo = new LevenshteinDistance();
+        int threshold = Math.max(3, keyword.length() / 3);
+
+        return products.stream()
+                .filter(p -> {
+                    String normalizedName = normalizeVietnamese(p.getName().toLowerCase());
+                    int dist = distanceAlgo.apply(keyword, normalizedName);
+                    return dist <= threshold || normalizedName.contains(keyword);
+                })
+                .sorted(Comparator.comparingInt(p -> {
+                    String normalizedName = normalizeVietnamese(p.getName().toLowerCase());
+                    return distanceAlgo.apply(keyword, normalizedName);
+                }))
+                .toList();
+    }
+
+    private List<Product> applyFuzzySort(List<Product> products, String keyword) {
+        if (products.isEmpty()) return products;
+
+        LevenshteinDistance distanceAlgo = new LevenshteinDistance();
+
+        return products.stream()
+                .sorted(Comparator.comparingInt(p -> {
+                    String normalizedName = normalizeVietnamese(p.getName().toLowerCase());
+                    return distanceAlgo.apply(keyword, normalizedName);
+                }))
+                .toList();
+    }
+
+    private ProductCardDTO convertProductToCardDTO(Product p) {
+        ProductCardDTO dto = new ProductCardDTO();
+        dto.setId(p.getProductId());
+        dto.setName(p.getName());
+        dto.setPrice(p.getBasePrice());
+        Double avgRating = p.getAverageRating();
+        dto.setRating(avgRating != null ? avgRating : 0.0);
+        dto.setMemberDiscount(0);
+        dto.setOldPrice(p.getBasePrice());
+        dto.setDiscountPercent(0);
+
+        String primaryImageUrl = "";
+        if (p.getImages() != null && !p.getImages().isEmpty()) {
+            primaryImageUrl = p.getImages().stream()
+                    .filter(img -> img.isPrimary())
+                    .map(ProductImage::getUrl)
+                    .findFirst()
+                    .orElse(p.getImages().stream()
+                            .min(Comparator.comparingInt(ProductImage::getSortOrder))
+                            .map(ProductImage::getUrl)
+                            .orElse(""));
+        }
+        dto.setPrimaryImage(primaryImageUrl);
+
+        return dto;
+    }
+
+    private List<ProductCardDTO> getFeaturedOrNewestAsCardDTO(int limit) {
+        List<Product> products = productDAO.findFeatured();
+        if (products.isEmpty()) {
+            products = productDAO.findNewest(limit);
+        }
+        return products.stream()
+                .limit(limit)
+                .map(this::convertProductToCardDTO)
+                .toList();
     }
 }
