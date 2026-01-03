@@ -2,11 +2,13 @@ package viettech.service;
 
 import viettech.dao.CartDAO;
 import viettech.dao.CartItemDAO;
+import viettech.dao.VariantAttributeDAO;
 import viettech.dto.CartItemDTO;
 import viettech.dto.ProductDetailDTO;
 import viettech.dto.VariantDTO;
 import viettech.entity.cart.Cart;
 import viettech.entity.cart.CartItem;
+import viettech.entity.product.VariantAttribute;
 import viettech.entity.user.User;
 
 import javax.servlet.http.HttpSession;
@@ -148,6 +150,8 @@ public class CartService {
         dto.setQuantity(item.getQuantity());
         dto.setPrice(item.getPriceAtAdd());
 
+        List<VariantAttribute> attributes = new VariantAttributeDAO().findByVariantId(item.getVariantId());
+
         try {
             ProductDetailDTO product = productService.getProductDetail(item.getProductId());
             dto.setProductName(product.getName());
@@ -160,6 +164,12 @@ public class CartService {
                         .findFirst();
                 variant.ifPresent(dto::setVariantInfo);
             }
+            StringBuilder s = new StringBuilder();
+            for(VariantAttribute attribute : attributes){
+                s.append(attribute.getAttributeValue()).append(" - ");
+            }
+            s.deleteCharAt(s.length() - 1);
+            dto.setVariantDisplay(s.toString());
         } catch (Exception e) {
             System.err.println("Error converting item: productId=" + item.getProductId() + ", variantId=" + item.getVariantId() + ", error=" + e.getMessage());
         }

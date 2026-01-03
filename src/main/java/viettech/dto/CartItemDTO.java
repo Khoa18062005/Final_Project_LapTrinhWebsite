@@ -11,12 +11,13 @@ public class CartItemDTO {
     private int quantity;
     private VariantDTO variantInfo;
     private boolean selected;
+    private String variantDisplay;
     
     public CartItemDTO() {
         this.selected = true; // Mặc định chọn
     }
 
-    public CartItemDTO(int productId, boolean selected, VariantDTO variantInfo, double price, int variantId, String imageUrl, String productName, int quantity) {
+    public CartItemDTO(int productId, boolean selected, VariantDTO variantInfo, double price, int variantId, String imageUrl, String productName, int quantity, String variantDisplay) {
         this.productId = productId;
         this.selected = selected;
         this.variantInfo = variantInfo;
@@ -25,6 +26,7 @@ public class CartItemDTO {
         this.imageUrl = imageUrl;
         this.productName = productName;
         this.quantity = quantity;
+        this.variantDisplay = variantDisplay;
     }
 
     // Getters and Setters
@@ -97,4 +99,11 @@ public class CartItemDTO {
         return price * quantity;
     }
 
+    public String getVariantDisplay() {
+        return variantDisplay;
+    }
+
+    public void setVariantDisplay(String variantDisplay) {
+        this.variantDisplay = variantDisplay;
+    }
 }
