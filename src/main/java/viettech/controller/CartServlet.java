@@ -57,7 +57,7 @@ public class CartServlet extends HttpServlet {
                         ", price=" + item.getPrice() +
                         ", productName=" + item.getProductName() +
                         ", imageUrl=" + item.getImageUrl() +
-                        ", variantInfo=" + (item.getVariantInfo() != null ? item.getVariantInfo().getAttributes() : "null") +
+                        ", variantInfo=" + item.getVariantInfo() +
                         ", selected=" + item.isSelected());
             }
 
