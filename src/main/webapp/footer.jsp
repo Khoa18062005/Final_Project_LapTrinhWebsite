@@ -155,11 +155,11 @@
 
       <div class="modal-body text-center py-5 px-4">
         <!-- Tiêu đề Smember gradient xanh -->
-        <h1 class="smember-title mb-5">Smember</h1>
+        <h1 class="smember-title mb-5">VietTech Member</h1>
 
         <!-- Nội dung -->
         <p class="smember-text mb-5">
-          Vui lòng đăng nhập tài khoản Smember để<br>
+          Vui lòng đăng nhập tài khoản VTMember để<br>
           <strong>xem ưu đãi và thanh toán dễ dàng hơn.</strong>
         </p>
 

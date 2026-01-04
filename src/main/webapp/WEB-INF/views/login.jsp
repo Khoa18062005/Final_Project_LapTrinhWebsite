@@ -101,6 +101,8 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="${pageContext.request.contextPath}/assets/js/login.js"></script>
+<%--<canvas id="fireworks-canvas"></canvas>--%>
+<div class="css-fireworks-container" id="fireworks-container"></div>
 </body>
 </html>
