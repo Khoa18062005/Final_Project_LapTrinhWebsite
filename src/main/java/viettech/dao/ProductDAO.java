@@ -9,7 +9,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Product DAO - Data Access Object for Product entity (base class)
@@ -387,23 +390,54 @@ public class ProductDAO {
      * Tìm kiếm sản phẩm theo tên + JOIN FETCH images để load ảnh cùng lúc
      */
     public List<Product> searchByNameWithImages(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Normalize keyword đầy đủ: bỏ dấu + đ→d + lowercase
+        String normalizedKeyword = normalizeVietnamese(keyword.trim());
+        String searchPattern = "%" + normalizedKeyword + "%";
+
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            String jpql = "SELECT DISTINCT p FROM Product p " +
-                    "LEFT JOIN FETCH p.images " +
-                    "WHERE LOWER(p.name) LIKE LOWER(:keyword) " +
-                    "ORDER BY p.createdAt DESC";
-            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
-            query.setParameter("keyword", "%" + keyword + "%");
-            List<Product> products = query.getResultList();
-            logger.debug("✓ Found {} product(s) matching '{}' with images loaded", products.size(), keyword);
+            String jpql = """
+            SELECT DISTINCT p FROM Product p
+            LEFT JOIN FETCH p.images i
+            WHERE LOWER(p.name) LIKE :pattern
+               OR LOWER(p.brand) LIKE :pattern
+            ORDER BY p.createdAt DESC
+            """;
+
+            List<Product> products = em.createQuery(jpql, Product.class)
+                    .setParameter("pattern", searchPattern)
+                    .setMaxResults(100)
+                    .getResultList();
+
+            logger.debug("✓ Found {} product(s) for keyword '{}' (normalized: '{}')",
+                    products.size(), keyword, normalizedKeyword);
+
+            // Log thêm để debug (tạm thời để lại, sau xóa cũng được)
+            for (Product p : products) {
+                logger.debug("   → Matched: {} | Brand: {}", p.getName(), p.getBrand());
+            }
+
             return products;
+
         } catch (Exception e) {
-            logger.error("✗ Error searching products with images by name: {}", keyword, e);
-            throw new RuntimeException("Failed to search products with images", e);
+            logger.error("✗ Error searching products for keyword: {}", keyword, e);
+            throw new RuntimeException("Failed to search products", e);
         } finally {
             em.close();
         }
+    }
+
+    // Thêm method normalizeVietnamese vào ProductDAO (copy từ Service)
+    private String normalizeVietnamese(String input) {
+        if (input == null || input.isEmpty()) return "";
+        String temp = Normalizer.normalize(input, Normalizer.Form.NFD);
+        temp = Pattern.compile("\\p{InCombiningDiacriticalMarks}+").matcher(temp).replaceAll("");
+        temp = temp.replaceAll("đ", "d").replaceAll("Đ", "d");
+        return temp.toLowerCase();
     }
 
     /**
