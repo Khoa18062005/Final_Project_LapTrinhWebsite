@@ -49,6 +49,26 @@ public class RegisterServlet extends HttpServlet {
         regist_dto.setDateOfBirth(req.getParameter("dateOfBirth"));
         regist_dto.setGender(req.getParameter("gender"));
 
+        // ========== LẤY MÃ GIỚI THIỆU (NẾU CÓ) ==========
+        String referralCode = req.getParameter("referralCode");
+        Customer referrer = null;
+
+        // Kiểm tra mã giới thiệu nếu user nhập
+        if (referralCode != null && !referralCode.trim().isEmpty()) {
+            referrer = userService.findCustomerByReferralCode(referralCode.trim());
+
+            if (referrer == null) {
+                // Mã giới thiệu không hợp lệ
+                logger.warn("✗ Invalid referral code: {}", referralCode);
+                req.setAttribute("dto", regist_dto);
+                req.setAttribute("errorMessage", "Mã giới thiệu không hợp lệ. Vui lòng kiểm tra lại!");
+                req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
+                return;
+            } else {
+                logger.info("✓ Valid referral code from user: {}", referrer.getUsername());
+            }
+        }
+
         String inputOTP = req.getParameter("otp");
 
         // ✅ XÁC THỰC OTP
@@ -80,7 +100,7 @@ public class RegisterServlet extends HttpServlet {
         int checkUser = userService.register(regist_dto);
 
         if (checkUser == 1) {
-            handleSuccessfulRegistration(req, resp, regist_dto);
+            handleSuccessfulRegistration(req, resp, regist_dto, referrer);
         } else if (checkUser == 2) {
             handleEmailExists(req, resp, regist_dto);
         } else {
@@ -93,7 +113,8 @@ public class RegisterServlet extends HttpServlet {
      */
     private void handleSuccessfulRegistration(HttpServletRequest req,
                                               HttpServletResponse resp,
-                                              Register_dto dto) throws IOException {
+                                              Register_dto dto,
+                                              Customer referrer) throws IOException {
         Customer newCustomer = userService.findCustomerByEmail(dto.getEmail());
         userService.addCart(newCustomer);
 
@@ -104,13 +125,16 @@ public class RegisterServlet extends HttpServlet {
 
         logger.info("✓ User registered successfully: {} (ID: {})", dto.getEmail(), newCustomer.getUserId());
 
-        // ========== TẠO 2 THÔNG BÁO ==========
+        // ========== TẠO 2 THÔNG BÁO ĐĂNG KÝ CƠ BẢN ==========
         createRegistrationNotifications(newCustomer);
+
+        // ========== XỬ LÝ MÃ GIỚI THIỆU (NẾU CÓ) ==========
+        if (referrer != null) {
+            handleReferralRewards(newCustomer, referrer);
+        }
 
         // ✅ Lưu user vào session
         SessionUtil.setAttribute(req, "user", newCustomer);
-
-        // ✅ Đặt flag: user mới đăng ký (để hiển thị welcome message)
         SessionUtil.setAttribute(req, "isNewUser", true);
 
         SessionUtil.setSuccessMessage(req, "Chào mừng " + newCustomer.getFirstName() + " " + newCustomer.getLastName() +
@@ -128,9 +152,7 @@ public class RegisterServlet extends HttpServlet {
     }
 
     /**
-     * ========== TẠO 2 THÔNG BÁO ĐĂNG KÝ ==========
-     * 1. Thông báo đăng ký thành công (ảnh register)
-     * 2. Thông báo chào mừng (ảnh login)
+     * ========== TẠO 2 THÔNG BÁO ĐĂNG KÝ CƠ BẢN ==========
      */
     private void createRegistrationNotifications(Customer customer) {
         int userId = customer.getUserId();
@@ -138,13 +160,11 @@ public class RegisterServlet extends HttpServlet {
         String lastName = customer.getLastName();
 
         try {
-            // ========== THÔNG BÁO 1: ĐĂNG KÝ THÀNH CÔNG ==========
+            // THÔNG BÁO 1: ĐĂNG KÝ THÀNH CÔNG
             logger.debug("Creating REGISTER notification for user: {}", userId);
 
             Notification registerNotification = NotificationTemplateUtil.createRegisterNotification(
-                    userId,
-                    firstName,
-                    lastName
+                    userId, firstName, lastName
             );
 
             boolean registerSuccess = notificationService.createNotification(registerNotification);
@@ -155,13 +175,11 @@ public class RegisterServlet extends HttpServlet {
                 logger.warn("✗ Failed to create REGISTER notification for user: {}", userId);
             }
 
-            // ========== THÔNG BÁO 2: CHÀO MỪNG ==========
+            // THÔNG BÁO 2: CHÀO MỪNG
             logger.debug("Creating WELCOME notification for user: {}", userId);
 
             Notification welcomeNotification = NotificationTemplateUtil.createWelcomeNotification(
-                    userId,
-                    firstName,
-                    lastName
+                    userId, firstName, lastName
             );
 
             boolean welcomeSuccess = notificationService.createNotification(welcomeNotification);
@@ -172,7 +190,6 @@ public class RegisterServlet extends HttpServlet {
                 logger.warn("✗ Failed to create WELCOME notification for user: {}", userId);
             }
 
-            // ========== TỔNG KẾT ==========
             if (registerSuccess && welcomeSuccess) {
                 logger.info("✓ Both registration notifications created successfully for user: {}", userId);
             } else {
@@ -180,8 +197,69 @@ public class RegisterServlet extends HttpServlet {
             }
 
         } catch (Exception e) {
-            // Không cho lỗi notification ảnh hưởng đến đăng ký
             logger.error("✗ Failed to create registration notifications for user: {}", userId, e);
+        }
+    }
+
+    /**
+     * ========== XỬ LÝ THƯỞNG MÃ GIỚI THIỆU ==========
+     * ← METHOD MỚI
+     * Cộng điểm và tạo thông báo cho cả 2 bên
+     */
+    private void handleReferralRewards(Customer newCustomer, Customer referrer) {
+        try {
+            logger.info("Processing referral rewards for new user: {} (referred by: {})",
+                    newCustomer.getEmail(), referrer.getUsername());
+
+            // ========== CỘNG ĐIỂM CHO NGƯỜI GIỚI THIỆU (200 POINTS) ==========
+            boolean referrerBonusSuccess = userService.addReferrerBonus(referrer);
+
+            if (referrerBonusSuccess) {
+                // Tạo thông báo cho người giới thiệu
+                Notification referrerNotification = NotificationTemplateUtil.createReferralRewardNotification(
+                        referrer.getUserId(),
+                        referrer.getFirstName(),
+                        referrer.getLastName(),
+                        newCustomer.getFirstName() + " " + newCustomer.getLastName(),
+                        UserService.getReferrerBonus()
+                );
+
+                boolean notifSuccess = notificationService.createNotification(referrerNotification);
+                if (notifSuccess) {
+                    logger.info("✓ Referrer reward notification created for user: {}", referrer.getUserId());
+                }
+            }
+
+            // ========== CỘNG ĐIỂM CHO NGƯỜI ĐƯỢC GIỚI THIỆU (50 POINTS) ==========
+            boolean referredBonusSuccess = userService.addReferredBonus(newCustomer);
+
+            if (referredBonusSuccess) {
+                // ===== LẤY MÃ GIỚI THIỆU (8 KÝ TỰ) =====
+                String referrerCode = referrer.getReferralCode(); // "ABCD1234"
+
+                // Tạo thông báo cho người được giới thiệu
+                Notification referredNotification = NotificationTemplateUtil.createReferralWelcomeNotification(
+                        newCustomer.getUserId(),
+                        newCustomer.getFirstName(),
+                        newCustomer.getLastName(),
+                        referrerCode,  // ← Dùng mã 8 ký tự thay vì username
+                        UserService.getReferredBonus()
+                );
+
+                boolean notifSuccess = notificationService.createNotification(referredNotification);
+                if (notifSuccess) {
+                    logger.info("✓ Referred welcome notification created for user: {}", newCustomer.getUserId());
+                }
+            }
+
+            if (referrerBonusSuccess && referredBonusSuccess) {
+                logger.info("✓ Referral rewards processed successfully");
+            } else {
+                logger.warn("⚠ Some referral rewards failed to process");
+            }
+
+        } catch (Exception e) {
+            logger.error("✗ Failed to process referral rewards", e);
         }
     }
 
@@ -196,7 +274,6 @@ public class RegisterServlet extends HttpServlet {
         req.setAttribute("errorMessage", "Email này đã được sử dụng. Vui lòng đăng nhập.");
         req.setAttribute("email", dto.getEmail());
 
-        // Forward về trang đăng nhập
         req.getRequestDispatcher("/WEB-INF/views/login.jsp").forward(req, resp);
     }
 
@@ -210,8 +287,6 @@ public class RegisterServlet extends HttpServlet {
 
         req.setAttribute("dto", dto);
         req.setAttribute("errorMessage", "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.");
-
-        // Forward lại trang đăng ký
         req.getRequestDispatcher("/WEB-INF/views/register.jsp").forward(req, resp);
     }
 }

@@ -137,7 +137,7 @@
         </a>
 
         <!-- Giỏ hàng -->
-        <a href="${pageContext.request.contextPath}/cart">
+        <a href="${pageContext.request.contextPath}/cart" class="cart-oder">
           <div class="items-header">
             <i class="bi bi-cart3 fs-4 text-white"></i>
             <h5>Giỏ hàng</h5>
