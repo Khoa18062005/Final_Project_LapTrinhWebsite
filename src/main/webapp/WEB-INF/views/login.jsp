@@ -29,7 +29,6 @@
         <!-- THÔNG BÁO LỖI (nếu có) -->
         <c:if test="${not empty errorMessage}">
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 <strong>Lỗi!</strong> ${errorMessage}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -81,7 +80,6 @@
         <!-- Các liên kết phụ -->
         <div class="text-center mt-4">
             <a href="${pageContext.request.contextPath}/forgot-password" class="text-decoration-none">
-                <i class="bi bi-question-circle me-1"></i>
                 Quên mật khẩu?
             </a>
         </div>
@@ -95,7 +93,6 @@
         <!-- Link về trang chủ -->
         <div class="text-center mt-3">
             <a href="${pageContext.request.contextPath}/" class="text-muted text-decoration-none">
-                <i class="bi bi-house-door me-1"></i>
                 Quay về trang chủ
             </a>
         </div>

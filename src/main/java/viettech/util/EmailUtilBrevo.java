@@ -283,6 +283,34 @@ public class EmailUtilBrevo {
                 """, title, description, otp, footer);
     }
 
+    public static boolean sendForgotPasswordOTP(String toEmail, String otp, String userName) {
+        String subject = "Mã OTP đặt lại mật khẩu - VietTech";
+        String htmlContent = buildForgotPasswordOTPTemplate(otp, userName);
+
+        try {
+            sendMail(toEmail, SENDER_EMAIL, subject, htmlContent, true);
+            logger.info("✓ Forgot password OTP sent to: {}", toEmail);
+            return true;
+        } catch (IOException e) {
+            logger.error("✗ Failed to send forgot password OTP to: {}", toEmail, e);
+            return false;
+        }
+    }
+
+    /**
+     * Template OTP quên mật khẩu
+     */
+    private static String buildForgotPasswordOTPTemplate(String otp, String userName) {
+        return buildOTPTemplate(
+                "🔐 Đặt lại mật khẩu",
+                "Xin chào <strong>" + userName + "</strong>,<br><br>" +
+                        "Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản <strong>VietTech</strong> của bạn. " +
+                        "Để tiếp tục, vui lòng nhập mã OTP bên dưới:",
+                otp,
+                "Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này để bảo mật tài khoản."
+        );
+    }
+
     private EmailUtilBrevo() {
         throw new AssertionError("Cannot instantiate utility class");
     }

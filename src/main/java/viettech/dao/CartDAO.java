@@ -147,5 +147,21 @@ public class CartDAO {
             em.close();
         }
     }
+
+    public int getTotalQuantityByCartId(int cartId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT SUM(ci.quantity) FROM CartItem ci WHERE ci.cartId = :cartId";
+            Long sum = em.createQuery(jpql, Long.class)
+                    .setParameter("cartId", cartId)
+                    .getSingleResult();
+            return sum != null ? sum.intValue() : 0;
+        } catch (Exception e) {
+            logger.error("✗ Error getting total quantity for cart ID: {}", cartId, e);
+            return 0;
+        } finally {
+            em.close();
+        }
+    }
 }
 

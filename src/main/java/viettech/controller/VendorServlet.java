@@ -45,14 +45,14 @@ public class VendorServlet extends HttpServlet {
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
         // 2. Bảo mật: Chỉ Vendor (Role = 2) được vào
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
-        if (user.getRoleID() != 2) {
-            response.sendRedirect(request.getContextPath() + "/");
-            return;
-        }
+//        if (user == null) {
+//            response.sendRedirect(request.getContextPath() + "/login");
+//            return;
+//        }
+//        if (user.getRoleID() != 2) {
+//            response.sendRedirect(request.getContextPath() + "/");
+//            return;
+//        }
 
         // 3. Lấy action từ request
         String action = request.getParameter("action");
@@ -223,11 +223,11 @@ public class VendorServlet extends HttpServlet {
                 return;
             } else if (action.equals("getAvailableShippers")) {
                 // Lấy danh sách shipper khả dụng
-                handleGetAvailableShippers(request, response, vendorId);
+                GetAvailableShippers(request, response, vendorId);
                 return;
             }
 
-            // Forward to vendor.jsp - let JSP handle routing based on action parameter
+            // Forward to vendor.jsp - let JSP  routing based on action parameter
             request.getRequestDispatcher("/WEB-INF/views/vendor.jsp").forward(request, response);
 
         } catch (Exception e) {
@@ -263,25 +263,25 @@ public class VendorServlet extends HttpServlet {
 
             switch (action) {
                 case "addProduct":
-                    handleAddProduct(request, response, vendorId);
+                    AddProduct(request, response, vendorId);
                     break;
                 case "updateProduct":
-                    handleUpdateProduct(request, response, vendorId);
+                    UpdateProduct(request, response, vendorId);
                     break;
                 case "deleteProduct":
-                    handleDeleteProduct(request, response, vendorId);
+                    DeleteProduct(request, response, vendorId);
                     break;
                 case "updateOrderStatus":
-                    handleUpdateOrderStatus(request, response, vendorId);
+                    UpdateOrderStatus(request, response, vendorId);
                     break;
                 case "cancelOrder":
-                    handleCancelOrder(request, response, vendorId);
+                    CancelOrder(request, response, vendorId);
                     break;
                 case "assignShipper":
-                    handleAssignShipper(request, response, vendorId);
+                    AssignShipper(request, response, vendorId);
                     break;
                 case "getAvailableShippers":
-                    handleGetAvailableShippers(request, response, vendorId);
+                    GetAvailableShippers(request, response, vendorId);
                     break;
                 default:
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -294,8 +294,6 @@ public class VendorServlet extends HttpServlet {
         }
     }
 
-    // ==================== HELPER METHODS ====================
-
     private void showDashboard(HttpServletRequest request, HttpServletResponse response, int vendorId)
             throws ServletException, IOException {
         Vendor_dto data = vendorService.getDashboardData(vendorId);
@@ -306,7 +304,7 @@ public class VendorServlet extends HttpServlet {
         request.getRequestDispatcher("/WEB-INF/views/vendor.jsp").forward(request, response);
     }
 
-    private void handleAddProduct(HttpServletRequest request, HttpServletResponse response, int vendorId)
+    private void AddProduct(HttpServletRequest request, HttpServletResponse response, int vendorId)
             throws IOException {
         try {
             // Đọc JSON data từ request body
@@ -325,7 +323,7 @@ public class VendorServlet extends HttpServlet {
         }
     }
 
-    private void handleUpdateProduct(HttpServletRequest request, HttpServletResponse response, int vendorId)
+    private void UpdateProduct(HttpServletRequest request, HttpServletResponse response, int vendorId)
             throws IOException {
         try {
             String productIdStr = request.getParameter("productId");
@@ -350,7 +348,7 @@ public class VendorServlet extends HttpServlet {
         }
     }
 
-    private void handleDeleteProduct(HttpServletRequest request, HttpServletResponse response, int vendorId)
+    private void DeleteProduct(HttpServletRequest request, HttpServletResponse response, int vendorId)
             throws IOException {
         try {
             String productIdStr = request.getParameter("productId");
@@ -368,7 +366,7 @@ public class VendorServlet extends HttpServlet {
         }
     }
 
-    private void handleUpdateOrderStatus(HttpServletRequest request, HttpServletResponse response, int vendorId)
+    private void UpdateOrderStatus(HttpServletRequest request, HttpServletResponse response, int vendorId)
             throws IOException {
         try {
             String orderIdStr = request.getParameter("orderId");
@@ -388,7 +386,7 @@ public class VendorServlet extends HttpServlet {
         }
     }
 
-    private void handleCancelOrder(HttpServletRequest request, HttpServletResponse response, int vendorId)
+    private void CancelOrder(HttpServletRequest request, HttpServletResponse response, int vendorId)
             throws IOException {
         try {
             String orderIdStr = request.getParameter("orderId");
@@ -412,7 +410,7 @@ public class VendorServlet extends HttpServlet {
         }
     }
 
-    private void handleAssignShipper(HttpServletRequest request, HttpServletResponse response, int vendorId)
+    private void AssignShipper(HttpServletRequest request, HttpServletResponse response, int vendorId)
             throws IOException {
         try {
             String orderIdStr = request.getParameter("orderId");
@@ -434,13 +432,10 @@ public class VendorServlet extends HttpServlet {
         }
     }
 
-    private void handleGetAvailableShippers(HttpServletRequest request, HttpServletResponse response, int vendorId)
+    private void GetAvailableShippers(HttpServletRequest request, HttpServletResponse response, int vendorId)
             throws IOException {
         try {
-            // For now, return a mock list of shippers
-            // In a real application, you would query the database for available shippers
-            List<Map<String, Object>> shippers = new ArrayList<>();
-
+            List<Shipper> shippers = vendorService.getAvailableShippers();
             sendJsonResponse(response, true, "Available shippers retrieved successfully", shippers);
         } catch (Exception e) {
             logger.error("Error getting available shippers", e);

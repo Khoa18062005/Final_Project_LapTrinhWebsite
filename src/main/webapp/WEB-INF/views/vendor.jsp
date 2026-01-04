@@ -702,7 +702,8 @@
                                 <c:if test="${not empty approval.productData && approval.actionType != 'DELETE'}">
                                     <div class="product-preview">
                                         <h6><i class="fas fa-info-circle"></i> Thông tin sản phẩm</h6>
-                                        <div class="text-muted">
+                                        <div class="text-muted json-data-container" data-json='${approval.productData}'>
+                                            <!-- Content will be formatted by JS -->
                                             <small class="font-monospace">
                                                 ${fn:substring(approval.productData, 0, 150)}...
                                             </small>
@@ -1790,13 +1791,12 @@
                         const total = item.quantity * item.price;
                         const div = document.createElement('div');
                         div.classList.add('mb-2');
-                        div.innerHTML = `
-                            <strong>\${item.productName}</strong> (x\${item.quantity})<br>
-                            <small class="text-muted">
-                                Giá: \${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price)}<br>
-                                Thành tiền: \${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total)}
-                            </small>
-                        `;
+                        div.innerHTML =
+                            '<strong>' + item.productName + '</strong> (x' + item.quantity + ')<br>' +
+                            '<small class="text-muted">' +
+                            'Giá: ' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price) + '<br>' +
+                            'Thành tiền: ' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total) +
+                            '</small>';
                         itemsContainer.appendChild(div);
                     });
                 } else {
@@ -2045,7 +2045,52 @@
         if (window.location.href.includes('action=shipping')) {
             loadShipperInfo();
         }
+        
+        // Format JSON data if present
+        formatJsonData();
     });
+
+    // Format JSON Data for display
+    function formatJsonData() {
+        const containers = document.querySelectorAll('.json-data-container');
+        containers.forEach(container => {
+            try {
+                const jsonStr = container.getAttribute('data-json');
+                if (!jsonStr) return;
+                
+                const data = JSON.parse(jsonStr);
+                let html = '<ul class="list-unstyled mb-0 small">';
+                
+                // Fields to display nicely
+                const fieldMap = {
+                    'name': 'Tên SP',
+                    'categoryId': 'Danh mục ID',
+                    'brand': 'Thương hiệu',
+                    'basePrice': 'Giá bán',
+                    'description': 'Mô tả',
+                    'status': 'Trạng thái',
+                    'specifications': 'Thông số'
+                };
+                
+                for (const [key, value] of Object.entries(data)) {
+                    if (value && fieldMap[key]) {
+                        // Truncate long descriptions
+                        let displayValue = value;
+                        if (key === 'description' && value.length > 50) {
+                            displayValue = value.substring(0, 50) + '...';
+                        }
+                        
+                        html += `<li><strong>${fieldMap[key]}:</strong> ${displayValue}</li>`;
+                    }
+                }
+                html += '</ul>';
+                container.innerHTML = html;
+            } catch (e) {
+                console.error('Error formatting JSON', e);
+                // Leave original content on error
+            }
+        });
+    }
 </script>
 </body>
 </html>

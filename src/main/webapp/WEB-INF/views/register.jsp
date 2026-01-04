@@ -26,7 +26,7 @@
 
 <div class="container mt-5">
   <div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="col-md-4">
       <div class="card shadow">
         <div class="card-header text-white text-center">
           <h3>Đăng ký tài khoản</h3>
@@ -128,6 +128,15 @@
                   <label class="form-check-label" for="other">Khác</label>
                 </div>
               </div>
+            </div>
+
+            <!-- Mã giới thiệu (KHÔNG BẮT BUỘC) -->
+            <div class="mb-3">
+              <label class="form-label">Mã giới thiệu <span class="text-muted small">(Không bắt buộc)</span></label>
+              <input type="text" name="referralCode" class="form-control"
+                     placeholder="Nhập mã giới thiệu nếu có" value="${dto.referralCode}"
+                     maxlength="20">
+              <small class="text-muted">Nếu bạn có mã giới thiệu từ người dùng khác, hãy nhập vào đây</small>
             </div>
 
             <!-- Buttons -->

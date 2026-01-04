@@ -61,8 +61,8 @@
               <i class="bi bi-ticket-perforated fs-1 text-muted mb-3 d-block"></i>
               <h5>Chưa có voucher nào</h5>
               <p class="text-muted">Khám phá các ưu đãi hấp dẫn từ VietTech</p>
-              <a href="${pageContext.request.contextPath}/" class="btn btn-primary">
-                <i class="bi bi-arrow-left me-2"></i> Về Trang Chủ
+              <a href="${pageContext.request.contextPath}/" class="btn btn-primary btn-sm mt-1">
+                <i class="bi bi-arrow-left me-1"></i> Về trang chủ
               </a>
             </div>
           </c:when>

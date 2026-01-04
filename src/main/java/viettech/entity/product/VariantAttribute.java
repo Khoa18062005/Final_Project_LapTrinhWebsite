@@ -27,7 +27,7 @@ public class VariantAttribute {
     private int sortOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "varient_id", insertable = false, updatable = false)
+    @JoinColumn(name = "variant_id", insertable = false, updatable = false)
     private Variant variant;
 
     /* =======================

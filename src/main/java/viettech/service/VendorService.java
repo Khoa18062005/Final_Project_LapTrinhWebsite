@@ -49,7 +49,8 @@ public class VendorService {
 
             // 1.1. Lấy thông tin Warehouse của Vendor
             String warehouseQuery = "SELECT w FROM Warehouse w WHERE w.vendor.userId = :vid";
-            List<viettech.entity.storage.Warehouse> warehouses = em.createQuery(warehouseQuery, viettech.entity.storage.Warehouse.class)
+            List<viettech.entity.storage.Warehouse> warehouses = em
+                    .createQuery(warehouseQuery, viettech.entity.storage.Warehouse.class)
                     .setParameter("vid", vendorId)
                     .getResultList();
             if (!warehouses.isEmpty()) {
@@ -90,7 +91,8 @@ public class VendorService {
             // 4. Tính toán thống kê Đơn hàng
             long newOrders = 0;
             double revenue = 0;
-            Date startOfMonth = Date.from(LocalDate.now().withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date startOfMonth = Date
+                    .from(LocalDate.now().withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             for (Order o : orders) {
                 // Đếm đơn mới (Pending hoặc Processing)
@@ -107,10 +109,12 @@ public class VendorService {
             dto.setNewOrdersCount(newOrders);
             logger.info("Calculated stats: newOrders={}, revenue={}", newOrders, revenue);
 
-            // 5. Lấy danh sách đơn cần giao cho Shipper (Ví dụ trạng thái: Confirmed hoặc Processing)
+            // 5. Lấy danh sách đơn cần giao cho Shipper (Ví dụ trạng thái: Confirmed hoặc
+            // Processing)
             // Lọc từ list orders đã lấy ở trên để đỡ query nhiều lần
             List<Order> shippingOrders = orders.stream()
-                    .filter(o -> "Processing".equalsIgnoreCase(o.getStatus()) || "Confirmed".equalsIgnoreCase(o.getStatus()))
+                    .filter(o -> "Processing".equalsIgnoreCase(o.getStatus())
+                            || "Confirmed".equalsIgnoreCase(o.getStatus()))
                     .toList(); // Java 16+, nếu thấp hơn dùng Collectors.toList()
             dto.setPendingShippingOrders(shippingOrders);
             logger.info("Found {} orders ready for shipping", shippingOrders.size());
@@ -231,7 +235,9 @@ public class VendorService {
             String jpql = "SELECT p FROM Product p WHERE p.vendorId = :vendorId ORDER BY p.createdAt DESC";
             TypedQuery<Product> query = em.createQuery(jpql, Product.class);
             query.setParameter("vendorId", vendorId);
-            return query.getResultList();
+            List<Product> products = query.getResultList();
+            logger.info("✓ Found {} products for vendor {}", products.size(), vendorId);
+            return products;
         } catch (Exception e) {
             logger.error("✗ Failed to get all products for vendor {}", vendorId, e);
             throw new RuntimeException("Failed to get products", e);
@@ -290,7 +296,7 @@ public class VendorService {
 
             orderDAO.update(order);
             logger.info("✓ Vendor {} updated order {} status from {} to {}",
-                vendorId, orderId, oldStatus, newStatus);
+                    vendorId, orderId, oldStatus, newStatus);
             return order;
         } catch (Exception e) {
             logger.error("✗ Failed to update order status for vendor {}", vendorId, e);
@@ -345,6 +351,26 @@ public class VendorService {
     }
 
     /**
+     * Cập nhật ghi chú đơn hàng
+     */
+    public Order updateOrderNotes(int orderId, String notes, int vendorId) {
+        try {
+            Order order = orderDAO.findById(orderId);
+            if (order == null || order.getVendorId() != vendorId) {
+                throw new RuntimeException("Order not found or access denied");
+            }
+
+            order.setNotes(notes);
+            orderDAO.update(order);
+            logger.info("Updated notes for order {}", orderId);
+            return order;
+        } catch (Exception e) {
+            logger.error("Failed to update order notes for order {}", orderId, e);
+            throw new RuntimeException("Failed to update order notes", e);
+        }
+    }
+
+    /**
      * Lấy chi tiết đơn hàng bao gồm thông tin sản phẩm
      */
     public List<OrderDetail> getOrderDetails(int orderId, int vendorId) {
@@ -356,7 +382,9 @@ public class VendorService {
                 return null;
             }
 
-            String jpql = "SELECT od FROM OrderDetail od WHERE od.orderId = :orderId";
+            String jpql = "SELECT od FROM OrderDetail od " +
+                    "LEFT JOIN FETCH od.product p " +
+                    "WHERE od.orderId = :orderId";
             TypedQuery<OrderDetail> query = em.createQuery(jpql, OrderDetail.class);
             query.setParameter("orderId", orderId);
             return query.getResultList();
@@ -436,25 +464,95 @@ public class VendorService {
     }
 
     /**
+     * Hủy phân chia shipper cho đơn hàng
+     */
+    public void unassignShipper(int orderId, int vendorId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            Order order = orderDAO.findById(orderId);
+            if (order == null || order.getVendorId() != vendorId) {
+                throw new RuntimeException("Order not found or access denied");
+            }
+
+            // Xóa assignment
+            String jpql = "DELETE FROM DeliveryAssignment da WHERE da.deliveryId = :orderId";
+            int deleted = em.createQuery(jpql).setParameter("orderId", orderId).executeUpdate();
+            if (deleted > 0) {
+                order.setStatus("Processing"); // Quay lại trạng thái trước
+                orderDAO.update(order);
+                logger.info("Unassigned shipper from order {}", orderId);
+            }
+        } catch (Exception e) {
+            logger.error("Failed to unassign shipper from order {}", orderId, e);
+            throw new RuntimeException("Failed to unassign shipper", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
      * Lấy danh sách đơn hàng cần giao với thông tin chi tiết
      */
     public List<Order> getOrdersReadyForShipping(int vendorId) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            String jpql = "SELECT DISTINCT o FROM Order o " +
-                    "LEFT JOIN FETCH o.customer c " +
-                    "LEFT JOIN FETCH o.address a " +
-                    "LEFT JOIN FETCH o.orderDetails od " +
-                    "LEFT JOIN FETCH od.product p " +
+            // Step 1: Get basic orders first
+            String jpql = "SELECT o FROM Order o " +
                     "WHERE o.vendorId = :vendorId " +
-                    "AND (o.status = 'Processing' OR o.status = 'Confirmed' OR o.status = 'Ready') " +
-                    "ORDER BY o.orderDate DESC";
+                    "AND (o.status = 'Processing' OR o.status = 'Confirmed' OR o.status = 'Ready')";
             TypedQuery<Order> query = em.createQuery(jpql, Order.class);
             query.setParameter("vendorId", vendorId);
-            return query.getResultList();
+            List<Order> orders = query.getResultList();
+
+            if (orders.isEmpty()) {
+                logger.info("✓ Found 0 orders ready for shipping for vendor {}", vendorId);
+                return orders;
+            }
+
+            // Step 2: Load customer and address for each order
+            // We use a safe list to store only orders that can be fully loaded
+            List<Order> validOrders = new java.util.ArrayList<>();
+
+            for (Order order : orders) {
+                try {
+                    if (order.getCustomer() != null) {
+                        // Force initialization of customer
+                        order.getCustomer().getFirstName();
+                    }
+                    if (order.getAddress() != null) {
+                        // Force initialization of address
+                        order.getAddress().getStreet();
+                    }
+                    if (order.getOrderDetails() != null) {
+                        // Force initialization of order details
+                        order.getOrderDetails().size();
+                        // Force initialization of products in order details
+                        for (Object od : order.getOrderDetails()) {
+                            OrderDetail detail = (OrderDetail) od;
+                            if (detail.getProductName() != null) {
+                                detail.getProductName();
+                            }
+                            // Accessing variant info might trigger the error if Variant is missing
+                            // depending on how OrderDetail maps to Variant (if it has a OneToOne/ManyToOne)
+                        }
+                    }
+                    validOrders.add(order);
+                } catch (javax.persistence.EntityNotFoundException e) {
+                    logger.error(
+                            "Skipping order {} due to missing entity reference (likely deleted product/variant): {}",
+                            order.getOrderId(), e.getMessage());
+                } catch (Exception e) {
+                    logger.error("Skipping order {} due to error loading details: {}", order.getOrderId(),
+                            e.getMessage());
+                }
+            }
+
+            logger.info("✓ Found {} orders ready for shipping for vendor {} ({} skipped)", validOrders.size(), vendorId,
+                    orders.size() - validOrders.size());
+            return validOrders;
         } catch (Exception e) {
             logger.error("✗ Failed to get orders ready for shipping for vendor {}", vendorId, e);
-            throw new RuntimeException("Failed to get orders ready for shipping", e);
+            throw new RuntimeException("Failed to get orders ready for shipping: " + e.getMessage(), e);
         } finally {
             em.close();
         }
@@ -500,29 +598,69 @@ public class VendorService {
         }
 
         // Getters and setters
-        public int getOrderId() { return orderId; }
-        public void setOrderId(int orderId) { this.orderId = orderId; }
+        public int getOrderId() {
+            return orderId;
+        }
 
-        public String getOrderNumber() { return orderNumber; }
-        public void setOrderNumber(String orderNumber) { this.orderNumber = orderNumber; }
+        public void setOrderId(int orderId) {
+            this.orderId = orderId;
+        }
 
-        public String getStatus() { return status; }
-        public void setStatus(String status) { this.status = status; }
+        public String getOrderNumber() {
+            return orderNumber;
+        }
 
-        public double getTotalPrice() { return totalPrice; }
-        public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
+        public void setOrderNumber(String orderNumber) {
+            this.orderNumber = orderNumber;
+        }
 
-        public double getShippingFee() { return shippingFee; }
-        public void setShippingFee(double shippingFee) { this.shippingFee = shippingFee; }
+        public String getStatus() {
+            return status;
+        }
 
-        public String getOrderDate() { return orderDate; }
-        public void setOrderDate(String orderDate) { this.orderDate = orderDate; }
+        public void setStatus(String status) {
+            this.status = status;
+        }
 
-        public CustomerInfoDTO getCustomer() { return customer; }
-        public void setCustomer(CustomerInfoDTO customer) { this.customer = customer; }
+        public double getTotalPrice() {
+            return totalPrice;
+        }
 
-        public AddressInfoDTO getAddress() { return address; }
-        public void setAddress(AddressInfoDTO address) { this.address = address; }
+        public void setTotalPrice(double totalPrice) {
+            this.totalPrice = totalPrice;
+        }
+
+        public double getShippingFee() {
+            return shippingFee;
+        }
+
+        public void setShippingFee(double shippingFee) {
+            this.shippingFee = shippingFee;
+        }
+
+        public String getOrderDate() {
+            return orderDate;
+        }
+
+        public void setOrderDate(String orderDate) {
+            this.orderDate = orderDate;
+        }
+
+        public CustomerInfoDTO getCustomer() {
+            return customer;
+        }
+
+        public void setCustomer(CustomerInfoDTO customer) {
+            this.customer = customer;
+        }
+
+        public AddressInfoDTO getAddress() {
+            return address;
+        }
+
+        public void setAddress(AddressInfoDTO address) {
+            this.address = address;
+        }
     }
 
     /**
@@ -550,17 +688,37 @@ public class VendorService {
         }
 
         // Getters and setters
-        public String getFirstName() { return firstName; }
-        public void setFirstName(String firstName) { this.firstName = firstName; }
+        public String getFirstName() {
+            return firstName;
+        }
 
-        public String getLastName() { return lastName; }
-        public void setLastName(String lastName) { this.lastName = lastName; }
+        public void setFirstName(String firstName) {
+            this.firstName = firstName;
+        }
 
-        public String getEmail() { return email; }
-        public void setEmail(String email) { this.email = email; }
+        public String getLastName() {
+            return lastName;
+        }
 
-        public String getPhone() { return phone; }
-        public void setPhone(String phone) { this.phone = phone; }
+        public void setLastName(String lastName) {
+            this.lastName = lastName;
+        }
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getPhone() {
+            return phone;
+        }
+
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
     }
 
     /**
@@ -588,17 +746,37 @@ public class VendorService {
         }
 
         // Getters and setters
-        public String getStreet() { return street; }
-        public void setStreet(String street) { this.street = street; }
+        public String getStreet() {
+            return street;
+        }
 
-        public String getDistrict() { return district; }
-        public void setDistrict(String district) { this.district = district; }
+        public void setStreet(String street) {
+            this.street = street;
+        }
 
-        public String getCity() { return city; }
-        public void setCity(String city) { this.city = city; }
+        public String getDistrict() {
+            return district;
+        }
 
-        public String getWard() { return ward; }
-        public void setWard(String ward) { this.ward = ward; }
+        public void setDistrict(String district) {
+            this.district = district;
+        }
+
+        public String getCity() {
+            return city;
+        }
+
+        public void setCity(String city) {
+            this.city = city;
+        }
+
+        public String getWard() {
+            return ward;
+        }
+
+        public void setWard(String ward) {
+            this.ward = ward;
+        }
     }
 
     /**
@@ -616,14 +794,51 @@ public class VendorService {
         }
 
         // Getters and setters
-        public String getProductName() { return productName; }
-        public void setProductName(String productName) { this.productName = productName; }
+        public String getProductName() {
+            return productName;
+        }
 
-        public int getQuantity() { return quantity; }
-        public void setQuantity(int quantity) { this.quantity = quantity; }
+        public void setProductName(String productName) {
+            this.productName = productName;
+        }
 
-        public double getPrice() { return price; }
-        public void setPrice(double price) { this.price = price; }
-        public double getTotal() { return quantity * price; }
+        public int getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(int quantity) {
+            this.quantity = quantity;
+        }
+
+        public double getPrice() {
+            return price;
+        }
+
+        public void setPrice(double price) {
+            this.price = price;
+        }
+
+        public double getTotal() {
+            return quantity * price;
+        }
+    }
+
+    /**
+     * Lấy danh sách shipper có sẵn
+     */
+    public List<Shipper> getAvailableShippers() {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            String jpql = "SELECT s FROM Shipper s WHERE s.isAvailable = true";
+            TypedQuery<Shipper> query = em.createQuery(jpql, Shipper.class);
+            List<Shipper> shippers = query.getResultList();
+            logger.info("✓ Found {} available shippers", shippers.size());
+            return shippers;
+        } catch (Exception e) {
+            logger.error("✗ Failed to get available shippers", e);
+            throw new RuntimeException("Failed to get available shippers", e);
+        } finally {
+            em.close();
+        }
     }
 }

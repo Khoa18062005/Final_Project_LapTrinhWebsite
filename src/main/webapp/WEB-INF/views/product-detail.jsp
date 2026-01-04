@@ -21,8 +21,11 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/variant-selector.css">
 
+
     <!-- JavaScript cho chọn variant -->
     <script src="${pageContext.request.contextPath}/assets/js/variant-selector.js" defer></script>
+    <script src="${pageContext.request.contextPath}/assets/js/cart-ajax.js" defer></script>
+
     <script>
         // Khởi tạo biến toàn cục từ dữ liệu JSP
         <c:if test="${not empty variants}">
@@ -49,11 +52,27 @@
             ]
         };
         </c:if>
+
     </script>
 </head>
 
 <body>
-<jsp:include page="/WEB-INF/views/layout/header.jsp" />
+<jsp:include page="/header.jsp" />
+
+<!-- Toast Container -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
+    <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong class="me-auto">Thành công</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <span id="toast-message">Đã thêm sản phẩm vào giỏ hàng!</span>
+        </div>
+    </div>
+</div>
+
 
 <div class="container">
     <!-- Breadcrumb -->
@@ -178,7 +197,7 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <form action="${pageContext.request.contextPath}/cart/add" method="POST"
+                <form action="${pageContext.request.contextPath}/cart" method="POST"
                       class="d-inline" id="add-to-cart-form">
                     <input type="hidden" name="productId" value="${product.productId}">
                     <input type="hidden" name="quantity" value="1">
@@ -189,14 +208,30 @@
                     </button>
                 </form>
 
-                <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post" id="buy-now-form">
-                    <input type="hidden" name="productId" value="${product.productId}">
-                    <input type="hidden" name="quantity" value="1">
-                    <input type="hidden" name="variantId" id="buy-now-variant-id" value="">
-                    <button type="submit" class="btn btn-secondary" id="buy-now-btn">
-                        Mua ngay
-                    </button>
-                </form>
+                <!-- Kiểm tra đăng nhập cho nút Mua ngay -->
+                <c:choose>
+                    <c:when test="${not empty sessionScope.user}">
+                        <!-- Đã đăng nhập: Hiển thị form mua ngay bình thường -->
+                        <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post" id="buy-now-form">
+                            <input type="hidden" name="productId" value="${product.productId}">
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="variantId" id="buy-now-variant-id" value="">
+                            <button type="submit" class="btn btn-secondary" id="buy-now-btn">
+                                Mua ngay
+                            </button>
+                        </form>
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Chưa đăng nhập: Hiển thị nút mở modal Smember -->
+                        <button type="button"
+                                class="btn btn-secondary"
+                                id="buy-now-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#smemberModal">
+                            Mua ngay
+                        </button>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
     </div>
@@ -791,6 +826,17 @@
     </div>
 </div>
 
-<jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+<jsp:include page="/footer.jsp" />
+
+<!-- Biến JavaScript để kiểm tra trạng thái đăng nhập (truyền từ server) -->
+<script>
+    // Biến toàn cục cho JavaScript - QUAN TRỌNG: PHẢI CÓ
+    const contextPath = "${pageContext.request.contextPath}";
+    const isLoggedIn = ${not empty sessionScope.user};
+</script>
+
+<!-- Script riêng cho popup login -->
+<script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 </body>
 </html>
