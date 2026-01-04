@@ -105,4 +105,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     `;
     document.head.appendChild(style);
+
+    // ===== 7. ĐỒNG BỘ WIDTH DROPDOWN (CÁCH 3 - NÂNG CẤP) =====
+    function syncDropdownWidth() {
+        // 1. Lấy TẤT CẢ các phần tử có class .items-header (thay vì chỉ 1 cái)
+        const headerItems = document.querySelectorAll('.items-header');
+
+        headerItems.forEach(item => {
+            // Tìm menu con CỤ THỂ của từng item
+            const dropdownMenu = item.querySelector('.dropdown-menu');
+
+            if (dropdownMenu) {
+                // Lấy chiều rộng hiện tại của thẻ cha
+                const width = item.getBoundingClientRect().width; // Chính xác hơn offsetWidth
+
+                // Gán chiều rộng cho menu con
+                // Dùng style.cssText để gán đè mạnh mẽ hơn
+                dropdownMenu.style.cssText = `
+                    width: ${width}px !important;
+                    min-width: ${width}px !important;
+                `;
+            }
+        });
+    }
+
+    // GỌI HÀM TẠI CÁC THỜI ĐIỂM QUAN TRỌNG:
+
+    // 1. Ngay khi tải xong
+    syncDropdownWidth();
+
+    // 2. Khi người dùng co kéo trình duyệt
+    window.addEventListener('resize', syncDropdownWidth);
+
+    // 3. (QUAN TRỌNG) Khi bấm vào nút dropdown (đề phòng lúc đầu bị ẩn JS tính sai)
+    const dropdownToggles = document.querySelectorAll('.items-header .dropdown-toggle');
+    dropdownToggles.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Chờ 1 chút để Bootstrap render class show rồi mới tính
+            setTimeout(syncDropdownWidth, 0);
+        });
+    });
 });

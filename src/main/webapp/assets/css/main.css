@@ -113,7 +113,8 @@ body {
     height: 42px;
     background-color: transparent;
     min-width: 120px; /* Đảm bảo không quá hẹp */
-
+    /*Tạo tên anchor name cho class khác lấy kích thước*/
+    position: relative;
 }
 
 /* Text trong items-header (h5 hoặc span) */
@@ -225,7 +226,7 @@ nav.navbar .container {
 }
 
 .navbar form.d-flex .form-control {
-    height: 100%;
+    height: 90%;
 }
 
 /* Các items bên phải thẳng hàng */
@@ -234,7 +235,9 @@ nav.navbar .container {
     display: flex;
     align-items: center;
 }
-
+.giohang-header{
+    text-decoration: none;
+}
 .items-header {
     height: 100%;
     display: flex;
@@ -1177,7 +1180,6 @@ body:has(.notification-dropdown.show) .notification-dropdown {
 .items-header.dropdown .dropdown-menu {
     z-index: 10000 !important;
 }
-
 /* Responsive cho dropdown */
 @media (max-width: 768px) {
     .notification-dropdown {

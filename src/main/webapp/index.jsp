@@ -349,5 +349,7 @@ f
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 <!-- VietTech ChatBot -->
 <script src="${pageContext.request.contextPath}/assets/js/chatbot.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
+
 </body>
 </html>
