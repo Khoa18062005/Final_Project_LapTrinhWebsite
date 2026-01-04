@@ -48,7 +48,7 @@ public class VendorService {
             logger.info("Found vendor: {}", vendor.getBusinessName());
 
             // 1.1. Lấy thông tin Warehouse của Vendor
-            String warehouseQuery = "SELECT w FROM Warehouse w WHERE w.vendor.userId = :vid";
+            String warehouseQuery = "SELECT w FROM Warehouse w WHERE w.managerId = :vid";
             List<viettech.entity.storage.Warehouse> warehouses = em
                     .createQuery(warehouseQuery, viettech.entity.storage.Warehouse.class)
                     .setParameter("vid", vendorId)
@@ -232,12 +232,23 @@ public class VendorService {
     public List<Product> getAllProductsByVendor(int vendorId) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            String jpql = "SELECT p FROM Product p WHERE p.vendorId = :vendorId ORDER BY p.createdAt DESC";
+            String jpql = """
+            SELECT DISTINCT p
+            FROM Product p
+            JOIN FETCH p.vendor v
+            LEFT JOIN FETCH p.category c
+            LEFT JOIN FETCH p.images i
+            WHERE v.userId = :vendorId
+            ORDER BY p.createdAt DESC
+        """;
+
             TypedQuery<Product> query = em.createQuery(jpql, Product.class);
             query.setParameter("vendorId", vendorId);
+
             List<Product> products = query.getResultList();
             logger.info("✓ Found {} products for vendor {}", products.size(), vendorId);
             return products;
+
         } catch (Exception e) {
             logger.error("✗ Failed to get all products for vendor {}", vendorId, e);
             throw new RuntimeException("Failed to get products", e);
@@ -252,11 +263,23 @@ public class VendorService {
     public Product getProductById(int productId, int vendorId) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            Product product = em.find(Product.class, productId);
-            if (product != null && product.getVendorId() == vendorId) {
-                return product;
-            }
-            return null;
+            String jpql = """
+            SELECT DISTINCT p
+            FROM Product p
+            JOIN FETCH p.vendor v
+            LEFT JOIN FETCH p.category c
+            LEFT JOIN FETCH p.images i
+            WHERE p.productId = :productId
+              AND v.userId = :vendorId
+        """;
+
+            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
+            query.setParameter("productId", productId);
+            query.setParameter("vendorId", vendorId);
+
+            List<Product> result = query.getResultList();
+            return result.isEmpty() ? null : result.get(0);
+
         } catch (Exception e) {
             logger.error("✗ Failed to get product {} for vendor {}", productId, vendorId, e);
             throw new RuntimeException("Failed to get product", e);
@@ -264,6 +287,7 @@ public class VendorService {
             em.close();
         }
     }
+
 
     // ==================== ORDER MANAGEMENT ====================
 

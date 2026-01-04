@@ -504,7 +504,7 @@
                     ${data.warehouseInfo.addressLine}
                     <c:if test="${not empty data.warehouseInfo.ward}">, ${data.warehouseInfo.ward}</c:if>
                     <c:if test="${not empty data.warehouseInfo.district}">, ${data.warehouseInfo.district}</c:if>
-                    <c:if test="${not empty data.warehouseInfo.city}">, ${data.warehouseInfo.city}</c:if>
+                    <c:if test="${not empty data.warehouseInfo.province}">, ${data.warehouseInfo.province}</c:if>
                 </div>
             </div>
         </div>
