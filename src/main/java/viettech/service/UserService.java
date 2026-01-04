@@ -26,6 +26,10 @@ public class UserService {
     private static final int USERNAME_LENGTH = 8;
     private static final SecureRandom random = new SecureRandom();
 
+    // ===== CONSTANTS CHO REFERRAL SYSTEM =====
+    private static final int REFERRER_BONUS = 200;  // Người giới thiệu nhận 200 điểm
+    private static final int REFERRED_BONUS = 50;   // Người được giới thiệu nhận 50 điểm
+
 
     public UserService() {
         this.customerDAO = new CustomerDAO();
@@ -183,4 +187,124 @@ public class UserService {
         cart.setUpdatedAt(currentDate);
         cartDAO.insert(cart);
     }
+
+    /**
+     * ========== KIỂM TRA MÃ GIỚI THIỆU CÓ TỒN TẠI KHÔNG ==========
+     * Tìm customer theo username (mã giới thiệu)
+     *
+     * @param referralCode Username của người giới thiệu (vd: user_ABCD1234)
+     * @return Customer nếu tìm thấy, null nếu không tìm thấy
+     */
+    public Customer findCustomerByReferralCode(String referralCode) {
+        if (referralCode == null || referralCode.trim().isEmpty()) {
+            logger.debug("Referral code is empty");
+            return null;
+        }
+
+        try {
+            // ===== CHUYỂN MÃ GIỚI THIỆU THÀNH USERNAME =====
+            // Input: "ABCD1234"
+            // Output: "user_ABCD1234"
+            String username = "user_" + referralCode.trim().toUpperCase();
+
+            logger.debug("Searching for username: {}", username);
+
+            // Tìm customer theo username
+            Customer customer = customerDAO.findByUsername(username);
+
+            if (customer != null) {
+                logger.debug("✓ Found customer with referral code: {} (username: {})",
+                        referralCode, username);
+            } else {
+                logger.debug("✗ No customer found with referral code: {} (username: {})",
+                        referralCode, username);
+            }
+
+            return customer;
+
+        } catch (Exception e) {
+            logger.error("✗ Error finding customer by referral code: {}", referralCode, e);
+            return null;
+        }
+    }
+
+    /**
+     * ========== CỘNG ĐIỂM THƯỞNG CHO NGƯỜI GIỚI THIỆU ==========
+     * Cộng 200 loyalty points cho người giới thiệu
+     *
+     * @param referrer Customer là người giới thiệu
+     * @return true nếu thành công, false nếu thất bại
+     */
+    public boolean addReferrerBonus(Customer referrer) {
+        if (referrer == null) {
+            logger.error("✗ Referrer is null");
+            return false;
+        }
+
+        try {
+            // Cộng điểm thưởng
+            int currentPoints = referrer.getLoyaltyPoints();
+            int newPoints = currentPoints + REFERRER_BONUS;
+            referrer.setLoyaltyPoints(newPoints);
+
+            // Cập nhật vào database
+            customerDAO.update(referrer);
+
+            logger.info("✓ Added {} bonus points to referrer: {} (total: {})",
+                    REFERRER_BONUS, referrer.getEmail(), newPoints);
+            return true;
+
+        } catch (Exception e) {
+            logger.error("✗ Failed to add bonus to referrer: {}", referrer.getEmail(), e);
+            return false;
+        }
+    }
+
+    /**
+     * ========== CỘNG ĐIỂM THƯỞNG CHO NGƯỜI ĐƯỢC GIỚI THIỆU ==========
+     * Cộng 50 loyalty points cho người được giới thiệu
+     *
+     * @param referred Customer là người được giới thiệu (user mới đăng ký)
+     * @return true nếu thành công, false nếu thất bại
+     */
+    public boolean addReferredBonus(Customer referred) {
+        if (referred == null) {
+            logger.error("✗ Referred customer is null");
+            return false;
+        }
+
+        try {
+            // Cộng điểm thưởng
+            int currentPoints = referred.getLoyaltyPoints();
+            int newPoints = currentPoints + REFERRED_BONUS;
+            referred.setLoyaltyPoints(newPoints);
+
+            // Cập nhật vào database
+            customerDAO.update(referred);
+
+            logger.info("✓ Added {} welcome bonus to new user: {} (total: {})",
+                    REFERRED_BONUS, referred.getEmail(), newPoints);
+            return true;
+
+        } catch (Exception e) {
+            logger.error("✗ Failed to add bonus to referred user: {}", referred.getEmail(), e);
+            return false;
+        }
+    }
+
+    /**
+     * ========== GETTER CHO BONUS POINTS ==========
+     */
+    public static int getReferrerBonus() {
+        return REFERRER_BONUS;
+    }
+
+    public static int getReferredBonus() {
+        return REFERRED_BONUS;
+    }
+
+
+
+
+
 }

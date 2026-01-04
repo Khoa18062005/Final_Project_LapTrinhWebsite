@@ -194,4 +194,11 @@ public class Customer extends User {
     public void setCart(Cart cart) {
         this.cart = cart;
     }
+
+    public String getReferralCode() {
+        if (this.username == null || !this.username.startsWith("user_")) {
+            return "";
+        }
+        return this.username.substring(5);
+    }
 }

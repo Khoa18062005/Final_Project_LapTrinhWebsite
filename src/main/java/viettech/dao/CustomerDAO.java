@@ -139,4 +139,24 @@ public class CustomerDAO {
             em.close();
         }
     }
+
+    public Customer findByUsername(String username) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT c FROM Customer c WHERE c.username = :username";
+            TypedQuery<Customer> query = em.createQuery(jpql, Customer.class);
+            query.setParameter("username", username);
+            Customer customer = query.getSingleResult();
+            logger.debug("✓ Found customer by username: {}", username);
+            return customer;
+        } catch (NoResultException e) {
+            logger.debug("✗ Customer not found with username: {}", username);
+            return null;
+        } catch (Exception e) {
+            logger.error("✗ Error finding customer by username: {}", username, e);
+            return null;
+        } finally {
+            em.close();
+        }
+    }
 }

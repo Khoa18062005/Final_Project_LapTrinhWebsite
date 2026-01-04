@@ -17,12 +17,15 @@ public class NotificationTemplateUtil {
     public static final String TYPE_ORDER = "order";
     public static final String TYPE_PROMOTION = "promotion";
     public static final String TYPE_SECURITY = "security";  // ← THÊM MỚI
+    public static final String TYPE_REFERRAL = "referral";  // ← THÊM MỚI
+
 
 
     // ========== IMAGE URLS ==========
     private static final String IMG_LOGIN = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767279453/login_ndmwr5.png";
     private static final String IMG_REGISTER = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767279473/register_iozsha.png";
     private static final String IMG_PASSWORD = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767339496/reset_password_gudomz.png";  // ← THÊM MỚI (bạn có thể đổi URL)
+    private static final String IMG_REFERRAL = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767514645/z7395974565366_948ddc35641f7189f5fb9119c7a934ed_eexyg8.jpg";  // ← THÊM MỚI (bạn có thể đổi)
 
 
     /**
@@ -178,6 +181,63 @@ public class NotificationTemplateUtil {
         notification.setExpiresAt(null);       // Không hết hạn
 
         // ===== CÁC TRƯỜNG KHÔNG DÙNG =====
+        notification.setData(null);
+        notification.setActionUrl(null);
+
+        return notification;
+    }
+
+
+
+    public static Notification createReferralRewardNotification(int userId, String firstName, String lastName,
+                                                                String referredUserName, int points) {
+        Notification notification = new Notification();
+
+        notification.setUserId(userId);
+        notification.setType(TYPE_REFERRAL);
+
+        notification.setTitle("🎁 Bạn nhận được phần thưởng giới thiệu!");
+        notification.setMessage(
+                String.format("Chúc mừng %s %s! Bạn đã nhận được %d điểm thưởng vì giới thiệu %s đến với VietTech. " +
+                                "Cảm ơn bạn đã giúp cộng đồng VietTech phát triển! " +
+                                "Điểm thưởng đã được cộng vào tài khoản của bạn.",
+                        firstName, lastName, points, referredUserName)
+        );
+
+        notification.setImageUrl(IMG_REFERRAL);
+        notification.setRead(false);
+        notification.setReadAt(null);
+        notification.setCreatedAt(new Date());
+        notification.setExpiresAt(null);
+        notification.setData(null);
+        notification.setActionUrl(null);
+
+        return notification;
+    }
+
+    /**
+     * ========== THÔNG BÁO NGƯỜI ĐƯỢC GIỚI THIỆU NHẬN THƯỞNG ==========
+     */
+    public static Notification createReferralWelcomeNotification(int userId, String firstName, String lastName,
+                                                                 String referrerCode, int points) {
+        Notification notification = new Notification();
+
+        notification.setUserId(userId);
+        notification.setType(TYPE_REFERRAL);
+
+        notification.setTitle("🎉 Chào mừng! Bạn nhận được điểm thưởng!");
+        notification.setMessage(
+                String.format("Xin chào %s %s! Cảm ơn bạn đã sử dụng mã giới thiệu %s. " +
+                                "Bạn đã nhận được %d điểm thưởng để bắt đầu hành trình mua sắm tại VietTech. " +
+                                "Hãy khám phá và tận hưởng những ưu đãi tuyệt vời nhé!",
+                        firstName, lastName, referrerCode, points)
+        );
+
+        notification.setImageUrl(IMG_REFERRAL);
+        notification.setRead(false);
+        notification.setReadAt(null);
+        notification.setCreatedAt(new Date());
+        notification.setExpiresAt(null);
         notification.setData(null);
         notification.setActionUrl(null);
 
