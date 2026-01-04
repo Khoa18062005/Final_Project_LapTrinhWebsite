@@ -1110,9 +1110,7 @@ a.menu-item i {
     margin-left: 20px;
 }
 
-.text-muted:hover{
-    color: white!important;
-}
+
 /* Progress Bar */
 .voucher-middle .progress {
     height: 8px;

@@ -142,11 +142,157 @@ body {
     box-shadow: 0 0 0 3px var(--error-light);
 }
 
+/* ===== PASSWORD INPUT WRAPPER ===== */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper .form-control {
+    padding-right: 45px; /* Để chỗ cho nút mắt */
+}
+
+/* ===== ẨN ICON VALIDATION MẶC ĐỊNH CỦA BOOTSTRAP TRONG PASSWORD ===== */
+.password-input-wrapper .form-control.is-valid,
+.password-input-wrapper .form-control.is-invalid {
+    background-image: none !important; /* Ẩn icon checkmark/X mặc định */
+    padding-right: 45px; /* Giữ nguyên padding cho nút mắt */
+}
+
+.password-input-wrapper .form-control.is-valid {
+    border-color: var(--success);
+    background-color: #ffffff;
+}
+
+.password-input-wrapper .form-control.is-valid:focus {
+    border-color: var(--success);
+    box-shadow: 0 0 0 3px var(--success-light);
+}
+
+.password-input-wrapper .form-control.is-invalid {
+    border-color: var(--error);
+    background-color: #ffffff;
+}
+
+.password-input-wrapper .form-control.is-invalid:focus {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px var(--error-light);
+}
+
+/* ===== PASSWORD TOGGLE BUTTON ===== */
+.password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    z-index: 10; /* Đảm bảo nút mắt luôn ở trên */
+}
+
+.password-toggle-btn:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.password-toggle-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ===== EYE ICON (Font Awesome) ===== */
+.eye-icon {
+    font-size: 16px;
+    color: var(--text-secondary);
+    transition: color 0.2s ease;
+    line-height: 1;
+    user-select: none;
+}
+
+.password-toggle-btn:hover .eye-icon {
+    color: var(--primary);
+}
+
+/* ===== PASSWORD STRENGTH BAR ===== */
+.password-strength {
+    margin-top: 8px;
+}
+
+.password-strength .progress {
+    height: 5px;
+    background-color: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.password-strength .progress-bar {
+    transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.password-strength-text {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.password-strength-text.text-danger {
+    color: var(--error) !important;
+}
+
+.password-strength-text.text-warning {
+    color: #f59e0b !important;
+}
+
+.password-strength-text.text-info {
+    color: #3b82f6 !important;
+}
+
+.password-strength-text.text-success {
+    color: var(--success) !important;
+}
+
+/* ===== VALIDATION FEEDBACK ===== */
+.valid-feedback {
+    display: none;
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--success);
+    font-weight: 500;
+}
+
+.form-control.is-valid ~ .valid-feedback {
+    display: block;
+}
+
 .invalid-feedback {
+    display: none;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 500;
     color: var(--error);
+}
+
+.form-control.is-invalid ~ .invalid-feedback {
+    display: block;
+}
+
+/* ===== FORM TEXT ===== */
+.form-text {
     font-size: 13px;
     margin-top: 6px;
-    font-weight: 500;
+    display: block;
+}
+
+.form-text.text-muted {
+    color: var(--text-secondary);
 }
 
 /* ===== RADIO BUTTONS ===== */
@@ -341,6 +487,40 @@ a:hover {
     margin-top: 16px;
 }
 
+/* ===== STYLE CHO MÃ GIỚI THIỆU ===== */
+.text-muted.small {
+    font-size: 0.85em;
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+input[name="referralCode"] {
+    background-color: #fafafa;
+    border-color: #d1d5db;
+}
+
+input[name="referralCode"]:focus {
+    background-color: #ffffff;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+input[name="referralCode"]::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+/* ===== INPUT STATES ===== */
+input[type="tel"]::-webkit-inner-spin-button,
+input[type="tel"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="tel"] {
+    -moz-appearance: textfield;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 576px) {
     body {
@@ -363,45 +543,20 @@ a:hover {
         flex-direction: column;
         gap: 20px;
     }
-}
 
-/* ===== STYLE CHO MÃ GIỚI THIỆU ===== */
-/* Chú thích "Không bắt buộc" */
-.text-muted.small {
-    font-size: 0.85em;
-    font-weight: 400;
-    opacity: 0.8;
-}
+    .password-toggle-btn {
+        right: 6px;
+        padding: 6px;
+    }
 
-/* Input mã giới thiệu có style nhẹ hơn để thể hiện không bắt buộc */
-input[name="referralCode"] {
-    background-color: #fafafa;
-    border-color: #d1d5db;
-}
+    .eye-icon {
+        font-size: 14px;
+    }
 
-input[name="referralCode"]:focus {
-    background-color: #ffffff;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-light);
-}
+    .password-strength-text {
+        font-size: 11px;
+    }
 
-/* Style cho placeholder của mã giới thiệu */
-input[name="referralCode"]::placeholder {
-    color: #9ca3af;
-    font-style: italic;
-}
-
-/* Style cho small text chú thích mã giới thiệu */
-.mb-3 small.text-muted {
-    color: var(--text-secondary);
-    font-size: 12px;
-    line-height: 1.4;
-    margin-top: 4px;
-    display: block;
-}
-
-/* Responsive cho mã giới thiệu */
-@media (max-width: 576px) {
     .text-muted.small {
         font-size: 0.8em;
     }

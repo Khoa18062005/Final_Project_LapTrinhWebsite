@@ -1782,3 +1782,7 @@ body:has(.notification-dropdown.show) .notification-dropdown {
         height: 26px;
     }
 }
+
+.cart-oder{
+    text-decoration: none!important;
+}
