@@ -360,9 +360,6 @@ const cartController = {
 
 // Khởi tạo khi DOM ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Lấy context path từ JSP
-    window.contextPath = '${pageContext.request.contextPath}';
-
     // Khởi tạo cart controller (chỉ khi đã đăng nhập và có giỏ hàng)
     if (document.querySelector('.cart-item-row')) {
         cartController.init();

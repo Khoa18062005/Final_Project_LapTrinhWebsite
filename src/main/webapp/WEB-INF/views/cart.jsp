@@ -250,7 +250,7 @@
 </div>
 
 <script>
-    window.contextPath = '${pageContext.request.contextPath}';
+    window.contextPath = '<%= request.getContextPath() %>';
 </script>
 
 <!-- JavaScript -->
