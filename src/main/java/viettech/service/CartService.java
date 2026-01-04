@@ -76,7 +76,8 @@ public class CartService {
     public void removeCartItem(HttpSession session, int productId, int variantId) {
         int cartId = getOrCreateCartId(session);
 
-        CartItem item = cartItemDAO.findByCartIdAndVariantIdandProductId(cartId, productId, variantId);
+        CartItem item = cartItemDAO
+                .findByCartIdAndVariantIdandProductId(cartId, variantId, productId);
         if (item != null) {
             cartItemDAO.delete(item.getCartItemId());
         }
