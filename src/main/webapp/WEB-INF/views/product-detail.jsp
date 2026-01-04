@@ -196,17 +196,34 @@
             </div>
 
             <!-- Action Buttons -->
+            <!-- Action Buttons -->
             <div class="action-buttons">
-                <form action="${pageContext.request.contextPath}/cart" method="POST"
-                      class="d-inline" id="add-to-cart-form">
-                    <input type="hidden" name="productId" value="${product.productId}">
-                    <input type="hidden" name="quantity" value="1">
-                    <input type="hidden" name="action" value="add">
-                    <input type="hidden" name="variantId" id="selected-variant-id" value="">
-                    <button type="submit" class="btn btn-primary" id="add-to-cart-btn">
-                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
-                    </button>
-                </form>
+                <!-- Kiểm tra đăng nhập cho nút Thêm vào giỏ hàng -->
+                <c:choose>
+                    <c:when test="${not empty sessionScope.user}">
+                        <!-- Đã đăng nhập: Hiển thị form thêm vào giỏ hàng bình thường -->
+                        <form action="${pageContext.request.contextPath}/cart" method="POST"
+                              class="d-inline" id="add-to-cart-form">
+                            <input type="hidden" name="productId" value="${product.productId}">
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="variantId" id="selected-variant-id" value="">
+                            <button type="submit" class="btn btn-primary" id="add-to-cart-btn">
+                                <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                            </button>
+                        </form>
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Chưa đăng nhập: Hiển thị nút mở modal Smember -->
+                        <button type="button"
+                                class="btn btn-primary"
+                                id="add-to-cart-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#smemberModal">
+                            <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                        </button>
+                    </c:otherwise>
+                </c:choose>
 
                 <!-- Kiểm tra đăng nhập cho nút Mua ngay -->
                 <c:choose>
