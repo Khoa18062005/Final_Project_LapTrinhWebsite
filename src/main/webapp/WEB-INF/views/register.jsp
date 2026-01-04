@@ -19,6 +19,7 @@
 
   <!-- CSS riêng -->
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/register.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/firework.css">
 </head>
 <body>
 
@@ -207,6 +208,7 @@
 
 <!-- Script riêng -->
 <script src="${pageContext.request.contextPath}/assets/js/register.js"></script>
-
+<div class="css-fireworks-container" id="fireworks-container"></div>
+<script src="${pageContext.request.contextPath}/assets/js/firework.js"></script>
 </body>
 </html>

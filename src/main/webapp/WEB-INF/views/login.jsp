@@ -16,6 +16,7 @@
 
     <!-- CSS tùy chỉnh -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/login.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/firework.css">
 </head>
 <body>
 
@@ -101,7 +102,7 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/login.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/firework.js"></script>
 <%--<canvas id="fireworks-canvas"></canvas>--%>
 <div class="css-fireworks-container" id="fireworks-container"></div>
 </body>
