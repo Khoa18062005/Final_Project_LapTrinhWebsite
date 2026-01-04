@@ -25,7 +25,7 @@
     <!-- JavaScript cho chọn variant -->
     <script src="${pageContext.request.contextPath}/assets/js/variant-selector.js" defer></script>
     <script src="${pageContext.request.contextPath}/assets/js/cart-ajax.js" defer></script>
-
+    <script src="${pageContext.request.contextPath}/assets/js/product-detail.js" defer></script>
     <script>
         // Khởi tạo biến toàn cục từ dữ liệu JSP
         <c:if test="${not empty variants}">
@@ -102,7 +102,19 @@
         <!-- Product Images -->
         <div class="product-images">
             <div class="main-image">
-                <img src="${product.primaryImageUrl}">
+                <img id="product-img" src="${product.primaryImageUrl}" alt="${product.name}">
+
+                <div class="zoom-controls">
+                    <button type="button" onclick="zoomIn()" class="btn-zoom" title="Phóng to">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                    <button type="button" onclick="zoomOut()" class="btn-zoom" title="Thu nhỏ">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                    <button type="button" onclick="resetZoom()" class="btn-zoom" title="Đặt lại">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
