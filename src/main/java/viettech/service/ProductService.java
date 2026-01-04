@@ -442,79 +442,103 @@ public class ProductService {
         return list;
     }
 
-    /**
-     * Tìm kiếm sản phẩm fuzzy (hỗ trợ lỗi chính tả, bỏ dấu tiếng Việt)
-     */
+//    Tìm kiếm sản phẩm bằng fuzzi search
     public List<ProductCardDTO> searchProducts(String keyword) {
-        if (keyword == null || (keyword = keyword.trim()).isEmpty()) {
+        if (keyword == null || keyword.trim().isEmpty()) {
             return getFeaturedOrNewestAsCardDTO(20);
         }
 
-        String normalizedKeyword = normalizeVietnamese(keyword.toLowerCase());
+        String logic = normalizeVietnamese(keyword.trim());
 
-        // Bước 1: Lọc thô bằng LIKE + load images ngay
         List<Product> candidates = productDAO.searchByNameWithImages(keyword);
 
-        List<Product> finalResults;
-
-        if (candidates.size() <= 50) {
-            finalResults = applyFuzzyFilterAndSort(candidates, normalizedKeyword);
-        } else {
-            // Tìm rộng hơn bằng tên không dấu + load images
-            List<Product> allProducts = productDAO.findAllWithImages();
-            finalResults = allProducts.stream()
-                    .filter(p -> normalizeVietnamese(p.getName().toLowerCase()).contains(normalizedKeyword))
-                    .toList();
-
-            finalResults = applyFuzzySort(finalResults, normalizedKeyword);
+        // Fallback: Nếu LIKE không match (do sai chính tả), fetch tất cả rồi apply fuzzy
+        if (candidates.isEmpty()) {
+            candidates = productDAO.findAllWithImages();
         }
 
-        // Giới hạn kết quả
-        return finalResults.stream()
+        List<Product> results = candidates.stream()
+                .filter(p -> {
+                    String normalizedName = normalizeVietnamese(p.getName());
+
+                    // 1. Nếu tên chứa chính xác từ khóa → ưu tiên cao nhất
+                    if (normalizedName.contains(logic)) {
+                        return true;
+                    }
+
+                    // 2. Tách tên sản phẩm thành các từ riêng lẻ
+                    String[] nameWords = normalizedName.split("\\s+");
+
+                    // 3. Kiểm tra từng từ trong tên sản phẩm với từ khóa
+                    for (String nameWord : nameWords) {
+                        if (nameWord.length() < 3) continue; // bỏ qua từ quá ngắn như "pro", "gb"
+
+                        // Nếu từ trong tên chứa từ khóa → match tốt
+                        if (nameWord.contains(logic) || logic.contains(nameWord)) {
+                            return true;
+                        }
+
+                        // Levenshtein: chỉ so sánh từ khóa với từng từ riêng lẻ
+                        int distance = LEVENSHTEIN.apply(logic, nameWord);
+
+                        int threshold = switch (Math.min(logic.length(), nameWord.length())) {
+                            case 0, 1, 2, 3 -> 1;
+                            case 4, 5, 6, 7 -> 2;
+                            default -> 3;
+                        };
+
+                        if (distance <= threshold) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                })
+                .sorted(Comparator.comparingInt(p -> {
+                    String normalizedName = normalizeVietnamese(p.getName());
+                    String[] nameWords = normalizedName.split("\\s+");
+
+                    // Tính khoảng cách nhỏ nhất đến bất kỳ từ nào trong tên
+                    int minDistance = Integer.MAX_VALUE;
+                    for (String word : nameWords) {
+                        if (word.length() >= 3) {
+                            int dist = LEVENSHTEIN.apply(logic, word);
+                            if (dist < minDistance) minDistance = dist;
+                        }
+                    }
+                    return minDistance == Integer.MAX_VALUE ? 100 : minDistance;
+                }))
                 .limit(50)
+                .toList();
+
+        return results.stream()
                 .map(this::convertProductToCardDTO)
                 .toList();
     }
 
-// Các method phụ - BẮT BUỘC PHẢI CÓ (nếu chưa có thì copy vào dưới đây)
+    // Thêm constant này vào đầu class ProductService
+    private static final LevenshteinDistance LEVENSHTEIN = new LevenshteinDistance();
 
     private String normalizeVietnamese(String input) {
         if (input == null || input.isEmpty()) return "";
         String temp = Normalizer.normalize(input, Normalizer.Form.NFD);
-        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-        return pattern.matcher(temp).replaceAll("").toLowerCase();
+        temp = Pattern.compile("\\p{InCombiningDiacriticalMarks}+").matcher(temp).replaceAll("");
+        temp = temp.replaceAll("đ", "d").replaceAll("Đ", "d");
+        return temp.toLowerCase();
     }
 
-    private List<Product> applyFuzzyFilterAndSort(List<Product> products, String keyword) {
-        if (products.isEmpty()) return Collections.emptyList();
-
-        LevenshteinDistance distanceAlgo = new LevenshteinDistance();
-        int threshold = Math.max(3, keyword.length() / 3);
-
-        return products.stream()
-                .filter(p -> {
-                    String normalizedName = normalizeVietnamese(p.getName().toLowerCase());
-                    int dist = distanceAlgo.apply(keyword, normalizedName);
-                    return dist <= threshold || normalizedName.contains(keyword);
-                })
-                .sorted(Comparator.comparingInt(p -> {
-                    String normalizedName = normalizeVietnamese(p.getName().toLowerCase());
-                    return distanceAlgo.apply(keyword, normalizedName);
-                }))
-                .toList();
-    }
-
-    private List<Product> applyFuzzySort(List<Product> products, String keyword) {
-        if (products.isEmpty()) return products;
-
-        LevenshteinDistance distanceAlgo = new LevenshteinDistance();
-
-        return products.stream()
-                .sorted(Comparator.comparingInt(p -> {
-                    String normalizedName = normalizeVietnamese(p.getName().toLowerCase());
-                    return distanceAlgo.apply(keyword, normalizedName);
-                }))
-                .toList();
+    private String getPrimaryImageUrl(Product p) {
+        if (p.getImages() == null || p.getImages().isEmpty()) {
+            return "";
+        }
+        return p.getImages().stream()
+                .filter(ProductImage::isPrimary)
+                .map(ProductImage::getUrl)
+                .findFirst()
+                .orElse(p.getImages().stream()
+                        .min(Comparator.comparingInt(ProductImage::getSortOrder))
+                        .map(ProductImage::getUrl)
+                        .orElse(""));
     }
 
     private ProductCardDTO convertProductToCardDTO(Product p) {
@@ -522,25 +546,11 @@ public class ProductService {
         dto.setId(p.getProductId());
         dto.setName(p.getName());
         dto.setPrice(p.getBasePrice());
-        Double avgRating = p.getAverageRating();
-        dto.setRating(avgRating != null ? avgRating : 0.0);
+        dto.setRating(p.getAverageRating()); // ← Đã fix lỗi, đơn giản và đúng
         dto.setMemberDiscount(0);
         dto.setOldPrice(p.getBasePrice());
         dto.setDiscountPercent(0);
-
-        String primaryImageUrl = "";
-        if (p.getImages() != null && !p.getImages().isEmpty()) {
-            primaryImageUrl = p.getImages().stream()
-                    .filter(img -> img.isPrimary())
-                    .map(ProductImage::getUrl)
-                    .findFirst()
-                    .orElse(p.getImages().stream()
-                            .min(Comparator.comparingInt(ProductImage::getSortOrder))
-                            .map(ProductImage::getUrl)
-                            .orElse(""));
-        }
-        dto.setPrimaryImage(primaryImageUrl);
-
+        dto.setPrimaryImage(getPrimaryImageUrl(p));
         return dto;
     }
 

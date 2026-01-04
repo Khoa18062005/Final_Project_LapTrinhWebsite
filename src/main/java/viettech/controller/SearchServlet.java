@@ -21,12 +21,21 @@ public class SearchServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String q = req.getParameter("q");
+        String keyword = (q != null) ? q.trim() : "";
 
-        List<ProductCardDTO> products = productService.searchProducts(q);
+        // Nếu không có từ khóa → redirect về trang chủ (hoặc trang sản phẩm)
+        if (keyword.isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/"); // về trang chủ
+            // Hoặc: resp.sendRedirect(req.getContextPath() + "/products"); // nếu có trang danh sách
+            return; // Quan trọng: dừng xử lý tiếp
+        }
+
+        // Có từ khóa → thực hiện tìm kiếm bình thường
+        List<ProductCardDTO> products = productService.searchProducts(keyword);
 
         req.setAttribute("products", products);
-        req.setAttribute("keyword", q != null ? q : "");
-        req.setAttribute("pageTitle", q != null && !q.isEmpty() ? "Tìm kiếm: " + q : "Tất cả sản phẩm");
+        req.setAttribute("keyword", keyword);
+        req.setAttribute("pageTitle", "Tìm kiếm: " + keyword);
 
         req.getRequestDispatcher("/WEB-INF/views/search-results.jsp")
                 .forward(req, resp);
