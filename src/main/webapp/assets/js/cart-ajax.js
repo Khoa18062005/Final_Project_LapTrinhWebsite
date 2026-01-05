@@ -70,6 +70,72 @@ let cartAjax = {
             });
     },
 
+
+    addToCartBuyNow: function(productId, variantId = 0, quantity = 1) {
+        const url = `${window.contextPath}/cart`;
+        const formData = new FormData();
+
+        formData.append('action', 'addBuyNow');
+        formData.append('productId', productId);
+        formData.append('quantity', quantity);
+        if (variantId) {
+            formData.append('variantId', variantId);
+        }
+
+        return fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => {
+                // Kiểm tra nếu bị redirect (401 - chưa đăng nhập)
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return { success: false, redirected: true };
+                }
+
+                // Kiểm tra response type
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    // Nếu response là HTML (có thể do redirect hoặc lỗi server)
+                    if (response.ok) {
+                        return { success: true, count: null };
+                    } else {
+                        throw new Error('Server error');
+                    }
+                }
+            })
+            .then(data => {
+                if (data.redirected) {
+                    return data;
+                }
+
+                if (data.success) {
+                    // Cập nhật badge giỏ hàng
+                    if (data.count !== null && data.count !== undefined) {
+                        this.updateCartBadge(data.count);
+                    } else {
+                        // Nếu không có count từ server, tự tăng
+                        this.incrementCartBadge();
+                    }
+
+                    // Hiển thị thông báo
+                    this.showToast('Đã thêm sản phẩm vào giỏ hàng!', 'success');
+
+                    return { success: true, count: data.count };
+                } else {
+                    this.showToast(data.error || 'Có lỗi xảy ra', 'danger');
+                    return { success: false, error: data.error };
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                this.showToast('Có lỗi xảy ra khi thêm vào giỏ hàng', 'danger');
+                return { success: false, error: error.message };
+            });
+    },
+
     // Cập nhật badge với số lượng cụ thể
     updateCartBadge: function(count) {
         const badges = document.querySelectorAll('.cart-count-badge, .cart-count');
@@ -211,6 +277,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Gọi hàm thêm vào giỏ hàng
             cartAjax.addToCart(productId, variantId, quantity);
+        });
+    }
+
+    const buyNowAddForm = document.getElementById('buy-now-btn');
+    if (buyNowAddForm) {
+        buyNowAddForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const productId = this.querySelector('input[name="productId"]').value;
+            const quantityInput = this.querySelector('input[name="quantity"]');
+            const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+
+            // Lấy variantId từ hidden input
+            const variantInput = this.querySelector('input[name="variantId"]');
+            let variantId = variantInput ? variantInput.value : '0';
+
+            // Kiểm tra nếu có variant data và chưa chọn variant
+            if (window.variantData && window.variantData.variants.length > 0 && (!variantId || variantId === '0')) {
+                cartAjax.showToast('Vui lòng chọn phiên bản sản phẩm!', 'warning');
+                return;
+            }
+
+            // Gọi hàm thêm vào giỏ hàng
+            cartAjax.addToCartBuyNow(productId, variantId, quantity);
         });
     }
 

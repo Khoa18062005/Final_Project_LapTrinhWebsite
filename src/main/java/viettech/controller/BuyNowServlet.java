@@ -1,22 +1,19 @@
 package viettech.controller;
 
-import viettech.dto.BuyNowDTO;
 import viettech.entity.user.User;
-import viettech.service.BuyNowService;
+import viettech.service.CartService;
+
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
-import java.util.List;
 
 @WebServlet(urlPatterns = {"/checkout/buy-now"})
 public class BuyNowServlet extends HttpServlet {
 
-    private BuyNowService buyNowService;
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        // Chuyển hướng POST
         response.sendRedirect(request.getContextPath() + "/");
     }
 
@@ -26,44 +23,34 @@ public class BuyNowServlet extends HttpServlet {
 
         HttpSession session = request.getSession();
 
-        // Kiểm tra đăng nhập
-        if (((User) session.getAttribute("user")) == null) {
-            String redirectURL = request.getContextPath() + "/login?redirect=buy-now";
-            response.sendRedirect(redirectURL);
+        // 1️⃣ Kiểm tra đăng nhập
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login?redirect=buy-now");
             return;
         }
 
-
         try {
-            buyNowService = new BuyNowService();
-            // Lấy thông tin từ form
-            int productId = Integer.parseInt(session.getAttribute("productId").toString());
+            int productId = Integer.parseInt(request.getParameter("productId"));
+            int quantity = Integer.parseInt(request.getParameter("quantity"));
+            int variantId = request.getParameter("variantId") != null
+                    ? Integer.parseInt(request.getParameter("variantId"))
+                    : 0;
 
-            // Lấy thông tin sản phẩm
-            BuyNowDTO buyNowItem = buyNowService.getProductForBuyNow(productId);
-            List<BuyNowDTO> buyNowList = buyNowService.createBuyNowList(productId);
+            // 2️⃣ Add vào cart (DB hoặc session)
+            CartService cartService = new CartService();
+            cartService.addToCart(session, productId, variantId, quantity);
 
-            // Lưu thông tin vào session
-            session.setAttribute("buyNowItem", buyNowItem);
-            session.setAttribute("buyNowList", buyNowList);
-            session.setAttribute("isBuyNow", true); // Flag để phân biệt với checkout từ giỏ hàng
+            // 3️⃣ Lưu item được chọn vào session (QUAN TRỌNG)
+            session.setAttribute("BUY_NOW_PRODUCT_ID", productId);
+            session.setAttribute("BUY_NOW_VARIANT_ID", variantId);
 
-            // Chuyển hướng đến trang checkout
-            response.sendRedirect(request.getContextPath() + "/checkout");
+            // 4️⃣ Redirect sang cart
+            response.sendRedirect(request.getContextPath() + "/cart");
 
-        } catch (NumberFormatException e) {
-            request.setAttribute("error", "Thông tin sản phẩm không hợp lệ");
-            request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Lỗi khi xử lý mua ngay: " + e.getMessage());
-            // Quay lại trang chi tiết sản phẩm
-            String referer = request.getHeader("Referer");
-            if (referer != null) {
-                response.sendRedirect(referer + "?error=" + e.getMessage());
-            } else {
-                response.sendRedirect(request.getContextPath() + "/");
-            }
+            response.sendRedirect(request.getContextPath() + "/");
         }
     }
 }
