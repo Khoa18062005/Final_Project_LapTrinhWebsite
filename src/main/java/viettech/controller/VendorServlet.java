@@ -225,6 +225,39 @@ public class VendorServlet extends HttpServlet {
                 // Lấy danh sách shipper khả dụng
                 GetAvailableShippers(request, response, vendorId);
                 return;
+            } else if (action.equals("updateOrderNotes")) {
+                // Update order notes (vendor-side)
+                String orderIdStr = request.getParameter("orderId");
+                if (orderIdStr == null || orderIdStr.isEmpty()) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    sendJsonResponse(response, false, "Missing orderId", null);
+                    return;
+                }
+
+                int orderId;
+                try {
+                    orderId = Integer.parseInt(orderIdStr);
+                } catch (NumberFormatException e) {
+                    response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                    sendJsonResponse(response, false, "Invalid orderId", null);
+                    return;
+                }
+
+                try {
+                    String body = request.getReader().lines().reduce("", (a, b) -> a + b);
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> payload = new com.google.gson.Gson().fromJson(body, Map.class);
+                    String notes = payload != null && payload.get("notes") != null ? String.valueOf(payload.get("notes")) : "";
+
+                    Order updated = vendorService.updateOrderNotes(orderId, notes, vendorId);
+                    sendJsonResponse(response, true, "Updated notes successfully", updated != null ? updated.getOrderId() : null);
+                    return;
+                } catch (Exception ex) {
+                    logger.error("Error updating order notes", ex);
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                    sendJsonResponse(response, false, ex.getMessage(), null);
+                    return;
+                }
             }
 
             // Forward to vendor.jsp - let JSP  routing based on action parameter

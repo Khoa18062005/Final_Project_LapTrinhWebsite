@@ -852,6 +852,11 @@
                                                     </span>
                                                 </td>
                                                 <td class="order-actions">
+                                                    <button class="btn btn-sm btn-outline-secondary"
+                                                            onclick="viewOrderDetails(${order.orderId})">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+
                                                     <c:if test="${order.status == 'Pending'}">
                                                         <button class="btn btn-sm btn-primary"
                                                                 onclick="updateOrderStatus(${order.orderId}, 'Processing')">
@@ -870,16 +875,13 @@
                                                             <i class="fas fa-box"></i> Sẵn sàng
                                                         </button>
                                                     </c:if>
+
                                                     <c:if test="${order.status != 'Completed' && order.status != 'Cancelled'}">
                                                         <button class="btn btn-sm btn-danger"
                                                                 onclick="showCancelModal(${order.orderId})">
                                                             <i class="fas fa-times"></i> Hủy
                                                         </button>
                                                     </c:if>
-                                                    <button class="btn btn-sm btn-outline-secondary"
-                                                            onclick="viewOrderDetails(${order.orderId})">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
                                                 </td>
                                             </tr>
                                         </c:forEach>
@@ -928,6 +930,31 @@
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                             <button type="button" class="btn btn-danger" onclick="confirmCancelOrder()">
                                 <i class="fas fa-times"></i> Xác nhận hủy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Notes Modal (Order) -->
+            <div class="modal fade" id="editNotesModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title"><i class="fas fa-pen"></i> Cập nhật ghi chú đơn hàng</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" id="editNotesOrderId">
+                            <div class="mb-3">
+                                <label class="form-label">Ghi chú</label>
+                                <textarea class="form-control" id="editNotesText" rows="3" placeholder="Nhập ghi chú..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <button type="button" class="btn btn-primary" onclick="submitEditNotes()">
+                                <i class="fas fa-save"></i> Lưu
                             </button>
                         </div>
                     </div>
@@ -999,17 +1026,37 @@
                                                                         currencySymbol="" maxFractionDigits="0"/>đ
                                                     </strong>
                                                 </td>
-                                                <td>${product.totalSold != null ? product.totalSold : 0}</td>
                                                 <td>
-                                                    <span class="badge ${product.status == 'Active' ? 'bg-success' : 'bg-secondary'}">
-                                                        ${product.status}
-                                                    </span>
+                                                    <c:choose>
+                                                        <c:when test="${not empty product.totalSold}">${product.totalSold}</c:when>
+                                                        <c:otherwise>0</c:otherwise>
+                                                    </c:choose>
                                                 </td>
                                                 <td>
-                                                    <fmt:formatDate value="${product.createdAt}" pattern="dd/MM/yyyy"/><br>
-                                                    <small class="text-muted">
-                                                        <fmt:formatDate value="${product.createdAt}" pattern="HH:mm"/>
-                                                    </small>
+                                                    <c:choose>
+                                                        <c:when test="${product.status == 'Active'}">
+                                                            <span class="badge bg-success">${product.status}</span>
+                                                        </c:when>
+                                                        <c:when test="${not empty product.status}">
+                                                            <span class="badge bg-secondary">${product.status}</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="badge bg-secondary">N/A</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${not empty product.createdAt}">
+                                                            <fmt:formatDate value="${product.createdAt}" pattern="dd/MM/yyyy"/><br>
+                                                            <small class="text-muted">
+                                                                <fmt:formatDate value="${product.createdAt}" pattern="HH:mm"/>
+                                                            </small>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="text-muted">N/A</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </td>
                                                 <td>
                                                     <button class="btn btn-sm btn-warning"
@@ -1101,7 +1148,7 @@
             <c:choose>
                 <c:when test="${not empty orders}">
                     <c:forEach items="${orders}" var="order">
-                        <div class="card mb-3 border-left-primary">
+                        <div class="card mb-3 border-left-primary" data-order-id="${order.orderId}">
                             <div class="card-header bg-light">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
@@ -1115,9 +1162,7 @@
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="badge bg-${order.status == 'Assigned' ? 'success' : 'warning'} fs-6">
-                                            ${order.status == 'Assigned' ? 'Đã gán shipper' : 'Chờ gán shipper'}
-                                        </span>
+                                        <span class="badge bg-warning fs-6" id="shipper-badge-${order.orderId}">Chờ gán shipper</span>
                                     </div>
                                 </div>
                             </div>
@@ -1199,7 +1244,7 @@
                                                 <small class="text-muted fw-bold">Sản phẩm:</small>
                                                 <c:forEach items="${order.orderDetails}" var="detail" begin="0" end="2">
                                                     <div class="small">
-                                                        • ${detail.product.name} (x${detail.quantity})
+                                                        • ${detail.productName} (x${detail.quantity})
                                                     </div>
                                                 </c:forEach>
                                                 <c:if test="${fn:length(order.orderDetails) > 3}">
@@ -1222,23 +1267,19 @@
                                                     Đang tải thông tin shipper...
                                                 </small>
                                             </div>
-                                            <div class="d-flex gap-2">
+                                            <div class="d-flex gap-2" id="shipper-actions-${order.orderId}">
                                                 <button class="btn btn-outline-primary btn-sm"
                                                         onclick="viewOrderDetails(${order.orderId})">
                                                     <i class="fas fa-eye"></i> Chi tiết
                                                 </button>
-                                                <c:if test="${order.status != 'Assigned'}">
-                                                    <button class="btn btn-success btn-sm"
-                                                            onclick="showAssignShipperModal(${order.orderId}, '${order.orderNumber}')">
-                                                        <i class="fas fa-user-plus"></i> Gán Shipper
-                                                    </button>
-                                                </c:if>
-                                                <c:if test="${order.status == 'Assigned'}">
-                                                    <button class="btn btn-warning btn-sm"
-                                                            onclick="changeShipper(${order.orderId}, '${order.orderNumber}')">
-                                                        <i class="fas fa-exchange-alt"></i> Đổi Shipper
-                                                    </button>
-                                                </c:if>
+                                                <button class="btn btn-success btn-sm" id="btn-assign-${order.orderId}"
+                                                        onclick="showAssignShipperModal(${order.orderId}, '${order.orderNumber}')">
+                                                    <i class="fas fa-user-plus"></i> Gán Shipper
+                                                </button>
+                                                <button class="btn btn-warning btn-sm d-none" id="btn-change-${order.orderId}"
+                                                        onclick="changeShipper(${order.orderId}, '${order.orderNumber}')">
+                                                    <i class="fas fa-exchange-alt"></i> Đổi Shipper
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -1819,17 +1860,24 @@
     function showAssignShipperModal(orderId, orderNumber) {
         document.getElementById('assignOrderId').value = orderId;
         document.getElementById('assignOrderNumber').textContent = '#' + orderNumber;
-        document.getElementById('shipperId').value = '';
+        const select = document.getElementById('shipperSelect');
+        if (select) select.value = '';
+        // load shippers for this order
+        try {
+            loadAvailableShippers(orderId);
+        } catch (e) {
+            // ignore
+        }
         new bootstrap.Modal(document.getElementById('assignShipperModal')).show();
     }
 
     // Confirm Assign Shipper
     function confirmAssignShipper() {
         const orderId = document.getElementById('assignOrderId').value;
-        const shipperId = document.getElementById('shipperId').value;
+        const shipperId = document.getElementById('shipperSelect').value;
 
         if (!shipperId) {
-            alert('Vui lòng nhập ID của Shipper');
+            alert('Vui lòng chọn shipper');
             return;
         }
 
@@ -1979,23 +2027,33 @@
             method: 'GET'
         })
         .then(res => res.json())
-        .then(shippers => {
+        .then(result => {
             const shipperSelect = document.getElementById('shipperSelect');
-            shipperSelect.innerHTML = '<option value="">Chọn shipper...</option>'; // Reset options
+            shipperSelect.innerHTML = '<option value="">Chọn shipper...</option>';
 
-            if (shippers && shippers.length > 0) {
-                shippers.forEach(shipper => {
-                    const option = document.createElement('option');
-                    option.value = shipper.id;
-                    option.textContent = `\${shipper.name} - \${shipper.phone}`;
-                    shipperSelect.appendChild(option);
-                });
-            } else {
-                shipperSelect.innerHTML = '<option value="">Không có shipper khả dụng</option>';
+            if (!result || !result.success) {
+                shipperSelect.innerHTML = '<option value="">Không thể tải shipper</option>';
+                return;
             }
+
+            const shippers = Array.isArray(result.data) ? result.data : [];
+            if (shippers.length === 0) {
+                shipperSelect.innerHTML = '<option value="">Không có shipper khả dụng</option>';
+                return;
+            }
+
+            shippers.forEach(shipper => {
+                const option = document.createElement('option');
+                option.value = shipper.userId;
+                const fullName = ((shipper.firstName || '') + ' ' + (shipper.lastName || '')).trim();
+                option.textContent = (fullName || ('Shipper #' + shipper.userId)) + (shipper.phone ? (' - ' + shipper.phone) : '');
+                shipperSelect.appendChild(option);
+            });
         })
         .catch(err => {
-            alert('Có lỗi xảy ra khi tải danh sách shipper: ' + err.message);
+            const shipperSelect = document.getElementById('shipperSelect');
+            shipperSelect.innerHTML = '<option value="">Lỗi tải shipper</option>';
+            console.error('Error loading shippers:', err);
         });
     }
 
@@ -2020,21 +2078,49 @@
             })
             .then(res => res.json())
             .then(result => {
-                if (result.success && result.data && result.data.shipper) {
-                    const shipper = result.data.shipper;
+                const badge = document.getElementById('shipper-badge-' + orderId);
+                const btnAssign = document.getElementById('btn-assign-' + orderId);
+                const btnChange = document.getElementById('btn-change-' + orderId);
+
+                const shipper = result && result.success && result.data ? result.data.shipper : null;
+                const hasShipper = !!shipper;
+
+                if (hasShipper) {
                     element.innerHTML = `
                         <small class="text-success">
                             <i class="fas fa-user-tie"></i>
-                            <strong>\${shipper.firstName} \${shipper.lastName}</strong><br>
-                            <i class="fas fa-phone"></i> \${shipper.phone}
+                            <strong>${shipper.firstName || ''} ${shipper.lastName || ''}</strong><br>
+                            <i class="fas fa-phone"></i> ${shipper.phone || ''}
                         </small>
                     `;
+
+                    if (badge) {
+                        badge.classList.remove('bg-warning');
+                        badge.classList.add('bg-success');
+                        badge.textContent = 'Đã gán shipper';
+                    }
+                    if (btnAssign) btnAssign.classList.add('d-none');
+                    if (btnChange) btnChange.classList.remove('d-none');
                 } else {
                     element.innerHTML = '<small class="text-muted">Chưa gán shipper</small>';
+
+                    if (badge) {
+                        badge.classList.remove('bg-success');
+                        badge.classList.add('bg-warning');
+                        badge.textContent = 'Chờ gán shipper';
+                    }
+                    if (btnAssign) btnAssign.classList.remove('d-none');
+                    if (btnChange) btnChange.classList.add('d-none');
                 }
             })
             .catch(err => {
                 element.innerHTML = '<small class="text-danger">Lỗi tải dữ liệu</small>';
+                const badge = document.getElementById('shipper-badge-' + orderId);
+                if (badge) {
+                    badge.classList.remove('bg-success');
+                    badge.classList.add('bg-warning');
+                    badge.textContent = 'Không tải được shipper';
+                }
             });
         });
     }

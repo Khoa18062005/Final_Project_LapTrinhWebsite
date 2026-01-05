@@ -76,7 +76,7 @@ public class VendorService {
 
             // 3. Lấy danh sách Đơn hàng (Orders)
             // JOIN FETCH để tránh lỗi Lazy Loading khi lấy Customer và Address
-            String orderQuery = "SELECT o FROM Order o " +
+            String orderQuery = "SELECT DISTINCT o FROM Order o " +
                     "LEFT JOIN FETCH o.customer c " +
                     "LEFT JOIN FETCH o.address a " +
                     "WHERE o.vendorId = :vid ORDER BY o.orderDate DESC";
@@ -232,30 +232,17 @@ public class VendorService {
     public List<Product> getAllProductsByVendor(int vendorId) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            String jpql = """
-            SELECT DISTINCT p
-            FROM Product p
-            JOIN FETCH p.vendor v
-            LEFT JOIN FETCH p.category c
-            LEFT JOIN FETCH p.images i
-            WHERE v.userId = :vendorId
-            ORDER BY p.createdAt DESC
-        """;
+            // Use scalar vendorId field (present in Product entity) to avoid relying on optional/mis-mapped vendor relation.
+            String jpql = "SELECT p FROM Product p WHERE p.vendorId = :vendorId ORDER BY p.createdAt DESC";
 
-            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
-            query.setParameter("vendorId", vendorId);
-
-            List<Product> products = query.getResultList();
-            logger.info("✓ Found {} products for vendor {}", products.size(), vendorId);
-            return products;
-
-        } catch (Exception e) {
-            logger.error("✗ Failed to get all products for vendor {}", vendorId, e);
-            throw new RuntimeException("Failed to get products", e);
+            return em.createQuery(jpql, Product.class)
+                    .setParameter("vendorId", vendorId)
+                    .getResultList();
         } finally {
             em.close();
         }
     }
+
 
     /**
      * Lấy sản phẩm theo ID và kiểm tra quyền sở hữu
@@ -263,30 +250,20 @@ public class VendorService {
     public Product getProductById(int productId, int vendorId) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            String jpql = """
-            SELECT DISTINCT p
-            FROM Product p
-            JOIN FETCH p.vendor v
-            LEFT JOIN FETCH p.category c
-            LEFT JOIN FETCH p.images i
-            WHERE p.productId = :productId
-              AND v.userId = :vendorId
-        """;
+            // Match the list query: verify ownership via scalar vendorId
+            String jpql = "SELECT p FROM Product p WHERE p.productId = :productId AND p.vendorId = :vendorId";
 
-            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
-            query.setParameter("productId", productId);
-            query.setParameter("vendorId", vendorId);
+            List<Product> list = em.createQuery(jpql, Product.class)
+                    .setParameter("productId", productId)
+                    .setParameter("vendorId", vendorId)
+                    .getResultList();
 
-            List<Product> result = query.getResultList();
-            return result.isEmpty() ? null : result.get(0);
-
-        } catch (Exception e) {
-            logger.error("✗ Failed to get product {} for vendor {}", productId, vendorId, e);
-            throw new RuntimeException("Failed to get product", e);
+            return list.isEmpty() ? null : list.get(0);
         } finally {
             em.close();
         }
     }
+
 
 
     // ==================== ORDER MANAGEMENT ====================
@@ -334,7 +311,12 @@ public class VendorService {
     public List<Order> getOrdersByStatus(int vendorId, String status) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            String jpql = "SELECT o FROM Order o WHERE o.vendorId = :vendorId AND o.status = :status ORDER BY o.orderDate DESC";
+            // Fetch relations needed by vendor.jsp (customer/address) to avoid LazyInitializationException
+            String jpql = "SELECT DISTINCT o FROM Order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "WHERE o.vendorId = :vendorId AND o.status = :status " +
+                    "ORDER BY o.orderDate DESC";
             TypedQuery<Order> query = em.createQuery(jpql, Order.class);
             query.setParameter("vendorId", vendorId);
             query.setParameter("status", status);
@@ -432,7 +414,11 @@ public class VendorService {
                 return null;
             }
 
-            String jpql = "SELECT s FROM DeliveryAssignment da JOIN Shipper s ON da.shipperId = s.userId WHERE da.deliveryId = :orderId";
+            String jpql = "SELECT da.shipper " +
+                    "FROM viettech.entity.delivery.DeliveryAssignment da " +
+                    "JOIN da.delivery d " +
+                    "WHERE d.orderId = :orderId";
+
             TypedQuery<Shipper> query = em.createQuery(jpql, Shipper.class);
             query.setParameter("orderId", orderId);
             List<Shipper> shippers = query.getResultList();
@@ -462,21 +448,42 @@ public class VendorService {
                 throw new RuntimeException("Order does not belong to this vendor");
             }
 
+            // Ensure a Delivery exists for this order (DeliveryAssignment references deliveryId, not orderId)
+            viettech.entity.delivery.Delivery delivery = em.createQuery(
+                            "SELECT d FROM viettech.entity.delivery.Delivery d WHERE d.orderId = :orderId",
+                            viettech.entity.delivery.Delivery.class)
+                    .setParameter("orderId", orderId)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+
+            if (delivery == null) {
+                int warehouseId = getWarehouseIdForVendor(vendorId);
+                if (warehouseId <= 0) {
+                    throw new RuntimeException("No active warehouse found for vendor");
+                }
+
+                delivery = new viettech.entity.delivery.Delivery();
+                delivery.setOrderId(orderId);
+                delivery.setWarehouseId(warehouseId);
+                delivery.setAddressId(order.getAddressId());
+                delivery.setStatus("ASSIGNED");
+                em.getTransaction().begin();
+                em.persist(delivery);
+                em.getTransaction().commit();
+            }
+
             // Tạo Delivery Assignment
             DeliveryAssignment assignment = new DeliveryAssignment();
+            assignment.setDeliveryId(delivery.getDeliveryId());
             assignment.setShipperId(shipperId);
             assignment.setAssignedAt(new Date());
             assignment.setStatus("ASSIGNED");
 
-            // Tùy logic của bạn, có thể cần tạo Delivery entity trước
-            assignment.setDeliveryId(orderId);
-
             deliveryAssignmentDAO.insert(assignment);
 
-            // Cập nhật trạng thái đơn hàng
-            order.setStatus("Assigned");
-            orderDAO.update(order);
-
+            // Do NOT force order.status = 'Assigned' (other parts of the system use Processing/Confirmed/Ready/etc.).
+            // Assignment state should be derived from Delivery/DeliveryAssignment.
             logger.info("Vendor {} assigned order {} to shipper {}", vendorId, orderId, shipperId);
             return assignment;
         } catch (Exception e) {
@@ -498,12 +505,27 @@ public class VendorService {
                 throw new RuntimeException("Order not found or access denied");
             }
 
-            // Xóa assignment
-            String jpql = "DELETE FROM DeliveryAssignment da WHERE da.deliveryId = :orderId";
-            int deleted = em.createQuery(jpql).setParameter("orderId", orderId).executeUpdate();
+            Integer deliveryId = em.createQuery(
+                            "SELECT d.deliveryId FROM viettech.entity.delivery.Delivery d WHERE d.orderId = :orderId",
+                            Integer.class)
+                    .setParameter("orderId", orderId)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+
+            if (deliveryId == null) {
+                return;
+            }
+
+            // Xóa assignment theo deliveryId
+            em.getTransaction().begin();
+            int deleted = em.createQuery(
+                            "DELETE FROM viettech.entity.delivery.DeliveryAssignment da WHERE da.deliveryId = :deliveryId")
+                    .setParameter("deliveryId", deliveryId)
+                    .executeUpdate();
+            em.getTransaction().commit();
+
             if (deleted > 0) {
-                order.setStatus("Processing"); // Quay lại trạng thái trước
-                orderDAO.update(order);
                 logger.info("Unassigned shipper from order {}", orderId);
             }
         } catch (Exception e) {
@@ -514,66 +536,92 @@ public class VendorService {
         }
     }
 
+    private int getWarehouseIdForVendor(int vendorId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            return em.createQuery(
+                            "SELECT w.warehouseId FROM viettech.entity.storage.Warehouse w " +
+                                    "WHERE w.vendor.userId = :vendorId AND w.isActive = true",
+                            Integer.class)
+                    .setParameter("vendorId", vendorId)
+                    .setMaxResults(1)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(0);
+        } finally {
+            em.close();
+        }
+    }
+
+
     /**
      * Lấy danh sách đơn hàng cần giao với thông tin chi tiết
      */
     public List<Order> getOrdersReadyForShipping(int vendorId) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            // Step 1: Get basic orders first
-            String jpql = "SELECT o FROM Order o " +
-                    "WHERE o.vendorId = :vendorId " +
-                    "AND (o.status = 'Processing' OR o.status = 'Confirmed' OR o.status = 'Ready')";
-            TypedQuery<Order> query = em.createQuery(jpql, Order.class);
-            query.setParameter("vendorId", vendorId);
-            List<Order> orders = query.getResultList();
+            // IMPORTANT:
+            // Hibernate cannot JOIN FETCH two @OneToMany bags in one query
+            // (Order.orderDetails and Delivery.assignments) -> MultipleBagFetchException.
+            // Also: Some OrderDetail rows may reference a Variant ID that no longer exists.
+            // The shipping UI only needs snapshot fields from OrderDetail (productName/unitPrice/quantity),
+            // so we must avoid initializing od.variant.
+            String jpql = """
+                SELECT DISTINCT o
+                FROM Order o
+                LEFT JOIN FETCH o.customer c
+                LEFT JOIN FETCH o.address a
+                LEFT JOIN FETCH o.delivery d
+                WHERE o.vendorId = :vendorId
+                  AND (o.status = 'Processing' OR o.status = 'Confirmed' OR o.status = 'Ready')
+                ORDER BY o.orderDate DESC
+            """;
 
-            if (orders.isEmpty()) {
-                logger.info("✓ Found 0 orders ready for shipping for vendor {}", vendorId);
-                return orders;
-            }
+            List<Order> orders = em.createQuery(jpql, Order.class)
+                    .setParameter("vendorId", vendorId)
+                    .getResultList();
 
-            // Step 2: Load customer and address for each order
-            // We use a safe list to store only orders that can be fully loaded
-            List<Order> validOrders = new java.util.ArrayList<>();
+            for (Order o : orders) {
+                // Fetch ONLY snapshot fields to avoid touching broken Variant relation.
+                List<Object[]> rows = em.createQuery(
+                                "SELECT od.orderDetailId, od.orderId, od.productId, od.variantId, od.productName, od.variantInfo, od.quantity, od.unitPrice, od.discount, od.subtotal, od.status " +
+                                        "FROM OrderDetail od WHERE od.orderId = :orderId",
+                                Object[].class)
+                        .setParameter("orderId", o.getOrderId())
+                        .getResultList();
 
-            for (Order order : orders) {
-                try {
-                    if (order.getCustomer() != null) {
-                        // Force initialization of customer
-                        order.getCustomer().getFirstName();
-                    }
-                    if (order.getAddress() != null) {
-                        // Force initialization of address
-                        order.getAddress().getStreet();
-                    }
-                    if (order.getOrderDetails() != null) {
-                        // Force initialization of order details
-                        order.getOrderDetails().size();
-                        // Force initialization of products in order details
-                        for (Object od : order.getOrderDetails()) {
-                            OrderDetail detail = (OrderDetail) od;
-                            if (detail.getProductName() != null) {
-                                detail.getProductName();
-                            }
-                            // Accessing variant info might trigger the error if Variant is missing
-                            // depending on how OrderDetail maps to Variant (if it has a OneToOne/ManyToOne)
-                        }
-                    }
-                    validOrders.add(order);
-                } catch (javax.persistence.EntityNotFoundException e) {
-                    logger.error(
-                            "Skipping order {} due to missing entity reference (likely deleted product/variant): {}",
-                            order.getOrderId(), e.getMessage());
-                } catch (Exception e) {
-                    logger.error("Skipping order {} due to error loading details: {}", order.getOrderId(),
-                            e.getMessage());
+                List<OrderDetail> details = new java.util.ArrayList<>();
+                for (Object[] r : rows) {
+                    OrderDetail od = new OrderDetail();
+                    // orderDetailId is generated; set it via reflection is not needed for UI
+                    od.setOrderId(((Number) r[1]).intValue());
+                    od.setProductId(((Number) r[2]).intValue());
+                    od.setVariantId(((Number) r[3]).intValue());
+                    od.setProductName((String) r[4]);
+                    od.setVariantInfo((String) r[5]);
+                    od.setQuantity(((Number) r[6]).intValue());
+                    od.setUnitPrice(((Number) r[7]).doubleValue());
+                    od.setDiscount(((Number) r[8]).doubleValue());
+                    od.setSubtotal(((Number) r[9]).doubleValue());
+                    od.setStatus((String) r[10]);
+                    details.add(od);
+                }
+                o.setOrderDetails(details);
+
+                // Fetch delivery assignments + shipper
+                if (o.getDelivery() != null) {
+                    List<DeliveryAssignment> assignments = em.createQuery(
+                                    "SELECT da FROM viettech.entity.delivery.DeliveryAssignment da " +
+                                            "LEFT JOIN FETCH da.shipper s " +
+                                            "WHERE da.deliveryId = :deliveryId",
+                                    DeliveryAssignment.class)
+                            .setParameter("deliveryId", o.getDelivery().getDeliveryId())
+                            .getResultList();
+                    o.getDelivery().setAssignments(assignments);
                 }
             }
 
-            logger.info("✓ Found {} orders ready for shipping for vendor {} ({} skipped)", validOrders.size(), vendorId,
-                    orders.size() - validOrders.size());
-            return validOrders;
+            return orders;
         } catch (Exception e) {
             logger.error("✗ Failed to get orders ready for shipping for vendor {}", vendorId, e);
             throw new RuntimeException("Failed to get orders ready for shipping: " + e.getMessage(), e);
