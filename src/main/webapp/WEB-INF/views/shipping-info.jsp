@@ -22,7 +22,7 @@
 
 <body>
 <!-- Header -->
-<jsp:include page="/header.jsp" />
+<jsp:include page="../../header.jsp" />
 
 <div class="container mt-4 mb-5">
   <!-- Breadcrumb -->
@@ -58,6 +58,42 @@
         <div class="col-md-4 text-end">
           <h5 class="text-primary">
             <fmt:formatNumber value="${buyNowItem.totalPrice}" type="currency"
+                              currencySymbol="₫" groupingUsed="true" />
+          </h5>
+        </div>
+      </div>
+    </div>
+  </c:if>
+  <c:if test="${not empty selectedCartItems}">
+    <div class="alert alert-info mb-4">
+      <h5 class="alert-heading"><i class="bi bi-cart-check"></i> Đơn hàng từ giỏ hàng</h5>
+      <c:forEach var="item" items="${selectedCartItems}" varStatus="status">
+        <div class="row mt-3">
+          <div class="col-md-2">
+            <img src="${item.productImage}" alt="${item.productName}"
+                 class="img-fluid rounded" style="max-height: 80px;"
+                 onerror="this.src='${pageContext.request.contextPath}/assets/images/default-product.jpg'">
+          </div>
+          <div class="col-md-6">
+            <h6>${item.productName}</h6>
+            <p class="text-muted mb-0">Số lượng: ${item.quantity}</p>
+            <c:if test="${not empty item.variantDisplay}">
+              <p class="text-muted mb-0">${item.variantDisplay}</p>
+            </c:if>
+          </div>
+          <div class="col-md-4 text-end">
+            <h5 class="text-primary">
+              <fmt:formatNumber value="${item.price}" type="currency"
+                                currencySymbol="₫" groupingUsed="true" />
+            </h5>
+          </div>
+        </div>
+        <c:if test="${not status.last}"><hr></c:if>
+      </c:forEach>
+      <div class="row mt-3">
+        <div class="col-12 text-end">
+          <h5>Tổng cộng:
+            <fmt:formatNumber value="${total}" type="currency"
                               currencySymbol="₫" groupingUsed="true" />
           </h5>
         </div>
@@ -150,7 +186,7 @@
                     <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
                   </a>
                   <div>
-                    <a href="${pageContext.request.contextPath}/address/add" class="btn btn-outline-primary me-2">
+                    <a href="${pageContext.request.contextPath}/address" class="btn btn-outline-primary me-2">
                       <i class="bi bi-plus-circle"></i> Thêm địa chỉ mới
                     </a>
                     <button type="submit" class="btn btn-primary">
@@ -168,7 +204,7 @@
 </div>
 
 <!-- Footer -->
-<jsp:include page="/WEB-INF/views/layout/footer.jsp" />
+<jsp:include page="../../footer.jsp" />
 <script>
   // Biến toàn cục cho JavaScript - QUAN TRỌNG: PHẢI CÓ
   const contextPath = "${pageContext.request.contextPath}";

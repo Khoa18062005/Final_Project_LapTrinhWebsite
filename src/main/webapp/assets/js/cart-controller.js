@@ -322,8 +322,7 @@ const cartController = {
             return;
         }
 
-        // Chuyển đến trang thanh toán
-        window.location.href = `${window.contextPath}/checkout`;
+        this.checkoutSelectedItems();
     },
 
     // Định dạng tiền tệ
@@ -355,7 +354,52 @@ const cartController = {
                 badge.style.display = 'none';
             }
         });
-    }
+    },
+    checkoutSelectedItems: function() {
+        // Lấy tất cả các checkbox đã được chọn
+        const selectedCheckboxes = document.querySelectorAll('.item-checkbox:checked');
+
+        if (selectedCheckboxes.length === 0) {
+            notification.showError('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+            return;
+        }
+
+        // Tạo form ẩn để submit dữ liệu
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = window.contextPath + '/checkout/selected-items';
+
+        // Thêm từng sản phẩm đã chọn vào form
+        selectedCheckboxes.forEach(function(checkbox) {
+            const productIdInput = document.createElement('input');
+            productIdInput.type = 'hidden';
+            productIdInput.name = 'productId';
+            productIdInput.value = checkbox.value;
+
+            const variantIdInput = document.createElement('input');
+            variantIdInput.type = 'hidden';
+            variantIdInput.name = 'variantId';
+            variantIdInput.value = checkbox.dataset.variantId;
+
+            form.appendChild(productIdInput);
+            form.appendChild(variantIdInput);
+        });
+
+        // Thêm CSRF token nếu có
+        const csrfToken = document.querySelector('meta[name="_csrf"]')?.content;
+        const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.content;
+
+        if (csrfToken && csrfHeader) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = csrfHeader;
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    },
 };
 
 // Khởi tạo khi DOM ready
