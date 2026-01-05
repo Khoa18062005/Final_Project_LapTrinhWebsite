@@ -140,4 +140,58 @@ public class AddressService {
         List<Address> addresses = addressDAO.findByCustomerId(customerId);
         return addresses.size();
     }
+
+    /**
+     * Đặt địa chỉ làm mặc định
+     *
+     * @param addressId ID của địa chỉ cần đặt làm mặc định
+     * @param customerId ID của customer
+     * @return true nếu thành công, false nếu thất bại
+     */
+    public boolean setDefaultAddress(int addressId, int customerId) {
+        System.out.println("🎯 Service: Setting default address");
+        System.out.println("  - addressId: " + addressId);
+        System.out.println("  - customerId: " + customerId);
+
+        try {
+            // 1. Tìm địa chỉ cần đặt làm mặc định
+            Address targetAddress = addressDAO.findById(addressId);
+
+            if (targetAddress == null) {
+                System.out.println("❌ Service: Address not found");
+                logger.error("✗ Address not found with ID: {}", addressId);
+                return false;
+            }
+
+            // 2. Kiểm tra địa chỉ có thuộc về customer không
+            if (targetAddress.getCustomer().getUserId() != customerId) {
+                System.out.println("❌ Service: Address does not belong to customer");
+                logger.error("✗ Address {} does not belong to customer {}", addressId, customerId);
+                return false;
+            }
+
+            // 3. Bỏ default của địa chỉ mặc định hiện tại (nếu có)
+            Address currentDefault = addressDAO.findDefaultByCustomerId(customerId);
+            if (currentDefault != null && currentDefault.getAddressId() != addressId) {
+                System.out.println("ℹ️ Service: Removing default from address: " + currentDefault.getAddressId());
+                currentDefault.setDefault(false);
+                addressDAO.update(currentDefault);
+                System.out.println("✅ Service: Updated old default address");
+            }
+
+            // 4. Đặt địa chỉ mới làm mặc định
+            targetAddress.setDefault(true);
+            addressDAO.update(targetAddress);
+
+            System.out.println("✅ Service: Set address " + addressId + " as default");
+            logger.info("✓ Set address {} as default for customer {}", addressId, customerId);
+            return true;
+
+        } catch (Exception e) {
+            System.err.println("❌ Service Exception: " + e.getMessage());
+            e.printStackTrace();
+            logger.error("✗ Failed to set default address {} for customer {}", addressId, customerId, e);
+            return false;
+        }
+    }
 }
