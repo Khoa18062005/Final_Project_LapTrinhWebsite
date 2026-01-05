@@ -19,8 +19,6 @@ public class NotificationTemplateUtil {
     public static final String TYPE_SECURITY = "security";  // ← THÊM MỚI
     public static final String TYPE_REFERRAL = "referral";  // ← THÊM MỚI
 
-
-
     // ========== IMAGE URLS ==========
     private static final String IMG_LOGIN = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767279453/login_ndmwr5.png";
     private static final String IMG_REGISTER = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767279473/register_iozsha.png";

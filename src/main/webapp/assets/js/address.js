@@ -1,336 +1,377 @@
-// Biến lưu dữ liệu API
-let provinces = [];
-let districts = [];
-let wards = [];
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Address.js loaded');
 
-// Khi modal hiển thị
-document.getElementById('addAddressModal').addEventListener('shown.bs.modal', function () {
-    loadProvinces();
+    initAddressForm();
+    initSetDefaultButtons();
 });
 
-// Load danh sách tỉnh/thành phố từ API
-function loadProvinces() {
+// ========== KHỞI TẠO FORM THÊM ĐỊA CHỈ ==========
+function initAddressForm() {
+    const apiBaseUrl = 'https://provinces.open-api.vn/api';
+
     const citySelect = document.getElementById('city');
     const districtSelect = document.getElementById('district');
     const wardSelect = document.getElementById('ward');
+    const phoneInput = document.getElementById('phone'); // ← MỚI THÊM
 
-    // Reset các select
-    citySelect.innerHTML = '<option value="" selected disabled>Chọn tỉnh/thành phố</option>';
-    districtSelect.innerHTML = '<option value="" selected disabled>Chọn quận/huyện</option>';
-    wardSelect.innerHTML = '<option value="" selected disabled>Chọn phường/xã</option>';
-    districtSelect.disabled = true;
-    wardSelect.disabled = true;
+    if (!citySelect || !districtSelect || !wardSelect) {
+        console.warn('⚠️ Address form elements not found');
+        return;
+    }
 
-    // Sử dụng API khác - DAPI Mien Tay
-    fetch('https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json')
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(data => {
-            provinces = data;
-            data.forEach(province => {
-                const option = document.createElement('option');
-                option.value = province.Name;
-                option.textContent = province.Name;
-                citySelect.appendChild(option);
-            });
-        })
-        .catch(error => {
-            console.error('Lỗi khi tải danh sách tỉnh/thành:', error);
-            loadStaticProvinces();
+    // Load cities khi trang load
+    loadCities();
+
+    // ===== VALIDATION SỐ ĐIỆN THOẠI ===== (MỚI THÊM - BẮT ĐẦU)
+    if (phoneInput) {
+        // Chỉ cho phép nhập số
+        phoneInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length > 10) {
+                this.value = this.value.slice(0, 10);
+            }
+            validatePhone(this);
         });
+
+        phoneInput.addEventListener('blur', function() {
+            validatePhone(this);
+        });
+
+        phoneInput.addEventListener('focus', function() {
+            this.classList.remove('is-invalid', 'is-valid');
+            const feedback = this.parentElement.querySelector('.invalid-feedback');
+            if (feedback) feedback.remove();
+        });
+    }
+    // ===== VALIDATION SỐ ĐIỆN THOẠI ===== (MỚI THÊM - KẾT THÚC)
+
+    // Event listeners
+    citySelect.addEventListener('change', function() {
+        const cityCode = this.value;
+        if (cityCode) {
+            loadDistricts(cityCode);
+        } else {
+            resetSelect(districtSelect, 'Chọn quận/huyện');
+            resetSelect(wardSelect, 'Chọn phường/xã');
+        }
+    });
+
+    districtSelect.addEventListener('change', function() {
+        const districtCode = this.value;
+        if (districtCode) {
+            loadWards(districtCode);
+        } else {
+            resetSelect(wardSelect, 'Chọn phường/xã');
+        }
+    });
+
+    // ===== LOAD CITIES =====
+    function loadCities() {
+        console.log('📍 Loading cities...');
+        citySelect.disabled = true;
+
+        fetch(`${apiBaseUrl}/p/`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(`✅ Loaded ${data.length} cities`);
+
+                citySelect.innerHTML = '<option value="" selected disabled>Chọn tỉnh/thành phố</option>';
+
+                data.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.code;
+                    option.textContent = city.name;
+                    option.setAttribute('data-name', city.name);
+                    citySelect.appendChild(option);
+                });
+
+                citySelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('❌ Error loading cities:', error);
+                citySelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            });
+    }
+
+    // ===== LOAD DISTRICTS =====
+    function loadDistricts(cityCode) {
+        console.log(`📍 Loading districts for city: ${cityCode}`);
+        districtSelect.disabled = true;
+        resetSelect(wardSelect, 'Chọn phường/xã');
+
+        fetch(`${apiBaseUrl}/p/${cityCode}?depth=2`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(`✅ Loaded ${data.districts.length} districts`);
+
+                districtSelect.innerHTML = '<option value="" selected disabled>Chọn quận/huyện</option>';
+
+                data.districts.forEach(district => {
+                    const option = document.createElement('option');
+                    option.value = district.code;
+                    option.textContent = district.name;
+                    option.setAttribute('data-name', district.name);
+                    districtSelect.appendChild(option);
+                });
+
+                districtSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('❌ Error loading districts:', error);
+                districtSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            });
+    }
+
+    // ===== LOAD WARDS =====
+    function loadWards(districtCode) {
+        console.log(`📍 Loading wards for district: ${districtCode}`);
+        wardSelect.disabled = true;
+
+        fetch(`${apiBaseUrl}/d/${districtCode}?depth=2`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(`✅ Loaded ${data.wards.length} wards`);
+
+                wardSelect.innerHTML = '<option value="" selected disabled>Chọn phường/xã</option>';
+
+                data.wards.forEach(ward => {
+                    const option = document.createElement('option');
+                    option.value = ward.code;
+                    option.textContent = ward.name;
+                    option.setAttribute('data-name', ward.name);
+                    wardSelect.appendChild(option);
+                });
+
+                wardSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('❌ Error loading wards:', error);
+                wardSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            });
+    }
+
+    // ===== RESET SELECT =====
+    function resetSelect(selectElement, placeholder) {
+        selectElement.innerHTML = `<option value="" selected disabled>${placeholder}</option>`;
+        selectElement.disabled = true;
+    }
+
+    // ===== FORM SUBMIT - ĐỔI CODE THÀNH TÊN =====
+    const addAddressForm = document.getElementById('addAddressForm');
+    if (addAddressForm) {
+        addAddressForm.addEventListener('submit', function(e) {
+            console.log('📤 Form submitting...');
+
+            // ===== VALIDATE PHONE TRƯỚC KHI SUBMIT ===== (MỚI THÊM - BẮT ĐẦU)
+            if (phoneInput && !validatePhone(phoneInput)) {
+                e.preventDefault();
+                console.error('❌ Phone validation failed');
+                phoneInput.focus();
+                return false;
+            }
+            // ===== VALIDATE PHONE TRƯỚC KHI SUBMIT ===== (MỚI THÊM - KẾT THÚC)
+
+            // Lấy selected options
+            const cityOption = citySelect.options[citySelect.selectedIndex];
+            const districtOption = districtSelect.options[districtSelect.selectedIndex];
+            const wardOption = wardSelect.options[wardSelect.selectedIndex];
+
+            // Lấy tên từ data-name hoặc textContent
+            const cityName = cityOption ? (cityOption.getAttribute('data-name') || cityOption.textContent) : '';
+            const districtName = districtOption ? (districtOption.getAttribute('data-name') || districtOption.textContent) : '';
+            const wardName = wardOption ? (wardOption.getAttribute('data-name') || wardOption.textContent) : '';
+
+            console.log('✅ Extracted names:', {
+                city: cityName,
+                district: districtName,
+                ward: wardName
+            });
+
+            // Tạo hidden inputs để gửi TÊN thay vì CODE
+            if (cityName) {
+                const hiddenCity = document.createElement('input');
+                hiddenCity.type = 'hidden';
+                hiddenCity.name = 'city';
+                hiddenCity.value = cityName;
+                addAddressForm.appendChild(hiddenCity);
+
+                // Disable select gốc để không gửi code
+                citySelect.disabled = true;
+            }
+
+            if (districtName) {
+                const hiddenDistrict = document.createElement('input');
+                hiddenDistrict.type = 'hidden';
+                hiddenDistrict.name = 'district';
+                hiddenDistrict.value = districtName;
+                addAddressForm.appendChild(hiddenDistrict);
+
+                districtSelect.disabled = true;
+            }
+
+            if (wardName) {
+                const hiddenWard = document.createElement('input');
+                hiddenWard.type = 'hidden';
+                hiddenWard.name = 'ward';
+                hiddenWard.value = wardName;
+                addAddressForm.appendChild(hiddenWard);
+
+                wardSelect.disabled = true;
+            }
+            console.log('✅ Hidden inputs created, form ready to submit');
+        });
+    }
 }
 
-// Fallback: Danh sách tỉnh/thành tĩnh (phổ biến)
-function loadStaticProvinces() {
-    const staticProvinces = [
-        'Hà Nội',
-        'Hồ Chí Minh',
-        'Hải Phòng',
-        'Đà Nẵng',
-        'Cần Thơ',
-        'Bình Dương',
-        'Đồng Nai',
-        'Bà Rịa - Vũng Tàu',
-        'Hải Dương',
-        'Thái Nguyên',
-        'Nghệ An',
-        'Thanh Hóa',
-        'Quảng Ninh',
-        'Bắc Ninh',
-        'Hưng Yên',
-        'Nam Định',
-        'Thái Bình',
-        'Phú Thọ',
-        'Vĩnh Phúc',
-        'Hòa Bình',
-        'Lạng Sơn',
-        'Quảng Nam',
-        'Bình Định',
-        'Khánh Hòa',
-        'Lâm Đồng',
-        'Đắk Lắk',
-        'An Giang',
-        'Kiên Giang',
-        'Cà Mau'
-    ];
+// ===== HÀM VALIDATE SỐ ĐIỆN THOẠI ===== (MỚI THÊM - TOÀN BỘ HÀM)
+function validatePhone(phoneInput) {
+    const phoneValue = phoneInput.value.trim();
 
-    const citySelect = document.getElementById('city');
-    staticProvinces.forEach(province => {
-        const option = document.createElement('option');
-        option.value = province;
-        option.textContent = province;
-        citySelect.appendChild(option);
+    const oldFeedback = phoneInput.parentElement.querySelector('.invalid-feedback');
+    if (oldFeedback) oldFeedback.remove();
+
+    if (phoneValue === '') {
+        phoneInput.classList.remove('is-valid', 'is-invalid');
+        return false;
+    }
+
+    const isValid = /^0\d{9}$/.test(phoneValue);
+
+    if (isValid) {
+        phoneInput.classList.remove('is-invalid');
+        phoneInput.classList.add('is-valid');
+        return true;
+    } else {
+        phoneInput.classList.remove('is-valid');
+        phoneInput.classList.add('is-invalid');
+
+        const feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback d-block';
+
+        if (!phoneValue.startsWith('0')) {
+            feedback.textContent = 'Số điện thoại phải bắt đầu bằng số 0';
+        } else if (phoneValue.length < 10) {
+            feedback.textContent = `Số điện thoại phải đủ 10 số (còn thiếu ${10 - phoneValue.length} số)`;
+        } else {
+            feedback.textContent = 'Số điện thoại không hợp lệ';
+        }
+
+        phoneInput.parentElement.appendChild(feedback);
+        return false;
+    }
+}
+
+// ========== KHỞI TẠO NÚT ĐẶT MẶC ĐỊNH ==========
+function initSetDefaultButtons() {
+    const setDefaultButtons = document.querySelectorAll('.btn-set-default');
+
+    console.log(`🔘 Found ${setDefaultButtons.length} set-default buttons`);
+
+    setDefaultButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const addressId = this.getAttribute('data-address-id');
+            const customerId = this.getAttribute('data-customer-id');
+
+            console.log(`🎯 Set default clicked for address: ${addressId}`);
+
+            setDefaultAddress(addressId, customerId, this);
+        });
     });
 }
 
-// Khi chọn tỉnh/thành phố
-document.getElementById('city').addEventListener('change', function() {
-    const provinceName = this.value;
-    const districtSelect = document.getElementById('district');
-    const wardSelect = document.getElementById('ward');
+// ========== AJAX SET DEFAULT ADDRESS ==========
+function setDefaultAddress(addressId, customerId, buttonElement) {
+    // Disable button để tránh spam click
+    buttonElement.disabled = true;
+    const originalHtml = buttonElement.innerHTML;
+    buttonElement.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...';
 
-    if (!provinceName) {
-        districtSelect.innerHTML = '<option value="" selected disabled>Chọn quận/huyện</option>';
-        wardSelect.innerHTML = '<option value="" selected disabled>Chọn phường/xã</option>';
-        districtSelect.disabled = true;
-        wardSelect.disabled = true;
-        return;
-    }
+    const contextPath = document.querySelector('meta[name="context-path"]').content;
 
-    // Reset các select cấp dưới
-    districtSelect.innerHTML = '<option value="" selected disabled>Đang tải...</option>';
-    wardSelect.innerHTML = '<option value="" selected disabled>Chọn phường/xã</option>';
-    districtSelect.disabled = true;
-    wardSelect.disabled = true;
-
-    // Tìm tỉnh được chọn
-    const selectedProvince = provinces.find(p => p.Name === provinceName);
-    if (!selectedProvince) {
-        districtSelect.innerHTML = '<option value="" selected disabled>Không tìm thấy dữ liệu quận/huyện</option>';
-        return;
-    }
-
-    // Lấy quận/huyện từ tỉnh đã chọn
-    districts = selectedProvince.Districts || [];
-    setTimeout(() => {
-        districtSelect.innerHTML = '<option value="" selected disabled>Chọn quận/huyện</option>';
-
-        if (districts.length > 0) {
-            districts.forEach(district => {
-                const option = document.createElement('option');
-                option.value = district.Name;
-                option.textContent = district.Name;
-                districtSelect.appendChild(option);
-            });
-            districtSelect.disabled = false;
-        } else {
-            districtSelect.innerHTML = '<option value="" selected disabled>Không có quận/huyện</option>';
-        }
-    }, 300);
-});
-
-// Khi chọn quận/huyện
-document.getElementById('district').addEventListener('change', function() {
-    const districtName = this.value;
-    const wardSelect = document.getElementById('ward');
-    const cityName = document.getElementById('city').value;
-
-    if (!districtName) {
-        wardSelect.innerHTML = '<option value="" selected disabled>Chọn phường/xã</option>';
-        wardSelect.disabled = true;
-        return;
-    }
-
-    // Reset select phường/xã
-    wardSelect.innerHTML = '<option value="" selected disabled>Đang tải...</option>';
-    wardSelect.disabled = true;
-
-    // Tìm tỉnh và quận được chọn
-    const selectedProvince = provinces.find(p => p.Name === cityName);
-    if (!selectedProvince) {
-        wardSelect.innerHTML = '<option value="" selected disabled>Không tìm thấy dữ liệu phường/xã</option>';
-        return;
-    }
-
-    const selectedDistrict = selectedProvince.Districts.find(d => d.Name === districtName);
-    if (!selectedDistrict) {
-        wardSelect.innerHTML = '<option value="" selected disabled>Không tìm thấy dữ liệu phường/xã</option>';
-        return;
-    }
-
-    // Lấy phường/xã từ quận đã chọn
-    wards = selectedDistrict.Wards || [];
-    setTimeout(() => {
-        wardSelect.innerHTML = '<option value="" selected disabled>Chọn phường/xã</option>';
-
-        if (wards.length > 0) {
-            wards.forEach(ward => {
-                const option = document.createElement('option');
-                option.value = ward.Name;
-                option.textContent = ward.Name;
-                wardSelect.appendChild(option);
-            });
-            wardSelect.disabled = false;
-        } else {
-            wardSelect.innerHTML = '<option value="" selected disabled>Không có phường/xã</option>';
-        }
-    }, 300);
-});
-
-// Reset form khi modal đóng
-document.getElementById('addAddressModal').addEventListener('hidden.bs.modal', function () {
-    const form = document.getElementById('addAddressForm');
-    form.reset();
-
-    // Reset các select
-    const citySelect = document.getElementById('city');
-    const districtSelect = document.getElementById('district');
-    const wardSelect = document.getElementById('ward');
-
-    citySelect.innerHTML = '<option value="" selected disabled>Chọn tỉnh/thành phố</option>';
-    districtSelect.innerHTML = '<option value="" selected disabled>Chọn quận/huyện</option>';
-    wardSelect.innerHTML = '<option value="" selected disabled>Chọn phường/xã</option>';
-    districtSelect.disabled = true;
-    wardSelect.disabled = true;
-
-    // Load lại tỉnh/thành phố
-    setTimeout(loadProvinces, 100);
-});
-
-// Đơn giản hóa: Nếu API không hoạt động, dùng dữ liệu tĩnh cho một số tỉnh phổ biến
-function loadStaticDataForCommonCities(cityName, districtSelect, wardSelect) {
-    const staticData = {
-        'Hà Nội': {
-            districts: [
-                'Quận Ba Đình', 'Quận Hoàn Kiếm', 'Quận Tây Hồ', 'Quận Long Biên', 'Quận Cầu Giấy',
-                'Quận Đống Đa', 'Quận Hai Bà Trưng', 'Quận Hoàng Mai', 'Quận Thanh Xuân',
-                'Huyện Từ Liêm', 'Huyện Thanh Trì', 'Huyện Gia Lâm', 'Huyện Đông Anh', 'Huyện Sóc Sơn'
-            ],
-            wards: {
-                'Quận Ba Đình': ['Phường Phúc Xá', 'Phường Trúc Bạch', 'Phường Vĩnh Phúc', 'Phường Cống Vị'],
-                'Quận Hoàn Kiếm': ['Phường Hàng Bạc', 'Phường Hàng Bài', 'Phường Hàng Bồ', 'Phường Hàng Buồm'],
-                'Quận Cầu Giấy': ['Phường Dịch Vọng', 'Phường Dịch Vọng Hậu', 'Phường Mai Dịch', 'Phường Nghĩa Đô']
-            }
+    // Gửi AJAX request
+    fetch(contextPath + '/profile/address/set-default', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
         },
-        'Hồ Chí Minh': {
-            districts: [
-                'Quận 1', 'Quận 2', 'Quận 3', 'Quận 4', 'Quận 5',
-                'Quận 6', 'Quận 7', 'Quận 8', 'Quận 9', 'Quận 10',
-                'Quận 11', 'Quận 12', 'Quận Bình Thạnh', 'Quận Gò Vấp', 'Quận Phú Nhuận'
-            ],
-            wards: {
-                'Quận 1': ['Phường Bến Nghé', 'Phường Bến Thành', 'Phường Cầu Ông Lãnh', 'Phường Cô Giang'],
-                'Quận 2': ['Phường An Khánh', 'Phường An Lợi Đông', 'Phường An Phú', 'Phường Bình An'],
-                'Quận 3': ['Phường 01', 'Phường 02', 'Phường 03', 'Phường 04']
-            }
-        },
-        'Đà Nẵng': {
-            districts: [
-                'Quận Hải Châu', 'Quận Thanh Khê', 'Quận Sơn Trà', 'Quận Ngũ Hành Sơn',
-                'Quận Liên Chiểu', 'Quận Cẩm Lệ', 'Huyện Hòa Vang', 'Huyện Hoàng Sa'
-            ],
-            wards: {
-                'Quận Hải Châu': ['Phường Hải Châu I', 'Phường Hải Châu II', 'Phường Phước Ninh', 'Phường Thuận Phước'],
-                'Quận Thanh Khê': ['Phường An Khê', 'Phường Chính Gián', 'Phường Hòa Khê', 'Phường Tam Thuận']
-            }
-        }
-    };
+        body: `addressId=${addressId}&customerId=${customerId}`
+    })
+        .then(response => response.json())
+        .then(data => {
+            console.log('📡 Server response:', data);
 
-    if (staticData[cityName]) {
-        districtSelect.innerHTML = '<option value="" selected disabled>Chọn quận/huyện</option>';
-        staticData[cityName].districts.forEach(district => {
-            const option = document.createElement('option');
-            option.value = district;
-            option.textContent = district;
-            districtSelect.appendChild(option);
-        });
-        districtSelect.disabled = false;
+            if (data.success) {
+                console.log('✅ Set default address successfully');
 
-        // Thêm sự kiện cho district để load wards
-        districtSelect.onchange = function() {
-            const selectedDistrict = this.value;
-            if (staticData[cityName].wards[selectedDistrict]) {
-                wardSelect.innerHTML = '<option value="" selected disabled>Chọn phường/xã</option>';
-                staticData[cityName].wards[selectedDistrict].forEach(ward => {
-                    const option = document.createElement('option');
-                    option.value = ward;
-                    option.textContent = ward;
-                    wardSelect.appendChild(option);
-                });
-                wardSelect.disabled = false;
+                // Hiển thị thông báo thành công
+                showToast('success', 'Đã đặt làm địa chỉ mặc định!');
+
+                // Reload trang sau 500ms để cập nhật UI
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+
             } else {
-                wardSelect.innerHTML = '<option value="" selected disabled>Vui lòng nhập thủ công</option>';
-                wardSelect.disabled = true;
+                console.error('❌ Set default failed:', data.message);
+                showToast('error', data.message || 'Có lỗi xảy ra!');
+
+                // Khôi phục button
+                buttonElement.disabled = false;
+                buttonElement.innerHTML = originalHtml;
             }
-        };
-    } else {
-        districtSelect.innerHTML = '<option value="" selected disabled>Vui lòng nhập thủ công</option>';
-        districtSelect.disabled = true;
-    }
+        })
+        .catch(error => {
+            console.error('❌ AJAX error:', error);
+            showToast('error', 'Lỗi kết nối! Vui lòng thử lại.');
+
+            // Khôi phục button
+            buttonElement.disabled = false;
+            buttonElement.innerHTML = originalHtml;
+        });
 }
 
-// Alternative: Dùng API backup nếu chính không hoạt động
-function loadProvincesBackup() {
-    const citySelect = document.getElementById('city');
-    const districtSelect = document.getElementById('district');
-    const wardSelect = document.getElementById('ward');
+// ========== HIỂN THỊ TOAST NOTIFICATION ==========
+function showToast(type, message) {
+    // Tạo toast element
+    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
 
-    // Reset các select
-    citySelect.innerHTML = '<option value="" selected disabled>Chọn tỉnh/thành phố</option>';
-    districtSelect.innerHTML = '<option value="" selected disabled>Chọn quận/huyện</option>';
-    wardSelect.innerHTML = '<option value="" selected disabled>Chọn phường/xã</option>';
-    districtSelect.disabled = true;
-    wardSelect.disabled = true;
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : 'danger'} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
 
-    // Try multiple APIs or use static data
-    const apis = [
-        'https://raw.githubusercontent.com/kenzouno1/DiaGioiHanhChinhVN/master/data.json',
-        'https://provinces.open-api.vn/api/'
-    ];
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'x-circle'} me-2"></i>
+                ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
 
-    let currentApiIndex = 0;
+    toastContainer.appendChild(toast);
 
-    function tryNextApi() {
-        if (currentApiIndex >= apis.length) {
-            // All APIs failed, use static data
-            loadStaticProvinces();
-            return;
-        }
+    // Show toast
+    const bsToast = new bootstrap.Toast(toast, {
+        autohide: true,
+        delay: 3000
+    });
+    bsToast.show();
 
-        fetch(apis[currentApiIndex])
-            .then(response => {
-                if (!response.ok) throw new Error('API failed');
-                return response.json();
-            })
-            .then(data => {
-                if (apis[currentApiIndex].includes('open-api')) {
-                    // provinces.open-api.vn format
-                    provinces = data;
-                    data.forEach(province => {
-                        const option = document.createElement('option');
-                        option.value = province.name;
-                        option.textContent = province.name;
-                        citySelect.appendChild(option);
-                    });
-                } else {
-                    // kenzouno1 format
-                    provinces = data;
-                    data.forEach(province => {
-                        const option = document.createElement('option');
-                        option.value = province.Name;
-                        option.textContent = province.Name;
-                        citySelect.appendChild(option);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error(`API ${currentApiIndex + 1} failed:`, error);
-                currentApiIndex++;
-                tryNextApi();
-            });
-    }
+    // Remove sau khi ẩn
+    toast.addEventListener('hidden.bs.toast', function() {
+        toast.remove();
+    });
+}
 
-    tryNextApi();
+// ========== TẠO TOAST CONTAINER ==========
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
 }

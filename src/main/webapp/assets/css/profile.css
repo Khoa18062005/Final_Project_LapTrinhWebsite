@@ -1107,7 +1107,6 @@ a.menu-item i {
 }
 .text-muted{
     margin-top: 20px;
-    margin-left: 20px;
 }
 
 
@@ -2001,58 +2000,103 @@ a.menu-item i {
     }
 }
 
-/* ===== ADDRESS PAGE STYLES ===== */
+/* ===== ADDRESS PAGE STYLES - SIMPLE VERSION ===== */
 
-/* Address Card */
+/* Card địa chỉ cơ bản */
 .address-card {
     background: #ffffff;
     border: 2px solid #e5e7eb !important;
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    position: relative;
-    height: 140px !important;
+    transition: all 0.3s ease;
+    min-height: 200px;
+}
+
+.address-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Card địa chỉ mặc định - viền đỏ đậm */
+.address-card-default {
+    border: 3px solid #dc3545 !important;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%);
 }
 
 .address-card h5 {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.address-card h5 .badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.3px;
+    vertical-align: middle;
 }
 
 .address-card p {
     font-size: 0.95rem;
     line-height: 1.6;
+    color: #4b5563;
 }
 
-/* Badge mặc định */
-.address-card .badge {
-    font-size: 0.75rem;
-    font-weight: 600;
-    padding: 6px 12px;
-    border-radius: 8px;
-    letter-spacing: 0.3px;
-}
-
-.address-card .badge.bg-danger {
-    background: #dc3545 !important;
-}
-
-/* Address Meta */
-.address-meta {
-    padding-top: 12px;
-    border-top: 1px solid #e5e7eb;
-    margin-top: 12px;
-}
-
-.address-meta small {
-    font-size: 0.85rem;
+.address-card p i {
     color: #6b7280;
-    font-weight: 500;
 }
 
-.address-meta i {
-    color: #9ca3af;
+/* Actions Section */
+.address-actions {
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* Nút đặt làm mặc định */
+.btn-set-default {
+    background: transparent;
+    border: 2px solid #0d6efd;
+    color: #0d6efd;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-set-default:hover:not(:disabled) {
+    background: #0d6efd;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+.btn-set-default:active {
+    transform: translateY(0);
+}
+
+.btn-set-default:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-set-default i {
+    font-size: 1rem;
+}
+
+/* Loading state */
+.btn-set-default .spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
 }
 
 /* Empty State */
@@ -2078,7 +2122,25 @@ a.menu-item i {
     font-size: 0.95rem;
 }
 
-/* Responsive */
+/* Toast styling */
+.toast {
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+
+.toast-body {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+}
+
+.toast-body i {
+    font-size: 1.2rem;
+    margin-right: 8px;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
     .address-card {
         padding: 20px;
@@ -2086,12 +2148,19 @@ a.menu-item i {
     }
 
     .address-card h5 {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
 
-    .address-card .badge {
-        font-size: 0.7rem;
-        padding: 5px 10px;
+    .address-card h5 .badge {
+        font-size: 0.65rem;
+        padding: 3px 8px;
+    }
+
+    .btn-set-default {
+        width: 100%;
+        justify-content: center;
+        padding: 10px 16px;
+        font-size: 0.9rem;
     }
 
     .empty-state {
@@ -2102,6 +2171,32 @@ a.menu-item i {
 @media (max-width: 576px) {
     .address-card {
         padding: 16px;
+    }
+
+    .address-card h5 {
+        font-size: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .btn-set-default {
+        padding: 9px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Animation cho badge */
+.address-card-default .badge {
+    animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(220, 53, 69, 0);
     }
 }
 
@@ -3417,3 +3512,98 @@ a.menu-sub-item.active::before {
 .profile-sidebar::-webkit-scrollbar-thumb:hover {
     background: #0b5ed7;
 }
+
+/* ===== ADDRESS ACTIONS STYLING ===== */
+.address-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.address-actions .btn-sm {
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.address-actions .btn-sm i {
+    font-size: 0.9rem;
+}
+
+/* Nút "Địa chỉ mặc định" (disabled) */
+.address-actions .btn-danger:disabled {
+    background: #dc3545 !important;
+    border-color: #dc3545 !important;
+    opacity: 1;
+    cursor: not-allowed;
+}
+
+/* Nút "Đặt làm mặc định" */
+.address-actions .btn-outline-primary {
+    border: 2px solid #0d6efd;
+    color: #0d6efd;
+    background: transparent;
+}
+
+.address-actions .btn-outline-primary:hover:not(:disabled) {
+    background: #0d6efd;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+}
+
+.address-actions .btn-outline-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Nút Sửa */
+.address-actions .btn-outline-secondary {
+    border: 2px solid #6c757d;
+    color: #6c757d;
+}
+
+.address-actions .btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+}
+
+/* Nút Xóa */
+.address-actions .btn-outline-danger {
+    border: 2px solid #dc3545;
+    color: #dc3545;
+}
+
+.address-actions .btn-outline-danger:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Toast styling */
+.toast {
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.toast-body {
+    display: flex;
+    align-items: center;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .address-actions {
+        flex-direction: column;
+    }
+
+    .address-actions .btn-sm {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
