@@ -60,13 +60,11 @@
             <div class="row mb-3">
               <div class="col">
                 <label class="form-label">Họ và tên đệm</label>
-                <input type="text" name="firstName" class="form-control" required
-                       placeholder="Nguyễn Văn" value="${dto.firstName}">
+                <input type="text" name="firstName" class="form-control" required>
               </div>
               <div class="col">
                 <label class="form-label">Tên</label>
-                <input type="text" name="lastName" class="form-control" required
-                       placeholder="An" value="${dto.lastName}">
+                <input type="text" name="lastName" class="form-control" required>
               </div>
             </div>
 
@@ -75,7 +73,7 @@
               <label class="form-label">Email</label>
               <div class="input-group">
                 <input type="email" name="email" id="email" class="form-control" required
-                       placeholder="example@email.com" value="${dto.email}">
+                       >
                 <button type="button" class="btn btn-outline-primary" id="sendOtpBtn">
                   <span id="btnText">Gửi mã</span>
                 </button>
@@ -87,8 +85,7 @@
             <!-- Ô nhập OTP -->
             <div class="mb-3" id="otpSection" style="display: ${not empty errorMessage and not empty dto.email ? 'block' : 'none'};">
               <label class="form-label">Mã xác thực</label>
-              <input type="text" name="otp" id="otpInput" class="form-control"
-                     placeholder="Nhập 6 chữ số" maxlength="6" pattern="[0-9]{6}">
+              <input type="text" name="otp" id="otpInput" class="form-control">
               <small id="otpTimer" class="text-muted"></small>
             </div>
 
@@ -97,7 +94,7 @@
               <label class="form-label">Mật khẩu</label>
               <div class="password-input-wrapper">
                 <input type="password" id="password" name="password" class="form-control" required
-                       minlength="6" placeholder="Tối thiểu 6 ký tự">
+                       minlength="6" >
                 <button type="button" class="password-toggle-btn" id="togglePassword">
                   <i class="fa-regular fa-eye eye-icon" id="eyeIcon"></i>
                 </button>
@@ -119,7 +116,7 @@
               <label class="form-label">Nhập lại mật khẩu</label>
               <div class="password-input-wrapper">
                 <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required
-                       minlength="6" placeholder="Nhập lại mật khẩu">
+                       minlength="6" >
                 <button type="button" class="password-toggle-btn" id="toggleConfirmPassword">
                   <i class="fa-regular fa-eye eye-icon" id="eyeIconConfirm"></i>
                 </button>
@@ -132,7 +129,7 @@
             <div class="mb-3">
               <label class="form-label">Số điện thoại</label>
               <input type="tel" id="phone" name="phone" class="form-control"
-                     placeholder="0123456789" value="${dto.phone}" maxlength="10">
+                     maxlength="10">
               <div class="invalid-feedback" id="phoneFeedback"></div>
               <small class="text-muted">Số điện thoại phải có 10 số và bắt đầu bằng số 0</small>
             </div>
@@ -171,8 +168,8 @@
             <div class="mb-3">
               <label class="form-label">Mã giới thiệu <span class="text-muted small">(Không bắt buộc)</span></label>
               <input type="text" name="referralCode" id="referralCode" class="form-control"
-                     placeholder="Nhập mã giới thiệu nếu có" value="${dto.referralCode}"
-                     maxlength="20">
+
+                     maxlength="8">
               <small class="text-muted">Nếu bạn có mã giới thiệu từ người dùng khác, hãy nhập vào đây</small>
             </div>
 
