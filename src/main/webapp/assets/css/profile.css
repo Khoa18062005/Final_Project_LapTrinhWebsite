@@ -3607,3 +3607,93 @@ a.menu-sub-item.active::before {
     }
 }
 
+/* ===== NOTIFICATION CHECKBOX STYLES ===== */
+.notification-item {
+    position: relative;
+    padding-left: 56px; /* Dành chỗ cho checkbox */
+}
+
+.notification-checkbox {
+    position: absolute;
+    left: 16px;
+    top: 20px;
+    z-index: 10;
+}
+
+.notification-checkbox .form-check-input {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #d1d5db;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.notification-checkbox .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25);
+}
+
+.notification-checkbox .form-check-input:hover {
+    border-color: #0d6efd;
+}
+
+/* Nút Xóa đã chọn */
+.btn-delete-selected {
+    background: #dc3545;
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-delete-selected:hover {
+    background: #bb2d3b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.4);
+}
+
+.btn-delete-selected #selectedCount {
+    font-weight: 700;
+}
+
+/* Animation cho checkbox */
+.notification-checkbox .form-check-input:checked {
+    animation: checkboxPulse 0.3s ease;
+}
+
+@keyframes checkboxPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Highlight notification khi checkbox checked */
+.notification-item:has(.notification-select:checked) {
+    background: linear-gradient(90deg, rgba(13, 110, 253, 0.08) 0%, rgba(13, 110, 253, 0.03) 100%);
+    border-left: 4px solid #0d6efd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .notification-item {
+        padding-left: 48px;
+    }
+
+    .notification-checkbox {
+        left: 12px;
+    }
+
+    .notification-checkbox .form-check-input {
+        width: 18px;
+        height: 18px;
+    }
+
+    .btn-delete-selected {
+        width: 100%;
+        margin-top: 8px;
+    }
+}
+
