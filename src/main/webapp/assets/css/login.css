@@ -117,7 +117,7 @@ body::after {
     border: 1px solid #334155;
     font-size: 1rem;
     background-color: white;
-    color: #e2e8f0;
+    color: black !important;
     transition: all 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     /*Xanh dam: #1e293b*/
