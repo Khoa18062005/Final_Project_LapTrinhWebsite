@@ -94,3 +94,5 @@ jacoco.exec
 *.exec
 site/
 reports/
+.run/
+.smarttomcat/
