@@ -14,7 +14,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
+
 import org.apache.commons.text.similarity.LevenshteinDistance;
+
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,6 +55,7 @@ public class ProductService {
 
     /**
      * Lấy product detail dựa trên ID và tự động phân loại theo category
+     *
      * @param productId ID của product
      * @return ProductDetailDTO tương ứng (Phone/Laptop/Tablet/Headphone)
      */
@@ -340,8 +343,10 @@ public class ProductService {
                 return "Unknown";
         }
     }
+
     /**
      * Phương thức chung: lấy tất cả sản phẩm thuộc một category
+     *
      * @param categoryId ID của category
      * @return List<ProductCardDTO> chứa toàn bộ sản phẩm của category đó
      */
@@ -423,14 +428,14 @@ public class ProductService {
         VariantAttributeDAO variantAttributeDAO = new VariantAttributeDAO();
 
         List<Variant> variants = variantDAO.findByProductId(productId);
-        for(Variant variant : variants) {
+        for (Variant variant : variants) {
             VariantDTO dto = new VariantDTO();
             dto.setVariantId(variant.getVariantId());
             dto.setActive(variant.isActive());
             dto.setFinalPrice(variant.getFinalPrice());
             List<AttributeDTO> attributeDTO = new ArrayList<>();
             List<VariantAttribute> variantAttributes = variantAttributeDAO.findByVariantId(variant.getVariantId());
-            for(VariantAttribute variantAttribute : variantAttributes) {
+            for (VariantAttribute variantAttribute : variantAttributes) {
                 AttributeDTO attr = new AttributeDTO();
                 attr.setAttributeId(variantAttribute.getAttributeId());
                 attr.setAttributeName(variantAttribute.getAttributeName());
@@ -443,19 +448,58 @@ public class ProductService {
         return list;
     }
 
-//    Tìm kiếm sản phẩm bằng từ khoá
-    private static final String[] KEYWORDS_PHONE = {"dien thoai", "điện thoại", "phone", "smartphone", "đthoai", "dienthoai"};
-    private static final String[] KEYWORDS_TABLET = {"may tinh bang", "máy tính bảng", "tablet", "máy tính bảng", "mtb"};
-    private static final String[] KEYWORDS_LAPTOP = {"laptop", "may tinh xach tay", "máy tính xách tay", "notebook", "lt", "macbook"};
-    private static final String[] KEYWORDS_HEADPHONE = {"tai nghe", "tainghe", "headphone", "earphone", "headset", "earbud", "tai bluetooth"};
+    //    Tìm kiếm sản phẩm bằng từ khoá
+    private static final String[] KEYWORDS_PHONE = {
+            "dien thoai", "điện thoại", "smartphone", "đthoai", "dienthoai",
+            "didong", "di dong", "dt", "mobile"
+    };
+
+    private static final String[] KEYWORDS_TABLET = {
+            "may tinh bang", "máy tính bảng", "tablet", "mtb", "ipad"
+    };
+
+    private static final String[] KEYWORDS_LAPTOP = {
+            "laptop", "notebook",
+            "lt", "pc", "computer"
+    };
+
+    private static final String[] KEYWORDS_HEADPHONE = {
+            "tai nghe", "tainghe", "headphone", "earphone",
+            "headset", "earbud", "tai bluetooth"
+    };
 
     private boolean containsCategoryKeyword(String normalizedKeyword, String[] keywords) {
-        for (String kw : keywords) {
-            String normalizedKw = normalizeVietnamese(kw);
-            if (normalizedKeyword.contains(normalizedKw)) {
-                return true;
+        // Tách từ khóa người dùng nhập thành các từ
+        String[] userWords = normalizedKeyword.split("\\s+");
+
+        for (String userWord : userWords) {
+//            if (userWord.length() < 3) continue;
+
+            for (String kw : keywords) {
+                String normalizedKw = normalizeVietnamese(kw);
+
+                // Kiểm tra exact match trước
+                if (userWord.equals(normalizedKw)) {
+                    return true;
+                }
+
+                // Kiểm fuzzy matching
+                int distance = LEVENSHTEIN.apply(userWord, normalizedKw);
+                double similarity =
+                        1.0 - (double) distance / Math.max(userWord.length(), normalizedKw.length());
+
+                // Tăng độ chính xác cho danh mục
+                if (similarity >= 0.85) {
+                    return true;
+                }
+
+                // Kiểm tra nếu từ khóa chứa từ danh mục hoặc ngược lại
+                if (userWord.contains(normalizedKw) || normalizedKw.contains(userWord)) {
+                    return true;
+                }
             }
         }
+
         return false;
     }
 
@@ -478,8 +522,9 @@ public class ProductService {
         return categoryIds;
     }
 
-    //    Tìm kiếm sản phẩm bằng fuzzi search
+    // Tìm kiếm sản phẩm bằng fuzzy search
     public List<ProductCardDTO> searchProducts(String keyword) {
+
         if (keyword == null || keyword.trim().isEmpty()) {
             return getFeaturedOrNewestAsCardDTO(20);
         }
@@ -487,12 +532,14 @@ public class ProductService {
         String trimmedKeyword = keyword.trim();
         String normalizedKeyword = normalizeVietnamese(trimmedKeyword.toLowerCase());
 
-        // Bước 1: Phát hiện xem keyword có phải là tìm theo danh mục không
+        // Bước 1: Phát hiện danh mục
         List<Integer> detectedCategories = detectCategoriesFromKeyword(normalizedKeyword);
 
-        // Nếu phát hiện ít nhất 1 danh mục → trả về tất cả sản phẩm của các danh mục đó
+        // Nếu phát hiện danh mục → trả tất cả sản phẩm thuộc danh mục
         if (!detectedCategories.isEmpty()) {
+
             List<ProductCardDTO> categoryResults = new ArrayList<>();
+
             for (int catId : detectedCategories) {
                 List<ProductCardDTO> productsInCat = switch (catId) {
                     case CATEGORY_PHONE -> getAllPhones();
@@ -501,16 +548,17 @@ public class ProductService {
                     case CATEGORY_HEADPHONE -> getAllHeadphones();
                     default -> new ArrayList<>();
                 };
+
                 categoryResults.addAll(productsInCat);
             }
-            // Loại bỏ trùng lặp nếu có (hiếm nhưng an toàn)
+
             return categoryResults.stream()
                     .distinct()
                     .limit(100)
                     .toList();
         }
 
-        // Bước 2: Nếu không phải tìm theo danh mục → giữ nguyên logic fuzzy search cũ
+        // Bước 2: Fuzzy search theo tên
         String logic = normalizedKeyword;
 
         List<Product> candidates = productDAO.searchByNameWithImages(trimmedKeyword);
@@ -524,11 +572,10 @@ public class ProductService {
                 .filter(p -> {
                     String normalizedName = normalizeVietnamese(p.getName());
 
-                    if (normalizedName.contains(logic)) {
-                        return true;
-                    }
+                    if (normalizedName.contains(logic)) return true;
 
                     String[] nameWords = normalizedName.split("\\s+");
+
                     for (String nameWord : nameWords) {
                         if (nameWord.length() < 3) continue;
 
@@ -537,28 +584,31 @@ public class ProductService {
                         }
 
                         int distance = LEVENSHTEIN.apply(logic, nameWord);
+
                         int threshold = switch (Math.min(logic.length(), nameWord.length())) {
                             case 0, 1, 2, 3 -> 1;
                             case 4, 5, 6, 7 -> 2;
                             default -> 3;
                         };
 
-                        if (distance <= threshold) {
-                            return true;
-                        }
+                        if (distance <= threshold) return true;
                     }
+
                     return false;
                 })
                 .sorted(Comparator.comparingInt(p -> {
                     String normalizedName = normalizeVietnamese(p.getName());
                     String[] nameWords = normalizedName.split("\\s+");
+
                     int minDistance = Integer.MAX_VALUE;
+
                     for (String word : nameWords) {
                         if (word.length() >= 3) {
                             int dist = LEVENSHTEIN.apply(logic, word);
                             if (dist < minDistance) minDistance = dist;
                         }
                     }
+
                     return minDistance == Integer.MAX_VALUE ? 100 : minDistance;
                 }))
                 .limit(50)
@@ -620,10 +670,11 @@ public class ProductService {
 
     /**
      * Hỗ trợ lọc và sắp xếp danh sách sản phẩm (Dùng cho trang Search)
+     *
      * @param originalList Danh sách gốc tìm được từ searchProducts
-     * @param sortType Kiểu sắp xếp: "price_asc", "price_desc"
-     * @param minPrice Giá thấp nhất (null hoặc -1 nếu không lọc)
-     * @param maxPrice Giá cao nhất (null hoặc -1 nếu không lọc)
+     * @param sortType     Kiểu sắp xếp: "price_asc", "price_desc"
+     * @param minPrice     Giá thấp nhất (null hoặc -1 nếu không lọc)
+     * @param maxPrice     Giá cao nhất (null hoặc -1 nếu không lọc)
      */
     public List<ProductCardDTO> filterAndSort(List<ProductCardDTO> originalList, String sortType, Double minPrice, Double maxPrice) {
         // --- 1. DEBUG LOG (Xem Console của Server) ---
