@@ -10,6 +10,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
   <style>
     .policy-hero {
       background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
@@ -132,7 +133,11 @@
 </head>
 <body>
 <%@ include file="../../header.jsp" %>
-
+<script>
+  // Biến toàn cục cho JavaScript
+  const contextPath = "${pageContext.request.contextPath}";
+  const isLoggedIn = ${not empty sessionScope.user};
+</script>
 <div class="policy-hero">
   <div class="container">
     <h1><i class="bi bi-question-circle"></i> Câu Hỏi Thường Gặp</h1>
@@ -414,9 +419,8 @@
 </div>
 
 <jsp:include page="../../footer.jsp" />
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 <script>
   // FAQ Toggle
   document.querySelectorAll('.faq-question').forEach(question => {
