@@ -1382,32 +1382,34 @@ body:has(.notification-dropdown.show) .notification-dropdown {
 
 /* ===== FOOTER CONTACT ===== */
 .footer-contact-item {
-    line-height: 1.7;
+    line-height: 1.4; /* Giảm từ 1.7 xuống 1.4 */
     font-size: 0.875rem;
+    margin-bottom: 1rem !important; /* Giảm khoảng cách giữa các mục */
 }
 
 .footer-contact-label {
     color: #ffffff;
     font-weight: 600;
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.15rem; /* Giảm từ 0.25rem xuống 0.15rem */
 }
 
 .footer-contact-value {
     color: #d1d9e6;
+    line-height: 1.5; /* Thêm line-height riêng cho value */
 }
 
 .footer-contact-link {
     color: #66b3ff;
     text-decoration: none;
     transition: color 0.25s ease;
+    line-height: 1.5; /* Thêm line-height riêng cho link */
 }
 
 .footer-contact-link:hover {
     color: #3399ff;
     text-decoration: underline;
 }
-
 /* ===== FOOTER DIVIDER ===== */
 .footer-divider {
     border-color: rgba(255, 255, 255, 0.15);
