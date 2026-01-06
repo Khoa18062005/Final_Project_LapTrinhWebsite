@@ -11,100 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
-    <style>
-        .contact-hero {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-            color: white;
-            padding: 60px 0;
-            text-align: center;
-        }
-
-        .contact-hero h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-        }
-
-        .contact-content {
-            padding: 60px 0;
-            background-color: #f8f9fa;
-        }
-
-        .contact-info-card {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            height: 100%;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .contact-info-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .contact-info-card .icon {
-            font-size: 3rem;
-            color: #0d6efd;
-            margin-bottom: 1rem;
-        }
-
-        .contact-info-card h4 {
-            color: #1a1a1a;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .contact-info-card p {
-            color: #495057;
-            margin-bottom: 0;
-        }
-
-        .contact-info-card a {
-            color: #0d6efd;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .contact-info-card a:hover {
-            color: #0b5ed7;
-            text-decoration: underline;
-        }
-
-        .contact-form-section {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin-top: 2rem;
-        }
-
-        .contact-form-section h3 {
-            color: #0d6efd;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 3px solid #0d6efd;
-        }
-
-        .map-container {
-            width: 100%;
-            height: 400px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin-top: 2rem;
-        }
-
-        .map-container iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/contact.css">
 </head>
 <body>
 <%@ include file="../../header.jsp" %>
@@ -230,35 +137,6 @@
 <jsp:include page="../../footer.jsp" />
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
-<script>
-    // Contact Form Validation
-    document.getElementById('contactForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        // Get form data
-        const fullName = document.getElementById('fullName').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const subject = document.getElementById('subject').value;
-        const message = document.getElementById('message').value.trim();
-
-        // Basic validation
-        if (!fullName || !email || !phone || !subject || !message) {
-            alert('Vui lòng điền đầy đủ thông tin!');
-            return;
-        }
-
-        // Phone validation
-        const phoneRegex = /^[0-9]{10}$/;
-        if (!phoneRegex.test(phone)) {
-            alert('Số điện thoại không hợp lệ!');
-            return;
-        }
-
-        // Success message (in real app, submit to server)
-        alert('Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi trong vòng 24 giờ.');
-        this.reset();
-    });
-</script>
+<script src="${pageContext.request.contextPath}/assets/js/contact.js"></script>
 </body>
 </html>
