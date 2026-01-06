@@ -37,20 +37,19 @@
           <!-- DANH SÁCH ĐỊA CHỈ -->
           <c:forEach var="address" items="${addresses}">
             <div class="col-md-6 mb-4">
-              <div class="address-card border rounded p-4 position-relative">
-                <!-- Badge mặc định -->
-                <c:if test="${address.isDefault()}">
-                  <span class="badge bg-danger position-absolute top-0 end-0 m-3">Mặc Định</span>
-                </c:if>
+              <div class="address-card ${address.isDefault() ? 'address-card-default' : ''} border rounded p-4 position-relative">
 
                 <!-- Thông tin người nhận -->
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <div>
-                    <h5 class="mb-1">${address.receiverName}</h5>
-                    <p class="text-muted mb-0">
-                      <i class="bi bi-telephone me-1"></i> ${address.phone}
-                    </p>
-                  </div>
+                <div class="mb-3">
+                  <h5 class="mb-2 d-flex align-items-center gap-2">
+                      ${address.receiverName}
+                    <c:if test="${address.isDefault()}">
+                      <span class="badge bg-danger">Mặc định</span>
+                    </c:if>
+                  </h5>
+                  <p class="text-muted mb-0">
+                    <i class="bi bi-telephone me-1"></i> ${address.phone}
+                  </p>
                 </div>
 
                 <!-- Địa chỉ -->
@@ -58,6 +57,19 @@
                   <i class="bi bi-house-door me-2"></i>
                     ${address.street}, ${address.ward}, ${address.district}, ${address.city}
                 </p>
+
+                <!-- NÚT ĐẶT MẶC ĐỊNH (CHỈ HIỆN KHI CHƯA LÀ MẶC ĐỊNH) -->
+                <c:if test="${!address.isDefault()}">
+                  <div class="address-actions mt-3 pt-3 border-top">
+                    <button type="button"
+                            class="btn btn-outline-primary btn-set-default"
+                            data-address-id="${address.addressId}"
+                            data-customer-id="${user.userId}">
+                      <i class="bi bi-star me-2"></i>Đặt làm địa chỉ mặc định
+                    </button>
+                  </div>
+                </c:if>
+
               </div>
             </div>
           </c:forEach>
@@ -68,7 +80,7 @@
 </div>
 
 <!-- MODAL THÊM ĐỊA CHỈ MỚI -->
-<div class="modal fade modal-top-fixed" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
+<div class="modal fade" id="addAddressModal" tabindex="-1" aria-labelledby="addAddressModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
     <form id="addAddressForm" action="${pageContext.request.contextPath}/profile/address/add" method="POST">
       <div class="modal-content">
@@ -142,7 +154,5 @@
   </div>
 </div>
 
-<!-- JavaScript đơn giản cho API -->
-<!-- JavaScript đơn giản cho API -->
 <c:set var="pageScript" value="address.js" />
 <%@ include file="components/footer.jsp" %>

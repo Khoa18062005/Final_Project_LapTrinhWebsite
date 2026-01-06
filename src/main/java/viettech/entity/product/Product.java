@@ -383,6 +383,7 @@ public abstract class Product {
         this.flashSales = flashSales;
     }
 
+
     public Date getUpdatedAt() {
         return updatedAt;
     }
@@ -390,4 +391,12 @@ public abstract class Product {
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
     }
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date updatedAt) {
+        this.createdAt = createdAt;
+    }
+
 }

@@ -24,7 +24,6 @@ public class Vendor_dto {
     // --- Constructor mặc định ---
     public Vendor_dto() {}
 
-    // --- Getters & Setters (BẮT BUỘC PHẢI CÓ) ---
     public Vendor getVendorInfo() { return vendorInfo; }
     public void setVendorInfo(Vendor vendorInfo) { this.vendorInfo = vendorInfo; }
 

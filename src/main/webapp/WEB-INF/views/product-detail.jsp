@@ -25,7 +25,7 @@
     <!-- JavaScript cho chọn variant -->
     <script src="${pageContext.request.contextPath}/assets/js/variant-selector.js" defer></script>
     <script src="${pageContext.request.contextPath}/assets/js/cart-ajax.js" defer></script>
-
+    <script src="${pageContext.request.contextPath}/assets/js/product-detail.js" defer></script>
     <script>
         // Khởi tạo biến toàn cục từ dữ liệu JSP
         <c:if test="${not empty variants}">
@@ -102,7 +102,19 @@
         <!-- Product Images -->
         <div class="product-images">
             <div class="main-image">
-                <img src="${product.primaryImageUrl}">
+                <img id="product-img" src="${product.primaryImageUrl}" alt="${product.name}">
+
+                <div class="zoom-controls">
+                    <button type="button" onclick="zoomIn()" class="btn-zoom" title="Phóng to">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                    <button type="button" onclick="zoomOut()" class="btn-zoom" title="Thu nhỏ">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                    <button type="button" onclick="resetZoom()" class="btn-zoom" title="Đặt lại">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -196,17 +208,34 @@
             </div>
 
             <!-- Action Buttons -->
+            <!-- Action Buttons -->
             <div class="action-buttons">
-                <form action="${pageContext.request.contextPath}/cart" method="POST"
-                      class="d-inline" id="add-to-cart-form">
-                    <input type="hidden" name="productId" value="${product.productId}">
-                    <input type="hidden" name="quantity" value="1">
-                    <input type="hidden" name="action" value="add">
-                    <input type="hidden" name="variantId" id="selected-variant-id" value="">
-                    <button type="submit" class="btn btn-primary" id="add-to-cart-btn">
-                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
-                    </button>
-                </form>
+                <!-- Kiểm tra đăng nhập cho nút Thêm vào giỏ hàng -->
+                <c:choose>
+                    <c:when test="${not empty sessionScope.user}">
+                        <!-- Đã đăng nhập: Hiển thị form thêm vào giỏ hàng bình thường -->
+                        <form action="${pageContext.request.contextPath}/cart" method="POST"
+                              class="d-inline" id="add-to-cart-form">
+                            <input type="hidden" name="productId" value="${product.productId}">
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="variantId" id="selected-variant-id" value="">
+                            <button type="submit" class="btn btn-primary" id="add-to-cart-btn">
+                                <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                            </button>
+                        </form>
+                    </c:when>
+                    <c:otherwise>
+                        <!-- Chưa đăng nhập: Hiển thị nút mở modal Smember -->
+                        <button type="button"
+                                class="btn btn-primary"
+                                id="add-to-cart-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#smemberModal">
+                            <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                        </button>
+                    </c:otherwise>
+                </c:choose>
 
                 <!-- Kiểm tra đăng nhập cho nút Mua ngay -->
                 <c:choose>

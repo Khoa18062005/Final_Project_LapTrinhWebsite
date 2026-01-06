@@ -249,8 +249,12 @@
     </div>
 </div>
 
+<script>
+    window.contextPath = '<%= request.getContextPath() %>';
+</script>
+
 <!-- JavaScript -->
 <script src="${pageContext.request.contextPath}/assets/js/cart-controller.js"></script>
-<script src="${pageContext.request.contentPath}/assets/js/notification.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 </body>
 </html>

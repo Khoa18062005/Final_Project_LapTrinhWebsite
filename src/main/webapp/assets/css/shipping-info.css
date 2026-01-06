@@ -1,0 +1,597 @@
+/* ============================================
+   SHIPPING ADDRESS PAGE - FIXED LAYOUT
+   ============================================ */
+:root {
+    --primary-color: #0d6efd;
+    --primary-dark: #0b5ed7;
+    --color-border: #e0e0e0;
+    --bg-light: #f8f9fa;
+    --text-dark: #212529;
+    --text-muted: #6c757d;
+    --danger-color: #dc3545;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   MAIN LAYOUT - GIỮ NGUYÊN HTML
+   ============================================ */
+.container.mt-4.mb-5 {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* ============================================
+   MAIN LAYOUT CONTAINER - 2 PHẦN BẰNG NHAU
+   ============================================ */
+.main-layout-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    align-items: start;
+}
+
+@media (min-width: 992px) {
+    .main-layout-container {
+        grid-template-columns: 1fr 1fr;
+        align-items: stretch; /* Quan trọng: căn chỉnh chiều cao */
+    }
+}
+
+/* ============================================
+   ORDER SUMMARY SECTION - KHÔNG ĐỔI HTML
+   ============================================ */
+.order-summary-wrapper {
+    height: 100%;
+}
+
+.order-summary-card {
+    background: white;
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.order-summary-header {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+    padding: 1.25rem 1.5rem;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.order-summary-header h5 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-dark);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.order-summary-header i {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+}
+
+/* Container cho danh sách sản phẩm */
+.order-items-container {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    max-height: 350px;
+}
+
+.order-item {
+    display: grid;
+    grid-template-columns: 70px 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: var(--bg-light);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    margin-bottom: 1rem;
+}
+
+.order-item:last-child {
+    margin-bottom: 0;
+}
+
+.order-item-image {
+    width: 70px;
+    height: 70px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.order-item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 0.25rem;
+}
+
+.order-item-details h6 {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.3;
+}
+
+.order-item-details .text-muted {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.order-item-price h5 {
+    color: var(--danger-color);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* Total section */
+.total-section {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe9e9 100%);
+    border-top: 2px solid #ffdddd;
+    padding: 1.25rem 1.5rem;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.total-label {
+    color: var(--text-dark);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.total-value {
+    color: var(--danger-color);
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* ============================================
+   ADDRESS SECTION - KHÔNG ĐỔI HTML
+   ============================================ */
+.address-selection-wrapper {
+    height: 100%;
+}
+
+/* Card chính */
+.card.shadow {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Header card */
+.card-header.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+    border-bottom: 2px solid var(--color-border);
+    padding: 1.25rem 1.5rem;
+}
+
+.card-header h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+}
+
+/* Body card */
+.card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+.card-body-content {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body h5.mb-4 {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Danh sách địa chỉ */
+.address-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 350px;
+    margin-bottom: 1.5rem;
+    padding-right: 0.5rem;
+}
+
+/* Scrollbar */
+.address-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.address-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.address-list::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 3px;
+}
+
+/* Card địa chỉ */
+.address-list .card {
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: white;
+}
+
+.address-list .card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.address-list .card.border-primary {
+    border-color: var(--primary-color) !important;
+    background: linear-gradient(135deg, #f0f7ff 0%, #e6f2ff 100%);
+    animation: pulseBorder 2s infinite;
+}
+
+@keyframes pulseBorder {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.2); }
+    50% { box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1); }
+}
+
+.address-list .card-body {
+    padding: 1.25rem;
+    display: block;
+    flex: none;
+}
+
+/* Form check */
+.address-list .form-check {
+    margin: 0;
+    width: 100%;
+}
+
+.address-list .form-check-input {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.75rem;
+    cursor: pointer;
+    margin-top: 0.2rem;
+}
+
+.address-list .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.address-list .form-check-label {
+    width: 100%;
+    cursor: pointer;
+}
+
+/* Thông tin địa chỉ */
+.address-list .d-flex.justify-content-between {
+    width: 100%;
+}
+
+.address-list strong {
+    color: var(--text-dark);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.address-list .text-muted {
+    color: var(--text-muted);
+}
+
+.address-list p {
+    margin: 0.25rem 0;
+    color: var(--text-dark);
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+
+/* Badge */
+.badge.bg-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)) !important;
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+/* ============================================
+   ACTION BUTTONS - CHỈNH LẠI CHO ĐẸP
+   ============================================ */
+.action-buttons-container {
+    padding: 1.5rem;
+    border-top: 1px solid var(--color-border);
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    margin-top: auto;
+}
+
+.action-buttons-container .d-flex.justify-content-between {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Button styles */
+.action-buttons-container .btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 50px;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* Back button */
+.action-buttons-container .btn-secondary {
+    background: #6c757d;
+    color: white;
+    border: 2px solid #6c757d;
+    min-width: 180px;
+}
+
+.action-buttons-container .btn-secondary:hover {
+    background: #5a6268;
+    border-color: #5a6268;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Add address button */
+.action-buttons-container .btn-outline-primary {
+    background: white;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color) !important;
+    min-width: 180px;
+}
+
+.action-buttons-container .btn-outline-primary:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+}
+
+/* Continue button */
+.action-buttons-container .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    border: 2px solid var(--primary-color);
+    min-width: 200px;
+    font-weight: 700;
+}
+
+.action-buttons-container .btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+}
+
+/* Button icons */
+.action-buttons-container .btn i {
+    font-size: 1.1rem;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 991px) {
+    .main-layout-container {
+        grid-template-columns: 1fr;
+    }
+
+    .order-summary-card,
+    .card.shadow {
+        min-height: auto;
+    }
+
+    .order-items-container,
+    .address-list {
+        max-height: 300px;
+    }
+
+    .action-buttons-container .btn {
+        min-width: 140px;
+        padding: 0.75rem 1.25rem;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Order items trên mobile */
+    .order-item {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .order-item-image {
+        margin: 0 auto;
+    }
+
+    .order-item-price {
+        text-align: center;
+    }
+
+    /* Buttons trên mobile */
+    .action-buttons-container .d-flex.justify-content-between {
+        flex-direction: column;
+    }
+
+    .action-buttons-container .d-flex.justify-content-between > div {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.75rem;
+    }
+
+    .action-buttons-container .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Font sizes */
+    .total-value {
+        font-size: 1.25rem;
+    }
+
+    .card-header h4 {
+        font-size: 1.25rem;
+    }
+}
+
+@media (min-width: 769px) {
+    /* Trên desktop: căn giữa các nút */
+    .action-buttons-container .d-flex.justify-content-between > div {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+}
+
+/* ============================================
+   BREADCRUMB & ALERTS (giữ nguyên)
+   ============================================ */
+.breadcrumb {
+    background: transparent;
+    padding: 1rem 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--text-muted);
+    content: "›";
+    font-size: 1.2rem;
+}
+
+.breadcrumb-item a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+    font-weight: 500;
+}
+
+.breadcrumb-item a:hover {
+    color: var(--primary-color);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.alert {
+    border-radius: 8px;
+    border: none;
+    box-shadow: var(--shadow-sm);
+}
+
+.alert-danger {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe9e9 100%);
+    border: 2px solid #f8d7da;
+}
+
+/* ============================================
+   NO ADDRESS STATE
+   ============================================ */
+.text-center.py-5 {
+    padding: 3rem 1rem !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+.text-center.py-5 .display-1 {
+    font-size: 4rem;
+    color: var(--text-muted);
+    opacity: 0.5;
+    margin-bottom: 1.5rem;
+}
+
+.text-center.py-5 h4 {
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.text-center.py-5 p {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.text-center.py-5 .btn {
+    margin: 0.25rem;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.order-summary-card,
+.card.shadow {
+    animation: fadeInUp 0.5s ease-out;
+}

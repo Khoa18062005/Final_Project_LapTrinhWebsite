@@ -1,5 +1,7 @@
 package viettech.controller;
 
+// VendorServlet - Updated:  product CRUD operations
+
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,11 +48,11 @@ public class VendorServlet extends HttpServlet {
 
         // 2. Bảo mật: Chỉ Vendor (Role = 2) được vào
 //        if (user == null) {
-//            response.sendRedirect(request.getContextPath() + "/login");
+//            response.sendRe(request.getContextPath() + "/login");
 //            return;
 //        }
 //        if (user.getRoleID() != 2) {
-//            response.sendRedirect(request.getContextPath() + "/");
+//            response.sendRe(request.getContextPath() + "/");
 //            return;
 //        }
 
@@ -94,6 +96,8 @@ public class VendorServlet extends HttpServlet {
             } else if (action.equals("products")) {
                 // Lấy tất cả sản phẩm của vendor
                 List<Product> products = vendorService.getAllProductsByVendor(vendorId);
+                //log all products and size
+                logger.debug("Products for vendor {}: {}", vendorId, products);
                 logger.info("Setting {} products for products page", products != null ? products.size() : 0);
                 request.setAttribute("products", products);
             } else if (action.equals("getProduct")) {
@@ -348,11 +352,12 @@ public class VendorServlet extends HttpServlet {
                 return;
             }
 
-            ProductApproval approval = vendorService.requestAddProduct(productData, vendorId);
-            sendJsonResponse(response, true, "Yêu cầu thêm sản phẩm đã được gửi và đang chờ phê duyệt", approval);
+            // Thêm sản phẩm trực tiếp vào database
+            Product product = vendorService.addProduct(productData, vendorId);
+            sendJsonResponse(response, true, "Thêm sản phẩm thành công!", product);
         } catch (Exception e) {
             logger.error("Error adding product", e);
-            sendJsonResponse(response, false, "Không thể tạo yêu cầu thêm sản phẩm: " + e.getMessage(), null);
+            sendJsonResponse(response, false, "Không thể thêm sản phẩm: " + e.getMessage(), null);
         }
     }
 
@@ -373,11 +378,12 @@ public class VendorServlet extends HttpServlet {
                 return;
             }
 
-            ProductApproval approval = vendorService.requestUpdateProduct(productId, productData, vendorId);
-            sendJsonResponse(response, true, "Yêu cầu cập nhật sản phẩm đã được gửi và đang chờ phê duyệt", approval);
+            // Cập nhật sản phẩm
+            Product product = vendorService.updateProduct(productId, productData, vendorId);
+            sendJsonResponse(response, true, "Cập nhật sản phẩm thành công!", product);
         } catch (Exception e) {
             logger.error("Error updating product", e);
-            sendJsonResponse(response, false, "Không thể tạo yêu cầu cập nhật sản phẩm: " + e.getMessage(), null);
+            sendJsonResponse(response, false, "Không thể cập nhật sản phẩm: " + e.getMessage(), null);
         }
     }
 
@@ -391,11 +397,12 @@ public class VendorServlet extends HttpServlet {
             }
 
             int productId = Integer.parseInt(productIdStr);
-            ProductApproval approval = vendorService.requestDeleteProduct(productId, vendorId);
-            sendJsonResponse(response, true, "Yêu cầu xóa sản phẩm đã được gửi và đang chờ phê duyệt", approval);
+            // Xóa sản phẩm
+            vendorService.deleteProduct(productId, vendorId);
+            sendJsonResponse(response, true, "Xóa sản phẩm thành công!", null);
         } catch (Exception e) {
             logger.error("Error deleting product", e);
-            sendJsonResponse(response, false, "Không thể tạo yêu cầu xóa sản phẩm: " + e.getMessage(), null);
+            sendJsonResponse(response, false, "Không thể xóa sản phẩm: " + e.getMessage(), null);
         }
     }
 

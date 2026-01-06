@@ -14,8 +14,12 @@
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <!-- CSS riêng -->
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/register.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/firework.css">
 </head>
 <body>
 
@@ -56,13 +60,11 @@
             <div class="row mb-3">
               <div class="col">
                 <label class="form-label">Họ và tên đệm</label>
-                <input type="text" name="firstName" class="form-control" required
-                       placeholder="Nguyễn Văn" value="${dto.firstName}">
+                <input type="text" name="firstName" class="form-control" required>
               </div>
               <div class="col">
                 <label class="form-label">Tên</label>
-                <input type="text" name="lastName" class="form-control" required
-                       placeholder="An" value="${dto.lastName}">
+                <input type="text" name="lastName" class="form-control" required>
               </div>
             </div>
 
@@ -71,7 +73,7 @@
               <label class="form-label">Email</label>
               <div class="input-group">
                 <input type="email" name="email" id="email" class="form-control" required
-                       placeholder="example@email.com" value="${dto.email}">
+                       >
                 <button type="button" class="btn btn-outline-primary" id="sendOtpBtn">
                   <span id="btnText">Gửi mã</span>
                 </button>
@@ -83,29 +85,61 @@
             <!-- Ô nhập OTP -->
             <div class="mb-3" id="otpSection" style="display: ${not empty errorMessage and not empty dto.email ? 'block' : 'none'};">
               <label class="form-label">Mã xác thực</label>
-              <input type="text" name="otp" id="otpInput" class="form-control"
-                     placeholder="Nhập 6 chữ số" maxlength="6" pattern="[0-9]{6}">
+              <input type="text" name="otp" id="otpInput" class="form-control">
               <small id="otpTimer" class="text-muted"></small>
             </div>
 
             <!-- Mật khẩu -->
             <div class="mb-3">
               <label class="form-label">Mật khẩu</label>
-              <input type="password" name="password" class="form-control" required
-                     minlength="6" placeholder="Tối thiểu 6 ký tự">
+              <div class="password-input-wrapper">
+                <input type="password" id="password" name="password" class="form-control" required
+                       minlength="6" >
+                <button type="button" class="password-toggle-btn" id="togglePassword">
+                  <i class="fa-regular fa-eye eye-icon" id="eyeIcon"></i>
+                </button>
+              </div>
+
+              <!-- Password Strength Bar -->
+              <div class="password-strength mt-2">
+                <div class="progress" style="height: 5px;">
+                  <div id="passwordStrengthBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                </div>
+                <small id="passwordStrengthText" class="password-strength-text"></small>
+              </div>
+
+              <div id="passwordFeedback" class="form-text"></div>
+            </div>
+
+            <!-- Xác nhận mật khẩu -->
+            <div class="mb-3">
+              <label class="form-label">Nhập lại mật khẩu</label>
+              <div class="password-input-wrapper">
+                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required
+                       minlength="6" >
+                <button type="button" class="password-toggle-btn" id="toggleConfirmPassword">
+                  <i class="fa-regular fa-eye eye-icon" id="eyeIconConfirm"></i>
+                </button>
+              </div>
+              <div class="invalid-feedback" id="confirmPasswordFeedback"></div>
+              <div class="valid-feedback">Mật khẩu khớp ✓</div>
             </div>
 
             <!-- Số điện thoại -->
             <div class="mb-3">
               <label class="form-label">Số điện thoại</label>
-              <input type="tel" name="phone" class="form-control"
-                     placeholder="0123456789" value="${dto.phone}">
+              <input type="tel" id="phone" name="phone" class="form-control"
+                     maxlength="10">
+              <div class="invalid-feedback" id="phoneFeedback"></div>
+              <small class="text-muted">Số điện thoại phải có 10 số và bắt đầu bằng số 0</small>
             </div>
 
             <!-- Ngày sinh -->
             <div class="mb-3">
               <label class="form-label">Ngày sinh</label>
-              <input type="date" name="dateOfBirth" class="form-control" value="${dto.dateOfBirth}">
+              <input type="date" id="dateOfBirth" name="dateOfBirth" class="form-control" value="${dto.dateOfBirth}">
+              <div class="invalid-feedback" id="dobFeedback"></div>
+              <small class="text-muted">Bạn phải từ 13-99 tuổi để đăng ký</small>
             </div>
 
             <!-- Giới tính -->
@@ -130,12 +164,12 @@
               </div>
             </div>
 
-            <!-- Mã giới thiệu (KHÔNG BẮT BUỘC) -->
+            <!-- Mã giới thiệu -->
             <div class="mb-3">
               <label class="form-label">Mã giới thiệu <span class="text-muted small">(Không bắt buộc)</span></label>
-              <input type="text" name="referralCode" class="form-control"
-                     placeholder="Nhập mã giới thiệu nếu có" value="${dto.referralCode}"
-                     maxlength="20">
+              <input type="text" name="referralCode" id="referralCode" class="form-control"
+
+                     maxlength="8">
               <small class="text-muted">Nếu bạn có mã giới thiệu từ người dùng khác, hãy nhập vào đây</small>
             </div>
 
@@ -171,6 +205,7 @@
 
 <!-- Script riêng -->
 <script src="${pageContext.request.contextPath}/assets/js/register.js"></script>
-
+<div class="css-fireworks-container" id="fireworks-container"></div>
+<script src="${pageContext.request.contextPath}/assets/js/firework.js"></script>
 </body>
 </html>

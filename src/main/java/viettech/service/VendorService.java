@@ -1,5 +1,7 @@
 package viettech.service;
 
+// VendorService - Updated:  product CRUD operations without admin approval
+
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,32 +135,52 @@ public class VendorService {
     // ==================== PRODUCT MANAGEMENT ====================
 
     /**
-     * Tạo yêu cầu thêm sản phẩm mới (cần admin phê duyệt)
+     * Thêm sản phẩm trực tiếp vào database (không cần admin phê duyệt)
      */
-    public ProductApproval requestAddProduct(Map<String, Object> productData, int vendorId) {
+    public Product addProduct(Map<String, Object> productData, int vendorId) {
         try {
-            ProductApproval approval = new ProductApproval();
-            approval.setVendorId(vendorId);
-            approval.setActionType("ADD");
-            approval.setStatus("PENDING");
-            approval.setProductData(gson.toJson(productData));
-            approval.setRequestedAt(new Date());
+            // Xác định loại sản phẩm dựa trên categoryId
+            int categoryId = Integer.parseInt(String.valueOf(productData.getOrDefault("categoryId", "1")));
+            Product product = createProductByCategory(categoryId);
 
-            approvalDAO.insert(approval);
-            logger.info("✓ Vendor {} requested to add new product", vendorId);
-            return approval;
+            // Set common fields
+            product.setVendorId(vendorId);
+            product.setCategoryId(categoryId);
+            product.setName(String.valueOf(productData.getOrDefault("name", "")));
+            product.setBrand(String.valueOf(productData.getOrDefault("brand", "")));
+            product.setDescription(String.valueOf(productData.getOrDefault("description", "")));
+            product.setBasePrice(Double.parseDouble(String.valueOf(productData.getOrDefault("basePrice", "0"))));
+            product.setStatus(String.valueOf(productData.getOrDefault("status", "AVAILABLE")));
+            product.setConditions(String.valueOf(productData.getOrDefault("conditions", "New")));
+            product.setSlug(generateSlug(product.getName()));
+            product.setCreatedAt(new Date());
+            product.setUpdatedAt(new Date());
+
+            // Set optional fields
+            if (productData.containsKey("weight")) {
+                product.setWeight(Double.parseDouble(String.valueOf(productData.get("weight"))));
+            }
+            if (productData.containsKey("dimensions")) {
+                product.setDimensions(String.valueOf(productData.get("dimensions")));
+            }
+            if (productData.containsKey("specifications")) {
+                product.setSpecifications(String.valueOf(productData.get("specifications")));
+            }
+
+            productDAO.insert(product);
+            logger.info("✓ Vendor {} added new product: {}", vendorId, product.getName());
+            return product;
         } catch (Exception e) {
-            logger.error("✗ Failed to create add product request for vendor {}", vendorId, e);
-            throw new RuntimeException("Failed to create product add request", e);
+            logger.error("✗ Failed to add product for vendor {}", vendorId, e);
+            throw new RuntimeException("Failed to add product: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Tạo yêu cầu cập nhật sản phẩm (cần admin phê duyệt)
+     * Cập nhật sản phẩm trực tiếp (không cần admin phê duyệt)
      */
-    public ProductApproval requestUpdateProduct(int productId, Map<String, Object> productData, int vendorId) {
+    public Product updateProduct(int productId, Map<String, Object> productData, int vendorId) {
         try {
-            // Kiểm tra sản phẩm có thuộc vendor này không
             Product product = productDAO.findById(productId);
             if (product == null) {
                 throw new RuntimeException("Product not found");
@@ -167,29 +189,54 @@ public class VendorService {
                 throw new RuntimeException("Product does not belong to this vendor");
             }
 
-            ProductApproval approval = new ProductApproval();
-            approval.setProductId(productId);
-            approval.setVendorId(vendorId);
-            approval.setActionType("UPDATE");
-            approval.setStatus("PENDING");
-            approval.setProductData(gson.toJson(productData));
-            approval.setRequestedAt(new Date());
+            // Update fields
+            if (productData.containsKey("name")) {
+                product.setName(String.valueOf(productData.get("name")));
+                product.setSlug(generateSlug(product.getName()));
+            }
+            if (productData.containsKey("brand")) {
+                product.setBrand(String.valueOf(productData.get("brand")));
+            }
+            if (productData.containsKey("description")) {
+                product.setDescription(String.valueOf(productData.get("description")));
+            }
+            if (productData.containsKey("basePrice")) {
+                product.setBasePrice(Double.parseDouble(String.valueOf(productData.get("basePrice"))));
+            }
+            if (productData.containsKey("status")) {
+                product.setStatus(String.valueOf(productData.get("status")));
+            }
+            if (productData.containsKey("conditions")) {
+                product.setConditions(String.valueOf(productData.get("conditions")));
+            }
+            if (productData.containsKey("weight")) {
+                product.setWeight(Double.parseDouble(String.valueOf(productData.get("weight"))));
+            }
+            if (productData.containsKey("dimensions")) {
+                product.setDimensions(String.valueOf(productData.get("dimensions")));
+            }
+            if (productData.containsKey("specifications")) {
+                product.setSpecifications(String.valueOf(productData.get("specifications")));
+            }
+            if (productData.containsKey("categoryId")) {
+                product.setCategoryId(Integer.parseInt(String.valueOf(productData.get("categoryId"))));
+            }
+            product.setUpdatedAt(new Date());
 
-            approvalDAO.insert(approval);
-            logger.info("✓ Vendor {} requested to update product {}", vendorId, productId);
-            return approval;
+            productDAO.update(product);
+            logger.info("✓ Vendor {} updated product {}", vendorId, productId);
+            return product;
         } catch (Exception e) {
-            logger.error("✗ Failed to create update product request for vendor {}", vendorId, e);
-            throw new RuntimeException("Failed to create product update request", e);
+            logger.error("✗ Failed to update product for vendor {}", vendorId, e);
+            throw new RuntimeException("Failed to update product: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Tạo yêu cầu xóa sản phẩm (cần admin phê duyệt)
+     * Xóa sản phẩm trực tiếp (không cần admin phê duyệt)
      */
-    public ProductApproval requestDeleteProduct(int productId, int vendorId) {
+    public void deleteProduct(int productId, int vendorId) {
         try {
-            // Kiểm tra sản phẩm có thuộc vendor này không
             Product product = productDAO.findById(productId);
             if (product == null) {
                 throw new RuntimeException("Product not found");
@@ -198,25 +245,50 @@ public class VendorService {
                 throw new RuntimeException("Product does not belong to this vendor");
             }
 
-            ProductApproval approval = new ProductApproval();
-            approval.setProductId(productId);
-            approval.setVendorId(vendorId);
-            approval.setActionType("DELETE");
-            approval.setStatus("PENDING");
-            approval.setRequestedAt(new Date());
-
-            approvalDAO.insert(approval);
-            logger.info("✓ Vendor {} requested to delete product {}", vendorId, productId);
-            return approval;
+            productDAO.delete(productId);
+            logger.info("✓ Vendor {} deleted product {}", vendorId, productId);
         } catch (Exception e) {
-            logger.error("✗ Failed to create delete product request for vendor {}", vendorId, e);
-            throw new RuntimeException("Failed to create product delete request", e);
+            logger.error("✗ Failed to delete product for vendor {}", vendorId, e);
+            throw new RuntimeException("Failed to delete product: " + e.getMessage(), e);
         }
     }
 
     /**
-     * Lấy danh sách yêu cầu phê duyệt của vendor
+     * Tạo đối tượng Product dựa trên categoryId
      */
+    private Product createProductByCategory(int categoryId) {
+        switch (categoryId) {
+            case 1: // Điện thoại
+                return new viettech.entity.product.Phone();
+            case 3: // Laptop
+                return new viettech.entity.product.Laptop();
+            case 4: // Máy tính bảng
+                return new viettech.entity.product.Tablet();
+            case 5: // Tai nghe
+                return new viettech.entity.product.Headphone();
+            default:
+                return new viettech.entity.product.Phone();
+
+        }
+    }
+
+
+    /**
+     * Tạo slug từ tên sản phẩm
+     */
+    private String generateSlug(String name) {
+        if (name == null) return "";
+        String normalized = java.text.Normalizer.normalize(name, java.text.Normalizer.Form.NFD);
+        String slug = normalized.replaceAll("[^\\p{ASCII}]", "")
+                .toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .replaceAll("\\s+", "-")
+                .replaceAll("-+", "-")
+                .trim();
+        return slug + "-" + System.currentTimeMillis();
+    }
+
+
     public List<ProductApproval> getApprovalRequests(int vendorId) {
         try {
             return approvalDAO.findByVendorId(vendorId);
@@ -560,71 +632,69 @@ public class VendorService {
     public List<Order> getOrdersReadyForShipping(int vendorId) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            // IMPORTANT:
-            // Hibernate cannot JOIN FETCH two @OneToMany bags in one query
-            // (Order.orderDetails and Delivery.assignments) -> MultipleBagFetchException.
-            // Also: Some OrderDetail rows may reference a Variant ID that no longer exists.
-            // The shipping UI only needs snapshot fields from OrderDetail (productName/unitPrice/quantity),
-            // so we must avoid initializing od.variant.
-            String jpql = """
-                SELECT DISTINCT o
-                FROM Order o
-                LEFT JOIN FETCH o.customer c
-                LEFT JOIN FETCH o.address a
-                LEFT JOIN FETCH o.delivery d
-                WHERE o.vendorId = :vendorId
-                  AND (o.status = 'Processing' OR o.status = 'Confirmed' OR o.status = 'Ready')
-                ORDER BY o.orderDate DESC
-            """;
+
+            String jpql = "SELECT DISTINCT o FROM Order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "LEFT JOIN FETCH o.delivery d " +
+                    "WHERE o.vendorId = :vendorId " +
+                    "AND (LOWER(o.status) = 'processing' OR LOWER(o.status) = 'confirmed' OR LOWER(o.status) = 'ready') " +
+                    "ORDER BY o.orderDate DESC";
 
             List<Order> orders = em.createQuery(jpql, Order.class)
                     .setParameter("vendorId", vendorId)
                     .getResultList();
 
             for (Order o : orders) {
-                // Fetch ONLY snapshot fields to avoid touching broken Variant relation.
-                List<Object[]> rows = em.createQuery(
-                                "SELECT od.orderDetailId, od.orderId, od.productId, od.variantId, od.productName, od.variantInfo, od.quantity, od.unitPrice, od.discount, od.subtotal, od.status " +
-                                        "FROM OrderDetail od WHERE od.orderId = :orderId",
-                                Object[].class)
+                // Fill orderDetails (if mapped) - best-effort; ignore if model doesn't have setter.
+                List<OrderDetail> details = em.createQuery(
+                                "SELECT od FROM OrderDetail od WHERE od.orderId = :orderId",
+                                OrderDetail.class)
                         .setParameter("orderId", o.getOrderId())
                         .getResultList();
-
-                List<OrderDetail> details = new java.util.ArrayList<>();
-                for (Object[] r : rows) {
-                    OrderDetail od = new OrderDetail();
-                    // orderDetailId is generated; set it via reflection is not needed for UI
-                    od.setOrderId(((Number) r[1]).intValue());
-                    od.setProductId(((Number) r[2]).intValue());
-                    od.setVariantId(((Number) r[3]).intValue());
-                    od.setProductName((String) r[4]);
-                    od.setVariantInfo((String) r[5]);
-                    od.setQuantity(((Number) r[6]).intValue());
-                    od.setUnitPrice(((Number) r[7]).doubleValue());
-                    od.setDiscount(((Number) r[8]).doubleValue());
-                    od.setSubtotal(((Number) r[9]).doubleValue());
-                    od.setStatus((String) r[10]);
-                    details.add(od);
+                try {
+                    o.setOrderDetails(details);
+                } catch (Exception ignore) {
+                    // Order entity might not expose setOrderDetails; JSP can still use details via separate API.
                 }
-                o.setOrderDetails(details);
 
-                // Fetch delivery assignments + shipper
-                if (o.getDelivery() != null) {
-                    List<DeliveryAssignment> assignments = em.createQuery(
-                                    "SELECT da FROM viettech.entity.delivery.DeliveryAssignment da " +
-                                            "LEFT JOIN FETCH da.shipper s " +
-                                            "WHERE da.deliveryId = :deliveryId",
-                                    DeliveryAssignment.class)
-                            .setParameter("deliveryId", o.getDelivery().getDeliveryId())
-                            .getResultList();
-                    o.getDelivery().setAssignments(assignments);
+                // Initialize shipper assignments (if delivery exists)
+                try {
+                    Integer deliveryId = em.createQuery(
+                                    "SELECT d.deliveryId FROM viettech.entity.delivery.Delivery d WHERE d.orderId = :orderId",
+                                    Integer.class)
+                            .setParameter("orderId", o.getOrderId())
+                            .getResultStream()
+                            .findFirst()
+                            .orElse(null);
+
+                    if (deliveryId != null) {
+                        List<DeliveryAssignment> assignments = em.createQuery(
+                                        "SELECT da FROM viettech.entity.delivery.DeliveryAssignment da " +
+                                                "LEFT JOIN FETCH da.shipper s " +
+                                                "WHERE da.deliveryId = :deliveryId",
+                                        DeliveryAssignment.class)
+                                .setParameter("deliveryId", deliveryId)
+                                .getResultList();
+                        // best-effort attach to delivery if mapping exists
+                        if (o.getDelivery() != null) {
+                            try {
+                                o.getDelivery().setAssignments(assignments);
+                            } catch (Exception ignore) {
+                                // no setter
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    logger.warn("Could not initialize delivery assignments for order {}", o.getOrderId(), ex);
                 }
             }
 
+            logger.info("✓ Loaded {} orders ready for shipping for vendor {}", orders.size(), vendorId);
             return orders;
-        } catch (Exception e) {
-            logger.error("✗ Failed to get orders ready for shipping for vendor {}", vendorId, e);
-            throw new RuntimeException("Failed to get orders ready for shipping: " + e.getMessage(), e);
+        } catch (Exception ex) {
+            logger.error("✗ Failed to get orders ready for shipping for vendor {}", vendorId, ex);
+            throw new RuntimeException("Failed to get orders ready for shipping: " + ex.getMessage(), ex);
         } finally {
             em.close();
         }

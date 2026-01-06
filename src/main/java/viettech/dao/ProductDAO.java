@@ -9,7 +9,10 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.text.Normalizer;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Product DAO - Data Access Object for Product entity (base class)
@@ -359,23 +362,55 @@ public class ProductDAO {
         }
     }
     /**
-     * Lấy danh sách sản phẩm theo category và JOIN FETCH images để load ảnh cùng lúc
+     * Lấy danh sách sản phẩm theo category và JOIN FETCH images để load ảnh cùng lúc.
+     *
+     * NOTE: Product là abstract + JOINED inheritance. Nếu DB có row trong bảng `products`
+     * nhưng không có row tương ứng trong bảng con (phones/laptops/...), Hibernate sẽ
+     * không thể instantiate Product và gây InstantiationException.
+     * Vì vậy, với các màn hình theo category, ta query trực tiếp entity con.
      */
     public List<Product> findByCategoryIdWithImages(int categoryId) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            String jpql = "SELECT DISTINCT p FROM Product p " +
+            // Category mapping theo ProductService constants
+            // 1=Phone, 2=Accessory (tạm coi chung Phone), 3=Laptop, 4=Tablet, 5=Headphone
+            if (categoryId == 3) {
+                String jpql = "SELECT DISTINCT p FROM Laptop p " +
+                        "LEFT JOIN FETCH p.images " +
+                        "WHERE p.categoryId = :categoryId " +
+                        "ORDER BY p.createdAt DESC";
+                return new ArrayList<>(em.createQuery(jpql, viettech.entity.product.Laptop.class)
+                        .setParameter("categoryId", categoryId)
+                        .getResultList());
+            }
+            if (categoryId == 4) {
+                String jpql = "SELECT DISTINCT p FROM Tablet p " +
+                        "LEFT JOIN FETCH p.images " +
+                        "WHERE p.categoryId = :categoryId " +
+                        "ORDER BY p.createdAt DESC";
+                return new ArrayList<>(em.createQuery(jpql, viettech.entity.product.Tablet.class)
+                        .setParameter("categoryId", categoryId)
+                        .getResultList());
+            }
+            if (categoryId == 5) {
+                String jpql = "SELECT DISTINCT p FROM Headphone p " +
+                        "LEFT JOIN FETCH p.images " +
+                        "WHERE p.categoryId = :categoryId " +
+                        "ORDER BY p.createdAt DESC";
+                return new ArrayList<>(em.createQuery(jpql, viettech.entity.product.Headphone.class)
+                        .setParameter("categoryId", categoryId)
+                        .getResultList());
+            }
+
+            // default: Phone (bao gồm category 1,2 và các category khác nếu có)
+            String jpql = "SELECT DISTINCT p FROM Phone p " +
                     "LEFT JOIN FETCH p.images " +
                     "WHERE p.categoryId = :categoryId " +
                     "ORDER BY p.createdAt DESC";
+            return new ArrayList<>(em.createQuery(jpql, viettech.entity.product.Phone.class)
+                    .setParameter("categoryId", categoryId)
+                    .getResultList());
 
-            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
-            query.setParameter("categoryId", categoryId);
-
-            List<Product> products = query.getResultList();
-
-            logger.debug("Found {} product(s) with images for category ID: {}", products.size(), categoryId);
-            return products;
         } catch (Exception e) {
             logger.error("Error finding products with images by category ID: {}", categoryId, e);
             throw new RuntimeException("Failed to find products with images", e);
@@ -384,38 +419,108 @@ public class ProductDAO {
         }
     }
     /**
-     * Tìm kiếm sản phẩm theo tên + JOIN FETCH images để load ảnh cùng lúc
+     * Tìm kiếm sản phẩm theo tên + JOIN FETCH images để load ảnh cùng lúc.
+     *
+     * NOTE: Không query trực tiếp Product (abstract) để tránh InstantiationException khi DB có row mồ côi
+     * trong bảng `products` không có bản ghi tương ứng ở bảng con.
      */
     public List<Product> searchByNameWithImages(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Normalize keyword: bỏ dấu + đ→d + lowercase
+        String normalizedKeyword = normalizeVietnamese(keyword.trim());
+        String searchPattern = "%" + normalizedKeyword + "%";
+
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            String jpql = "SELECT DISTINCT p FROM Product p " +
-                    "LEFT JOIN FETCH p.images " +
-                    "WHERE LOWER(p.name) LIKE LOWER(:keyword) " +
-                    "ORDER BY p.createdAt DESC";
-            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
-            query.setParameter("keyword", "%" + keyword + "%");
-            List<Product> products = query.getResultList();
-            logger.debug("✓ Found {} product(s) matching '{}' with images loaded", products.size(), keyword);
+            String jpqlPhone = "SELECT DISTINCT p FROM Phone p LEFT JOIN FETCH p.images i " +
+                    "WHERE LOWER(p.name) LIKE :pattern OR LOWER(p.brand) LIKE :pattern ORDER BY p.createdAt DESC";
+            String jpqlLaptop = "SELECT DISTINCT p FROM Laptop p LEFT JOIN FETCH p.images i " +
+                    "WHERE LOWER(p.name) LIKE :pattern OR LOWER(p.brand) LIKE :pattern ORDER BY p.createdAt DESC";
+            String jpqlTablet = "SELECT DISTINCT p FROM Tablet p LEFT JOIN FETCH p.images i " +
+                    "WHERE LOWER(p.name) LIKE :pattern OR LOWER(p.brand) LIKE :pattern ORDER BY p.createdAt DESC";
+            String jpqlHeadphone = "SELECT DISTINCT p FROM Headphone p LEFT JOIN FETCH p.images i " +
+                    "WHERE LOWER(p.name) LIKE :pattern OR LOWER(p.brand) LIKE :pattern ORDER BY p.createdAt DESC";
+
+            List<Product> results = new ArrayList<>();
+            results.addAll(em.createQuery(jpqlPhone, viettech.entity.product.Phone.class)
+                    .setParameter("pattern", searchPattern)
+                    .setMaxResults(100)
+                    .getResultList());
+            results.addAll(em.createQuery(jpqlLaptop, viettech.entity.product.Laptop.class)
+                    .setParameter("pattern", searchPattern)
+                    .setMaxResults(100)
+                    .getResultList());
+            results.addAll(em.createQuery(jpqlTablet, viettech.entity.product.Tablet.class)
+                    .setParameter("pattern", searchPattern)
+                    .setMaxResults(100)
+                    .getResultList());
+            results.addAll(em.createQuery(jpqlHeadphone, viettech.entity.product.Headphone.class)
+                    .setParameter("pattern", searchPattern)
+                    .setMaxResults(100)
+                    .getResultList());
+
+            // De-duplicate theo productId (phòng trường hợp query overlap)
+            java.util.Map<Integer, Product> unique = new java.util.LinkedHashMap<>();
+            for (Product p : results) {
+                unique.put(p.getProductId(), p);
+            }
+
+            List<Product> products = new ArrayList<>(unique.values());
+            products.sort((a, b) -> {
+                if (a.getCreatedAt() == null && b.getCreatedAt() == null) return 0;
+                if (a.getCreatedAt() == null) return 1;
+                if (b.getCreatedAt() == null) return -1;
+                return b.getCreatedAt().compareTo(a.getCreatedAt());
+            });
+
+            logger.debug("✓ Found {} product(s) for keyword '{}' (normalized: '{}')",
+                    products.size(), keyword, normalizedKeyword);
+
             return products;
+
         } catch (Exception e) {
-            logger.error("✗ Error searching products with images by name: {}", keyword, e);
-            throw new RuntimeException("Failed to search products with images", e);
+            logger.error("✗ Error searching products for keyword: {}", keyword, e);
+            throw new RuntimeException("Failed to search products", e);
         } finally {
             em.close();
         }
     }
 
     /**
-     * Lấy tất cả sản phẩm + JOIN FETCH images (dùng khi không có keyword)
+     * Lấy tất cả sản phẩm + JOIN FETCH images.
+     *
+     * NOTE: Không query trực tiếp Product (abstract) để tránh InstantiationException khi DB có row mồ côi.
      */
     public List<Product> findAllWithImages() {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            String jpql = "SELECT DISTINCT p FROM Product p " +
-                    "LEFT JOIN FETCH p.images " +
-                    "ORDER BY p.createdAt DESC";
-            List<Product> products = em.createQuery(jpql, Product.class).getResultList();
+            String jpqlPhone = "SELECT DISTINCT p FROM Phone p LEFT JOIN FETCH p.images ORDER BY p.createdAt DESC";
+            String jpqlLaptop = "SELECT DISTINCT p FROM Laptop p LEFT JOIN FETCH p.images ORDER BY p.createdAt DESC";
+            String jpqlTablet = "SELECT DISTINCT p FROM Tablet p LEFT JOIN FETCH p.images ORDER BY p.createdAt DESC";
+            String jpqlHeadphone = "SELECT DISTINCT p FROM Headphone p LEFT JOIN FETCH p.images ORDER BY p.createdAt DESC";
+
+            List<Product> results = new ArrayList<>();
+            results.addAll(em.createQuery(jpqlPhone, viettech.entity.product.Phone.class).getResultList());
+            results.addAll(em.createQuery(jpqlLaptop, viettech.entity.product.Laptop.class).getResultList());
+            results.addAll(em.createQuery(jpqlTablet, viettech.entity.product.Tablet.class).getResultList());
+            results.addAll(em.createQuery(jpqlHeadphone, viettech.entity.product.Headphone.class).getResultList());
+
+            java.util.Map<Integer, Product> unique = new java.util.LinkedHashMap<>();
+            for (Product p : results) {
+                unique.put(p.getProductId(), p);
+            }
+
+            List<Product> products = new ArrayList<>(unique.values());
+            products.sort((a, b) -> {
+                if (a.getCreatedAt() == null && b.getCreatedAt() == null) return 0;
+                if (a.getCreatedAt() == null) return 1;
+                if (b.getCreatedAt() == null) return -1;
+                return b.getCreatedAt().compareTo(a.getCreatedAt());
+            });
+
             logger.debug("✓ Retrieved {} product(s) with images loaded", products.size());
             return products;
         } catch (Exception e) {
@@ -424,6 +529,15 @@ public class ProductDAO {
         } finally {
             em.close();
         }
+    }
+
+    // Thêm method normalizeVietnamese vào ProductDAO (copy từ Service)
+    private String normalizeVietnamese(String input) {
+        if (input == null || input.isEmpty()) return "";
+        String temp = Normalizer.normalize(input, Normalizer.Form.NFD);
+        temp = Pattern.compile("\\p{InCombiningDiacriticalMarks}+").matcher(temp).replaceAll("");
+        temp = temp.replaceAll("đ", "d").replaceAll("Đ", "d");
+        return temp.toLowerCase();
     }
 }
 

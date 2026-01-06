@@ -3,6 +3,8 @@ package viettech.service;
 import viettech.dao.CartDAO;
 import viettech.dao.CartItemDAO;
 import viettech.dao.VariantAttributeDAO;
+import viettech.dao.VariantDAO;
+import viettech.dto.CartCheckoutItemDTO;
 import viettech.dto.CartItemDTO;
 import viettech.dto.ProductDetailDTO;
 import viettech.dto.VariantDTO;
@@ -76,7 +78,8 @@ public class CartService {
     public void removeCartItem(HttpSession session, int productId, int variantId) {
         int cartId = getOrCreateCartId(session);
 
-        CartItem item = cartItemDAO.findByCartIdAndVariantIdandProductId(cartId, productId, variantId);
+        CartItem item = cartItemDAO
+                .findByCartIdAndVariantIdandProductId(cartId, variantId, productId);
         if (item != null) {
             cartItemDAO.delete(item.getCartItemId());
         }
@@ -168,12 +171,69 @@ public class CartService {
             for(VariantAttribute attribute : attributes){
                 s.append(attribute.getAttributeValue()).append(" - ");
             }
-            s.deleteCharAt(s.length() - 1);
+            s.deleteCharAt(s.length() - 2);
             dto.setVariantDisplay(s.toString());
+            dto.setSelected(false);
         } catch (Exception e) {
             System.err.println("Error converting item: productId=" + item.getProductId() + ", variantId=" + item.getVariantId() + ", error=" + e.getMessage());
         }
 
         return dto;
     }
+
+    public CartCheckoutItemDTO getCartItemForCheckout(int userId, int productId, int variantId) {
+        CartCheckoutItemDTO dto = new CartCheckoutItemDTO();
+
+        dto.setProductId(productId);
+        dto.setVariantId(variantId);
+
+        try {
+            // Lấy thông tin sản phẩm
+            ProductDetailDTO product = productService.getProductDetail(productId);
+            dto.setProductName(product.getName());
+            dto.setProductImage(product.getPrimaryImageUrl());
+
+            // Lấy attribute của variant
+            List<VariantAttribute> attributes =
+                    new VariantAttributeDAO().findByVariantId(variantId);
+
+            StringBuilder s = new StringBuilder();
+            for (VariantAttribute attribute : attributes) {
+                s.append(attribute.getAttributeValue()).append(" - ");
+            }
+
+            if (s.length() > 0) {
+                s.delete(s.length() - 3, s.length()); // xóa " - "
+            }
+            dto.setVariantDisplay(s.toString());
+
+            // Lấy cart & cart item
+            CartDAO cartDAO = new CartDAO();
+            CartItemDAO cartItemDAO = new CartItemDAO();
+            System.out.println("==============DEBUG================");
+            Cart cart = cartDAO.findByCustomerId(userId);
+            System.out.println("Cart Id =" + cart.getCartId());
+            CartItem item = cartItemDAO
+                    .findByCartIdAndVariantIdandProductId(
+                            cart.getCartId(),
+                            variantId,
+                            productId
+                    );
+            System.out.println("Quantity = " + item.getQuantity());
+            System.out.println("Price = " + item.getPriceAtAdd());
+            dto.setQuantity(item.getQuantity());
+            dto.setPrice(item.getPriceAtAdd());
+
+        } catch (Exception e) {
+            System.err.println(
+                    "Error converting checkout item: userId=" + userId +
+                            ", productId=" + productId +
+                            ", variantId=" + variantId +
+                            ", error=" + e.getMessage()
+            );
+        }
+
+        return dto;
+    }
+
 }

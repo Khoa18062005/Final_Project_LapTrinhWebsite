@@ -522,27 +522,13 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="${pageContext.request.contextPath}/vendor?action=approvals">
-                <span><i class="fas fa-clipboard-check"></i> Yêu cầu phê duyệt</span>
-                <c:if test="${data.pendingApprovals > 0}">
-                    <span class="badge bg-warning rounded-pill">${data.pendingApprovals}</span>
-                </c:if>
-            </a>
-        </li>
-        <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/vendor?action=orders">
                 <span><i class="fas fa-shopping-cart"></i> Đơn hàng</span>
-                <c:if test="${data.newOrdersCount > 0}">
-                    <span class="badge bg-success rounded-pill">${data.newOrdersCount}</span>
-                </c:if>
             </a>
         </li>
         <li class="nav-item">
             <a class="nav-link" href="${pageContext.request.contextPath}/vendor?action=shipping">
                 <span><i class="fas fa-truck"></i> Giao hàng</span>
-                <c:if test="${not empty data.pendingShippingOrders and fn:length(data.pendingShippingOrders) > 0}">
-                    <span class="badge bg-info rounded-pill">${fn:length(data.pendingShippingOrders)}</span>
-                </c:if>
             </a>
         </li>
     </ul>
@@ -563,187 +549,8 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     </c:if>
-
-    <!-- ROUTING: Choose content based on action parameter -->
     <c:choose>
-        <%-- APPROVALS PAGE --%>
-        <c:when test="${param.action == 'approvals'}">
-            <!-- Page Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2><i class="fas fa-clipboard-check"></i> Yêu cầu phê duyệt</h2>
-                    <p class="text-muted mb-0">Theo dõi trạng thái yêu cầu phê duyệt sản phẩm</p>
-                </div>
-            </div>
-
-            <!-- Summary Stats -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                    <div class="card border-warning">
-                        <div class="card-body text-center">
-                            <h3 class="text-warning mb-0">
-                                <c:set var="pendingCount" value="0"/>
-                                <c:forEach items="${approvals}" var="approval">
-                                    <c:if test="${approval.status == 'PENDING'}">
-                                        <c:set var="pendingCount" value="${pendingCount + 1}"/>
-                                    </c:if>
-                                </c:forEach>
-                                ${pendingCount}
-                            </h3>
-                            <p class="text-muted mb-0">Đang chờ duyệt</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card border-success">
-                        <div class="card-body text-center">
-                            <h3 class="text-success mb-0">
-                                <c:set var="approvedCount" value="0"/>
-                                <c:forEach items="${approvals}" var="approval">
-                                    <c:if test="${approval.status == 'APPROVED'}">
-                                        <c:set var="approvedCount" value="${approvedCount + 1}"/>
-                                    </c:if>
-                                </c:forEach>
-                                ${approvedCount}
-                            </h3>
-                            <p class="text-muted mb-0">Đã phê duyệt</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card border-danger">
-                        <div class="card-body text-center">
-                            <h3 class="text-danger mb-0">
-                                <c:set var="rejectedCount" value="0"/>
-                                <c:forEach items="${approvals}" var="approval">
-                                    <c:if test="${approval.status == 'REJECTED'}">
-                                        <c:set var="rejectedCount" value="${rejectedCount + 1}"/>
-                                    </c:if>
-                                </c:forEach>
-                                ${rejectedCount}
-                            </h3>
-                            <p class="text-muted mb-0">Bị từ chối</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Approvals List -->
-            <c:choose>
-                <c:when test="${not empty approvals}">
-                    <c:forEach items="${approvals}" var="approval">
-                        <div class="approval-card">
-                            <div class="approval-header">
-                                <div>
-                                    <span class="approval-type ${fn:toLowerCase(approval.actionType)}">
-                                        <c:choose>
-                                            <c:when test="${approval.actionType == 'ADD'}">
-                                                <i class="fas fa-plus-circle"></i> Thêm mới
-                                            </c:when>
-                                            <c:when test="${approval.actionType == 'UPDATE'}">
-                                                <i class="fas fa-edit"></i> Cập nhật
-                                            </c:when>
-                                            <c:when test="${approval.actionType == 'DELETE'}">
-                                                <i class="fas fa-trash"></i> Xóa
-                                            </c:when>
-                                        </c:choose>
-                                    </span>
-                                    <span class="ms-2 text-muted">
-                                        <small>
-                                            <i class="far fa-clock"></i>
-                                            <fmt:formatDate value="${approval.requestedAt}" pattern="dd/MM/yyyy HH:mm"/>
-                                        </small>
-                                    </span>
-                                </div>
-                                <div>
-                                    <span class="approval-status status-${fn:toLowerCase(approval.status)}">
-                                        <c:choose>
-                                            <c:when test="${approval.status == 'PENDING'}">
-                                                <i class="fas fa-hourglass-half"></i> Đang chờ
-                                            </c:when>
-                                            <c:when test="${approval.status == 'APPROVED'}">
-                                                <i class="fas fa-check-circle"></i> Đã duyệt
-                                            </c:when>
-                                            <c:when test="${approval.status == 'REJECTED'}">
-                                                <i class="fas fa-times-circle"></i> Từ chối
-                                            </c:when>
-                                        </c:choose>
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="approval-body">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <h6 class="mb-1">Yêu cầu #${approval.approvalId}</h6>
-                                        <c:if test="${not empty approval.productId}">
-                                            <p class="text-muted mb-0">
-                                                <small>Sản phẩm ID: #${approval.productId}</small>
-                                            </p>
-                                        </c:if>
-                                    </div>
-                                    <div class="text-end">
-                                        <c:if test="${approval.status == 'APPROVED' && not empty approval.reviewedAt}">
-                                            <small class="text-success">
-                                                <i class="fas fa-check"></i>
-                                                Duyệt lúc: <fmt:formatDate value="${approval.reviewedAt}" pattern="dd/MM HH:mm"/>
-                                            </small>
-                                        </c:if>
-                                        <c:if test="${approval.status == 'REJECTED' && not empty approval.reviewedAt}">
-                                            <small class="text-danger">
-                                                <i class="fas fa-times"></i>
-                                                Từ chối lúc: <fmt:formatDate value="${approval.reviewedAt}" pattern="dd/MM HH:mm"/>
-                                            </small>
-                                        </c:if>
-                                    </div>
-                                </div>
-
-                                <!-- Product Data Preview -->
-                                <c:if test="${not empty approval.productData && approval.actionType != 'DELETE'}">
-                                    <div class="product-preview">
-                                        <h6><i class="fas fa-info-circle"></i> Thông tin sản phẩm</h6>
-                                        <div class="text-muted json-data-container" data-json='${approval.productData}'>
-                                            <!-- Content will be formatted by JS -->
-                                            <small class="font-monospace">
-                                                ${fn:substring(approval.productData, 0, 150)}...
-                                            </small>
-                                        </div>
-                                    </div>
-                                </c:if>
-
-                                <!-- Rejection Reason -->
-                                <c:if test="${approval.status == 'REJECTED' && not empty approval.rejectionReason}">
-                                    <div class="alert alert-danger mt-3 mb-0">
-                                        <strong><i class="fas fa-exclamation-triangle"></i> Lý do từ chối:</strong>
-                                        <p class="mb-0 mt-2">${approval.rejectionReason}</p>
-                                    </div>
-                                </c:if>
-
-                                <!-- Notes -->
-                                <c:if test="${not empty approval.notes}">
-                                    <div class="alert alert-info mt-3 mb-0">
-                                        <strong><i class="fas fa-sticky-note"></i> Ghi chú:</strong>
-                                        <p class="mb-0 mt-2">${approval.notes}</p>
-                                    </div>
-                                </c:if>
-                            </div>
-                        </div>
-                    </c:forEach>
-                </c:when>
-                <c:otherwise>
-                    <div class="empty-state">
-                        <i class="fas fa-clipboard"></i>
-                        <h4 class="text-muted">Chưa có yêu cầu phê duyệt nào</h4>
-                        <p class="text-muted">Tất cả yêu cầu thêm, sửa, xóa sản phẩm sẽ hiển thị ở đây</p>
-                        <a href="${pageContext.request.contextPath}/vendor" class="btn btn-primary mt-3">
-                            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
-                        </a>
-                    </div>
-                </c:otherwise>
-            </c:choose>
-        </c:when>
-
-        <%-- ORDERS PAGE --%>
+            <%-- ORDERS PAGE --%>
         <c:when test="${param.action == 'orders'}">
             <!-- Page Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -762,10 +569,6 @@
                 <a href="${pageContext.request.contextPath}/vendor?action=orders&status=Pending"
                    class="btn ${param.status == 'Pending' ? 'btn-warning' : 'btn-outline-warning'}">
                     <i class="fas fa-clock"></i> Chờ xử lý
-                </a>
-                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=Processing"
-                   class="btn ${param.status == 'Processing' ? 'btn-info' : 'btn-outline-info'}">
-                    <i class="fas fa-sync"></i> Đang xử lý
                 </a>
                 <a href="${pageContext.request.contextPath}/vendor?action=orders&status=Confirmed"
                    class="btn ${param.status == 'Confirmed' ? 'btn-primary' : 'btn-outline-primary'}">
@@ -852,34 +655,24 @@
                                                     </span>
                                                 </td>
                                                 <td class="order-actions">
-                                                    <button class="btn btn-sm btn-outline-secondary"
-                                                            onclick="viewOrderDetails(${order.orderId})">
-                                                        <i class="fas fa-eye"></i>
-                                                    </button>
 
                                                     <c:if test="${order.status == 'Pending'}">
                                                         <button class="btn btn-sm btn-primary"
-                                                                onclick="updateOrderStatus(${order.orderId}, 'Processing')">
-                                                            <i class="fas fa-play"></i> Xử lý
-                                                        </button>
-                                                    </c:if>
-                                                    <c:if test="${order.status == 'Processing'}">
-                                                        <button class="btn btn-sm btn-success"
                                                                 onclick="updateOrderStatus(${order.orderId}, 'Confirmed')">
-                                                            <i class="fas fa-check"></i> Xác nhận
+                                                            <i class="fas fa-play"></i> Confirmed
                                                         </button>
                                                     </c:if>
                                                     <c:if test="${order.status == 'Confirmed'}">
                                                         <button class="btn btn-sm btn-info"
                                                                 onclick="updateOrderStatus(${order.orderId}, 'Ready')">
-                                                            <i class="fas fa-box"></i> Sẵn sàng
+                                                            <i class="fas fa-box"></i> Ready
                                                         </button>
                                                     </c:if>
 
                                                     <c:if test="${order.status != 'Completed' && order.status != 'Cancelled'}">
                                                         <button class="btn btn-sm btn-danger"
                                                                 onclick="showCancelModal(${order.orderId})">
-                                                            <i class="fas fa-times"></i> Hủy
+                                                            <i class="fas fa-times"></i> Cancel
                                                         </button>
                                                     </c:if>
                                                 </td>
@@ -968,6 +761,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2><i class="fas fa-box"></i> Quản lý sản phẩm</h2>
+                    <p class="text-muted mb-0">Tổng số: ${fn:length(products)} sản phẩm</p>
                 </div>
                 <div>
                     <button class="btn btn-primary" onclick="showAddProductModal()">
@@ -985,107 +779,98 @@
                     </h5>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Sản phẩm</th>
-                                    <th>Danh mục</th>
-                                    <th>Giá bán</th>
-                                    <th>Đã bán</th>
-                                    <th>Trạng thái</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Thao tác</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <c:choose>
-                                    <c:when test="${not empty products}">
-                                        <c:forEach items="${products}" var="product">
+                    <c:choose>
+                        <c:when test="${not empty products}">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Sản phẩm</th>
+                                            <th>Danh mục</th>
+                                            <th>Giá bán</th>
+                                            <th>Đã bán</th>
+                                            <th>Trạng thái</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <%-- Duyệt danh sách sản phẩm - CHỈ truy cập các field scalar, KHÔNG truy cập LAZY relations --%>
+                                        <c:forEach var="p" items="${products}" varStatus="loop">
                                             <tr>
+                                                <td><strong>#${p.productId}</strong></td>
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <div>
-                                                            <strong>${product.name}</strong><br>
-                                                            <small class="text-muted">${product.brand}</small>
+                                                            <strong><c:out value="${p.name}" default="N/A"/></strong><br>
+                                                            <small class="text-muted"><c:out value="${p.brand}" default=""/></small>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <c:choose>
-                                                        <c:when test="${product.categoryId == 1}">Laptop</c:when>
-                                                        <c:when test="${product.categoryId == 2}">Điện thoại</c:when>
-                                                        <c:when test="${product.categoryId == 3}">Tablet</c:when>
-                                                        <c:when test="${product.categoryId == 4}">Tai nghe</c:when>
-                                                        <c:otherwise>Khác</c:otherwise>
+                                                        <c:choose>
+                                                        <c:when test="${p.categoryId == 1}">Điện thoại</c:when>
+                                                        <c:when test="${p.categoryId == 2}">Phụ kiện điện thoại</c:when>
+                                                        <c:when test="${p.categoryId == 3}">Laptop</c:when>
+                                                        <c:when test="${p.categoryId == 4}">Máy tính bảng</c:when>
+                                                        <c:when test="${p.categoryId == 5}">Tai nghe</c:when>
+                                                        <c:otherwise>Khác (${p.categoryId})</c:otherwise>
                                                     </c:choose>
                                                 </td>
                                                 <td>
-                                                    <strong>
-                                                        <fmt:formatNumber value="${product.basePrice}" type="currency"
-                                                                        currencySymbol="" maxFractionDigits="0"/>đ
+                                                    <strong class="text-success">
+                                                        <fmt:formatNumber value="${p.basePrice}" type="number"
+                                                                        groupingUsed="true" maxFractionDigits="0"/>đ
                                                     </strong>
                                                 </td>
+                                                <td>${p.totalSold}</td>
                                                 <td>
                                                     <c:choose>
-                                                        <c:when test="${not empty product.totalSold}">${product.totalSold}</c:when>
-                                                        <c:otherwise>0</c:otherwise>
-                                                    </c:choose>
-                                                </td>
-                                                <td>
-                                                    <c:choose>
-                                                        <c:when test="${product.status == 'Active'}">
-                                                            <span class="badge bg-success">${product.status}</span>
+                                                        <c:when test="${p.status eq 'AVAILABLE'}">
+                                                            <span class="badge bg-success">Hoạt động</span>
                                                         </c:when>
-                                                        <c:when test="${not empty product.status}">
-                                                            <span class="badge bg-secondary">${product.status}</span>
+                                                        <c:when test="${p.status eq 'INACTIVE'}">
+                                                            <span class="badge bg-secondary">Tạm dừng</span>
+                                                        </c:when>
+                                                        <c:when test="${not empty p.status}">
+                                                            <span class="badge bg-warning">${p.status}</span>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <span class="badge bg-secondary">N/A</span>
                                                         </c:otherwise>
                                                     </c:choose>
                                                 </td>
-                                                <td>
-                                                    <c:choose>
-                                                        <c:when test="${not empty product.createdAt}">
-                                                            <fmt:formatDate value="${product.createdAt}" pattern="dd/MM/yyyy"/><br>
-                                                            <small class="text-muted">
-                                                                <fmt:formatDate value="${product.createdAt}" pattern="HH:mm"/>
-                                                            </small>
-                                                        </c:when>
-                                                        <c:otherwise>
-                                                            <span class="text-muted">N/A</span>
-                                                        </c:otherwise>
-                                                    </c:choose>
-                                                </td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-warning"
-                                                            onclick="editProduct(${product.productId})">
-                                                        <i class="fas fa-edit"></i> Sửa
-                                                    </button>
-                                                    <button class="btn btn-sm btn-danger"
-                                                            onclick="deleteProduct(${product.productId})">
-                                                        <i class="fas fa-trash"></i> Xóa
-                                                    </button>
+                                                         <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-warning"
+                                                                onclick="editProduct(${p.productId})"
+                                                                title="Sửa sản phẩm">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-danger"
+                                                                onclick="deleteProduct(${p.productId})"
+                                                                title="Xóa sản phẩm">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </c:forEach>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <tr>
-                                            <td colspan="7">
-                                                <div class="empty-state">
-                                                    <i class="fas fa-box-open"></i>
-                                                    <h5>Chưa có sản phẩm nào</h5>
-                                                    <p>Hãy bắt đầu bằng cách <a href="#" onclick="showAddProductModal(); return false;">thêm sản phẩm đầu tiên</a></p>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </c:otherwise>
-                                </c:choose>
-                            </tbody>
-                        </table>
-                    </div>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="empty-state p-5 text-center">
+                                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                <h5>Chưa có sản phẩm nào</h5>
+                                <p class="text-muted">Hãy bắt đầu bằng cách thêm sản phẩm đầu tiên</p>
+                                <button class="btn btn-primary" onclick="showAddProductModal()">
+                                    <i class="fas fa-plus"></i> Thêm sản phẩm
+                                </button>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
         </c:when>
@@ -1270,7 +1055,6 @@
                                             <div class="d-flex gap-2" id="shipper-actions-${order.orderId}">
                                                 <button class="btn btn-outline-primary btn-sm"
                                                         onclick="viewOrderDetails(${order.orderId})">
-                                                    <i class="fas fa-eye"></i> Chi tiết
                                                 </button>
                                                 <button class="btn btn-success btn-sm" id="btn-assign-${order.orderId}"
                                                         onclick="showAssignShipperModal(${order.orderId}, '${order.orderNumber}')">
@@ -1407,94 +1191,7 @@
                     <div class="stat-label">Cần giao hàng</div>
                 </div>
             </div>
-        </c:otherwise>
-    </c:choose>
-</div>
 
-<!-- Add Product Modal -->
-<div class="modal fade" id="addProductModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Thêm sản phẩm mới</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addProductForm">
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label">Tên sản phẩm *</label>
-                            <input type="text" class="form-control" name="name" required
-                                   placeholder="Nhập tên sản phẩm">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Danh mục *</label>
-                            <select class="form-select" name="categoryId" required>
-                                <option value="">Chọn danh mục...</option>
-                                <option value="1">Laptop</option>
-                                <option value="2">Điện thoại</option>
-                                <option value="3">Tablet</option>
-                                <option value="4">Tai nghe</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Thương hiệu *</label>
-                            <input type="text" class="form-control" name="brand" required
-                                   placeholder="VD: Apple, Dell, Samsung...">
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Giá bán (VNĐ) *</label>
-                            <input type="number" class="form-control" name="basePrice" min="0" step="1000" required
-                                   placeholder="Nhập giá bán">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Trạng thái *</label>
-                            <select class="form-select" name="status" required>
-                                <option value="Active">Hoạt động</option>
-                                <option value="Inactive">Không hoạt động</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Mô tả sản phẩm</label>
-                        <textarea class="form-control" name="description" rows="3"
-                                  placeholder="Nhập mô tả chi tiết về sản phẩm..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Thông số kỹ thuật</label>
-                        <textarea class="form-control" name="specifications" rows="2"
-                                  placeholder="VD: CPU: Intel Core i7, RAM: 16GB, SSD: 512GB"></textarea>
-                    </div>
-                </form>
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>Lưu ý:</strong> Sản phẩm sẽ được gửi yêu cầu phê duyệt đến Admin.
-                    Sau khi được duyệt, sản phẩm mới hiển thị trên website.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Hủy
-                </button>
-                <button type="button" class="btn btn-primary" onclick="submitAddProduct()">
-                    <i class="fas fa-paper-plane"></i> Gửi yêu cầu
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Product Modal -->
-<div class="modal fade" id="editProductModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-edit"></i> Chỉnh sửa sản phẩm</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <form id="editProductForm">
@@ -1510,11 +1207,11 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Danh mục *</label>
                             <select class="form-select" name="categoryId" id="editCategoryId" required>
-                                <option value="">Chọn danh mục...</option>
-                                <option value="1">Laptop</option>
-                                <option value="2">Điện thoại</option>
-                                <option value="3">Tablet</option>
-                                <option value="4">Tai nghe</option>
+                                <option value="1">Điện thoại</option>
+                                <option value="2">Phụ kiện điện thoại</option>
+                                <option value="3">Laptop</option>
+                                <option value="4">Máy tính bảng</option>
+                                <option value="5">Tai nghe</option>
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -1550,8 +1247,8 @@
                 </form>
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Lưu ý:</strong> Thay đổi sẽ được gửi yêu cầu phê duyệt đến Admin.
-                    Sản phẩm sẽ không thay đổi cho đến khi được duyệt.
+                    <strong>Lưu ý:</strong> Sản phẩm sẽ được cập nhật và hiển thị ngay trên website.
+                    Vui lòng kiểm tra kỹ các thông tin trước khi lưu để đảm bảo dữ liệu chính xác.
                 </div>
             </div>
             <div class="modal-footer">
@@ -1559,7 +1256,7 @@
                     <i class="fas fa-times"></i> Hủy
                 </button>
                 <button type="button" class="btn btn-warning" onclick="submitEditProduct()">
-                    <i class="fas fa-paper-plane"></i> Gửi yêu cầu cập nhật
+                    <i class="fas fa-edit"></i> Cập nhật
                 </button>
             </div>
         </div>
@@ -1773,7 +1470,6 @@
             }
         })
         .catch(err => {
-            alert('✗ Có lỗi xảy ra: ' + err.message);
         });
     }
 
@@ -1810,19 +1506,17 @@
                 document.getElementById('orderDetailsShipping').innerHTML = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.shippingFee || 0);
                 document.getElementById('orderDetailsDiscount').innerHTML = '0đ'; // DTO doesn't include discount, set to 0
 
-                // Populate customer information
-                document.getElementById('orderDetailsCustomer').innerHTML = `
-                    <strong>${customer.firstName || ''} ${customer.lastName || ''}</strong><br>
-                    <i class="fas fa-envelope text-muted"></i> ${customer.email || 'N/A'}<br>
-                    <i class="fas fa-phone text-muted"></i> ${customer.phone || 'N/A'}
-                `;
+
+                document.getElementById('orderDetailsCustomer').innerHTML =
+                    '<strong>' + (customer.firstName || '') + ' ' + (customer.lastName || '') + '</strong><br>' +
+                    '<i class="fas fa-envelope text-muted"></i> ' + (customer.email || 'N/A') + '<br>' +
+                    '<i class="fas fa-phone text-muted"></i> ' + (customer.phone || 'N/A');
 
                 // Populate address information
-                document.getElementById('orderDetailsAddress').innerHTML = `
-                    <strong>${address.street || 'N/A'}</strong><br>
-                    ${address.district || ''}, ${address.city || ''}
-                    ${address.ward ? ', ' + address.ward : ''}
-                `;
+                document.getElementById('orderDetailsAddress').innerHTML =
+                    '<strong>' + (address.street || 'N/A') + '</strong><br>' +
+                    (address.district || '') + ', ' + (address.city || '') +
+                    (address.ward ? (', ' + address.ward) : '');
 
                 // Populate order items
                 const itemsContainer = document.getElementById('orderDetailsItems');
@@ -1901,7 +1595,7 @@
 
     // Delete Product
     function deleteProduct(productId) {
-        if (!confirm('Bạn có chắc muốn xóa sản phẩm này? Yêu cầu xóa sẽ được gửi đến Admin để phê duyệt.')) return;
+        if (!confirm('Bạn có chắc muốn xóa sản phẩm này? Thao tác này không thể hoàn tác!')) return;
 
         fetch('${pageContext.request.contextPath}/vendor?action=deleteProduct&productId=' + productId, {
             method: 'POST'
@@ -1925,22 +1619,49 @@
             method: 'GET'
         })
         .then(res => res.json())
-        .then(product => {
-            if (product) {
-                document.getElementById('editProductId').value = product.productId;
-                document.getElementById('editName').value = product.name;
-                document.getElementById('editCategoryId').value = product.categoryId;
-                document.getElementById('editBrand').value = product.brand;
-                document.getElementById('editBasePrice').value = product.basePrice;
-                document.getElementById('editStatus').value = product.status;
-                document.getElementById('editDescription').value = product.description || '';
-                document.getElementById('editSpecifications').value = product.specifications || '';
-
-                const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
-                modal.show();
-            } else {
-                alert('Không tìm thấy sản phẩm');
+        .then(result => {
+            // VendorServlet returns: { success: boolean, message: string, data: {...} }
+            if (!result || result.success !== true || !result.data) {
+                alert('Không thể tải sản phẩm: ' + ((result && result.message) ? result.message : 'Unknown error'));
+                return;
             }
+
+            const product = result.data;
+
+            // Defensive: ensure we got the product we asked for
+            if (!product.productId) {
+                alert('Dữ liệu sản phẩm không hợp lệ (missing productId)');
+                return;
+            }
+
+            document.getElementById('editProductId').value = product.productId;
+            document.getElementById('editName').value = product.name || '';
+            document.getElementById('editCategoryId').value = product.categoryId != null ? product.categoryId : '';
+            document.getElementById('editBrand').value = product.brand || '';
+            document.getElementById('editBasePrice').value = product.basePrice != null ? product.basePrice : '';
+            document.getElementById('editDescription').value = product.description || '';
+            document.getElementById('editSpecifications').value = product.specifications || '';
+
+            // Normalize status: DB commonly stores AVAILABLE/INACTIVE
+            const rawStatus = (product.status || '').toString().toUpperCase();
+            const normalizedStatus = (rawStatus === 'AVAILABLE') ? 'AVAILABLE'
+                : (rawStatus === 'INACTIVE' || rawStatus === 'IN_ACTIVE') ? 'INACTIVE'
+                : rawStatus;
+
+            // If your select options are still Active/Inactive in HTML, map to those
+            const statusSelect = document.getElementById('editStatus');
+            if (statusSelect) {
+                const hasAvailable = Array.from(statusSelect.options).some(o => o.value === 'AVAILABLE');
+                if (hasAvailable) {
+                    statusSelect.value = normalizedStatus || 'AVAILABLE';
+                } else {
+                    // legacy UI values
+                    statusSelect.value = (normalizedStatus === 'INACTIVE') ? 'Inactive' : 'Active';
+                }
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+            modal.show();
         })
         .catch(err => {
             alert('Có lỗi xảy ra khi tải dữ liệu sản phẩm: ' + err.message);
@@ -1995,16 +1716,15 @@
                 document.getElementById('assignOrderNumber').textContent = '#' + orderData.orderNumber;
 
                 // Customer and address info using DTO structure
-                document.getElementById('modalCustomerInfo').innerHTML = `
-                    <strong>\${orderData.customer.firstName} \${orderData.customer.lastName}</strong><br>
-                    <i class="fas fa-envelope text-muted"></i> \${orderData.customer.email}<br>
-                    <i class="fas fa-phone text-muted"></i> \${orderData.customer.phone}
-                `;
-                document.getElementById('modalAddressInfo').innerHTML = `
-                    <strong>\${orderData.address.street}</strong><br>
-                    \${orderData.address.district}, \${orderData.address.city}
-                    \${orderData.address.ward ? ', ' + orderData.address.ward : ''}
-                `;
+                document.getElementById('modalCustomerInfo').innerHTML =
+                    '<strong>' + (orderData.customer.firstName || '') + ' ' + (orderData.customer.lastName || '') + '</strong><br>' +
+                    '<i class="fas fa-envelope text-muted"></i> ' + (orderData.customer.email || '') + '<br>' +
+                    '<i class="fas fa-phone text-muted"></i> ' + (orderData.customer.phone || '');
+
+                document.getElementById('modalAddressInfo').innerHTML =
+                    '<strong>' + (orderData.address.street || '') + '</strong><br>' +
+                    (orderData.address.district || '') + ', ' + (orderData.address.city || '') +
+                    (orderData.address.ward ? (', ' + orderData.address.ward) : '');
 
                 // Load available shippers
                 loadAvailableShippers(orderData.orderId);
@@ -2086,13 +1806,12 @@
                 const hasShipper = !!shipper;
 
                 if (hasShipper) {
-                    element.innerHTML = `
-                        <small class="text-success">
-                            <i class="fas fa-user-tie"></i>
-                            <strong>${shipper.firstName || ''} ${shipper.lastName || ''}</strong><br>
-                            <i class="fas fa-phone"></i> ${shipper.phone || ''}
-                        </small>
-                    `;
+                    element.innerHTML =
+                        '<small class="text-success">' +
+                        '<i class="fas fa-user-tie"></i> ' +
+                        '<strong>' + (shipper.firstName || '') + ' ' + (shipper.lastName || '') + '</strong><br>' +
+                        '<i class="fas fa-phone"></i> ' + (shipper.phone || '') +
+                        '</small>';
 
                     if (badge) {
                         badge.classList.remove('bg-warning');
@@ -2166,7 +1885,7 @@
                             displayValue = value.substring(0, 50) + '...';
                         }
                         
-                        html += `<li><strong>${fieldMap[key]}:</strong> ${displayValue}</li>`;
+                        html += '<li><strong>' + fieldMap[key] + ':</strong> ' + displayValue + '</li>';
                     }
                 }
                 html += '</ul>';

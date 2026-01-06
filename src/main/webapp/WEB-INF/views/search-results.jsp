@@ -15,7 +15,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
   <!-- CSS riêng -->
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/search-result.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/chatbot.css">
 </head>

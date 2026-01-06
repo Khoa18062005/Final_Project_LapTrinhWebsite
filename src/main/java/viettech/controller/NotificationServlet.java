@@ -38,6 +38,5 @@ public class NotificationServlet extends HttpServlet  {
         request.getRequestDispatcher("/WEB-INF/views/profile/" + page + ".jsp")
             .forward(request, response);
 
-
     }
 }
