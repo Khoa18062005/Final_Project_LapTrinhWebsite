@@ -61,11 +61,11 @@
         <div class="footer-contact">
           <p class="footer-contact-item mb-2">
             <span class="footer-contact-label">Địa chỉ:</span><br>
-            <span class="footer-contact-value">123 Đường ABC, Quận XYZ<br>TP. Hồ Chí Minh</span>
+            <span class="footer-contact-value">01 Đ. Võ Văn Ngân, Linh Chiểu, Thủ Đức, Thành phố Hồ Chí Minh</span>
           </p>
           <p class="footer-contact-item mb-2">
             <span class="footer-contact-label">Hotline:</span><br>
-            <a href="tel:19009999" class="footer-contact-link">1900 9999</a>
+            <a href="tel:19009999" class="footer-contact-link">0866 448 892</a>
           </p>
           <p class="footer-contact-item mb-2">
             <span class="footer-contact-label">Email:</span><br>
