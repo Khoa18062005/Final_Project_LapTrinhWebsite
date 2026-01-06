@@ -189,7 +189,7 @@
                 <div class="status-item">
                     <span class="status-label">Trạng thái:</span>
                     <c:choose>
-                        <c:when test="${product.status == 'active'}">
+                        <c:when test="${product.status == 'Available'}">
                             <span class="status-badge status-active">Đang bán</span>
                         </c:when>
                         <c:otherwise>
@@ -207,7 +207,6 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
             <!-- Action Buttons -->
             <div class="action-buttons">
                 <!-- Kiểm tra đăng nhập cho nút Thêm vào giỏ hàng -->
