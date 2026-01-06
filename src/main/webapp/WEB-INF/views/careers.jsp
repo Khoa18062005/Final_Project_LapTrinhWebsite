@@ -10,107 +10,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
-    <style>
-        .careers-hero {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-            color: white;
-            padding: 80px 0;
-            text-align: center;
-        }
-        .careers-hero h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-        }
-        .careers-content {
-            padding: 60px 0;
-            background-color: #f8f9fa;
-        }
-        .position-card {
-            background: white;
-            border-radius: 12px;
-            padding: 2.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin-bottom: 2rem;
-            transition: all 0.3s ease;
-            border-left: 5px solid #0d6efd;
-        }
-        .position-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-        }
-        .position-card h3 {
-            color: #0d6efd;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-        .position-card .icon {
-            font-size: 3rem;
-            color: #0d6efd;
-            margin-bottom: 1rem;
-        }
-        .benefits-list {
-            list-style: none;
-            padding: 0;
-        }
-        .benefits-list li {
-            padding: 0.5rem 0;
-            padding-left: 2rem;
-            position: relative;
-        }
-        .benefits-list li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            color: #28a745;
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-        .application-form {
-            background: white;
-            border-radius: 12px;
-            padding: 2.5rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .application-form h4 {
-            color: #0d6efd;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 3px solid #0d6efd;
-        }
-        .form-tabs {
-            border-bottom: 2px solid #e9ecef;
-            margin-bottom: 2rem;
-        }
-        .form-tabs .nav-link {
-            border: none;
-            color: #6c757d;
-            font-weight: 600;
-            padding: 1rem 2rem;
-            transition: all 0.3s ease;
-        }
-        .form-tabs .nav-link:hover {
-            color: #0d6efd;
-        }
-        .form-tabs .nav-link.active {
-            color: #0d6efd;
-            border-bottom: 3px solid #0d6efd;
-        }
-        .note-box {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/careers.css">
 </head>
 <body>
 <%@ include file="../../header.jsp" %>
-
+<script>
+    // Biến toàn cục cho JavaScript
+    const contextPath = "${pageContext.request.contextPath}";
+    const isLoggedIn = ${not empty sessionScope.user};
+</script>
 <div class="careers-hero">
     <div class="container">
         <h1><i class="bi bi-briefcase"></i> Tuyển Dụng</h1>
@@ -347,22 +256,8 @@
 </div>
 
 <jsp:include page="../../footer.jsp" />
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
-<script>
-    // Form validation & submission (temporary - will be handled by backend later)
-    document.getElementById('vendorForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('Cảm ơn bạn đã đăng ký! Chúng tôi sẽ xem xét và liên hệ lại trong vòng 3-5 ngày làm việc.');
-        this.reset();
-    });
-
-    document.getElementById('shipperForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        alert('Cảm ơn bạn đã đăng ký! Chúng tôi sẽ xem xét và liên hệ lại trong vòng 3-5 ngày làm việc.');
-        this.reset();
-    });
-</script>
+<script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/careers.js"></script>
 </body>
 </html>

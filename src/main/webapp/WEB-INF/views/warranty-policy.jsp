@@ -10,112 +10,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
-    <style>
-        .policy-hero {
-            background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
-            color: white;
-            padding: 60px 0;
-            text-align: center;
-        }
-        .policy-hero h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-        }
-        .policy-content {
-            padding: 60px 0;
-            background-color: #f8f9fa;
-        }
-        .policy-section {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        .policy-section h3 {
-            color: #0d6efd;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 3px solid #0d6efd;
-        }
-        .policy-section h3 i {
-            margin-right: 0.5rem;
-        }
-        .policy-list {
-            list-style: none;
-            padding: 0;
-        }
-        .policy-list li {
-            padding: 0.75rem 0;
-            padding-left: 2rem;
-            position: relative;
-            line-height: 1.6;
-        }
-        .policy-list li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            color: #0d6efd;
-            font-weight: 700;
-            font-size: 1.2rem;
-        }
-        .warranty-table {
-            width: 100%;
-            margin: 1.5rem 0;
-            border-collapse: collapse;
-        }
-        .warranty-table th {
-            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
-            color: white;
-            padding: 1rem;
-            font-weight: 600;
-            text-align: left;
-        }
-        .warranty-table td {
-            padding: 1rem;
-            border: 1px solid #e9ecef;
-        }
-        .warranty-table tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-        .warranty-table tbody tr:hover {
-            background-color: #e7f3ff;
-        }
-        .note-box {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin: 1.5rem 0;
-        }
-        .note-box strong {
-            color: #856404;
-        }
-        .contact-box {
-            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
-            color: white;
-            padding: 2rem;
-            border-radius: 12px;
-            margin-top: 2rem;
-        }
-        .contact-box h4 {
-            color: white;
-            margin-bottom: 1rem;
-        }
-        .contact-box p {
-            margin-bottom: 0.5rem;
-        }
-        .contact-box i {
-            margin-right: 0.5rem;
-        }
-    </style>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/warranty-policy.css">
 </head>
 <body>
 <%@ include file="../../header.jsp" %>
-
+<script>
+    // Biến toàn cục cho JavaScript
+    const contextPath = "${pageContext.request.contextPath}";
+    const isLoggedIn = ${not empty sessionScope.user};
+</script>
 <div class="policy-hero">
     <div class="container">
         <h1><i class="bi bi-shield-check"></i> Chính Sách Bảo Hành</h1>
@@ -270,8 +174,7 @@
 </div>
 
 <jsp:include page="../../footer.jsp" />
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 </body>
 </html>
