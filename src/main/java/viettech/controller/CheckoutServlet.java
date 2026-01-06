@@ -1,9 +1,12 @@
 package viettech.controller;
 
+import viettech.config.VNPayConfig;
 import viettech.dao.AddressDAO;
 import viettech.dao.CustomerDAO;
+import viettech.dao.OrderDAO;
 import viettech.dto.CartCheckoutItemDTO;
 import viettech.entity.Address;
+import viettech.entity.order.Order;
 import viettech.entity.user.Customer;
 import viettech.entity.user.User;
 
@@ -11,6 +14,8 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 @WebServlet(name = "CheckoutServlet", urlPatterns = {"/checkout"})
@@ -18,13 +23,14 @@ public class CheckoutServlet extends HttpServlet {
 
     private CustomerDAO customerDAO;
     private AddressDAO addressDAO;
+    private OrderDAO orderDAO;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        // Khởi tạo DAO
         customerDAO = new CustomerDAO();
         addressDAO = new AddressDAO();
+        orderDAO = new OrderDAO();
     }
 
     @Override
@@ -52,10 +58,10 @@ public class CheckoutServlet extends HttpServlet {
             List<Address> savedAddresses = addressDAO.findByCustomerId(fullCustomer.getUserId());
             Address defaultAddress = addressDAO.findDefaultByCustomerId(user.getUserId());
 
-            // Tìm địa chỉ mặc định để pre-select
             for (Address address : savedAddresses) {
                 if (address == defaultAddress) {
                     savedAddresses.remove(defaultAddress);
+                    break;
                 }
             }
 
@@ -63,17 +69,14 @@ public class CheckoutServlet extends HttpServlet {
                 defaultAddress = savedAddresses.get(0);
             }
 
-            // Đặt các attribute cho JSP
             request.setAttribute("customer", fullCustomer);
             request.setAttribute("savedAddresses", savedAddresses);
             request.setAttribute("defaultAddress", defaultAddress);
 
-            // Kiểm tra xem có selectedCartItems trong session không
             List<CartCheckoutItemDTO> selectedCartItems = (List<CartCheckoutItemDTO>) session.getAttribute("selectedCartItems");
             if (selectedCartItems != null && !selectedCartItems.isEmpty()) {
                 request.setAttribute("selectedCartItems", selectedCartItems);
 
-                // Tính tổng tiền cho các item đã chọn
                 double total = 0;
                 for (CartCheckoutItemDTO item : selectedCartItems) {
                     total += item.getSubtotal();
@@ -95,7 +98,6 @@ public class CheckoutServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Xử lý khi người dùng CHỌN địa chỉ và submit form
         HttpSession session = request.getSession();
         Customer customer = (Customer) session.getAttribute("user");
 
@@ -106,10 +108,15 @@ public class CheckoutServlet extends HttpServlet {
 
         try {
             String selectedAddressIdStr = request.getParameter("selectedAddressId");
+            String paymentMethod = request.getParameter("paymentMethod");
             String note = request.getParameter("note");
 
             if (selectedAddressIdStr == null || selectedAddressIdStr.trim().isEmpty()) {
                 throw new Exception("Vui lòng chọn địa chỉ giao hàng");
+            }
+
+            if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
+                throw new Exception("Vui lòng chọn phương thức thanh toán");
             }
 
             int selectedAddressId = Integer.parseInt(selectedAddressIdStr);
@@ -132,19 +139,83 @@ public class CheckoutServlet extends HttpServlet {
                 throw new Exception("Địa chỉ không tồn tại hoặc không thuộc về tài khoản của bạn");
             }
 
-            // Lưu thông tin giao hàng vào session
+            // Lưu thông tin vào session
             session.setAttribute("shippingAddress", selectedAddress);
             session.setAttribute("shippingNote", note);
+            session.setAttribute("paymentMethod", paymentMethod);
 
-            // Kiểm tra xem là buy-now hay từ giỏ hàng
-            Boolean isBuyNow = (Boolean) session.getAttribute("isBuyNow");
+            // Lấy thông tin giỏ hàng
+            List<CartCheckoutItemDTO> selectedCartItems = (List<CartCheckoutItemDTO>) session.getAttribute("selectedCartItems");
+            if (selectedCartItems == null || selectedCartItems.isEmpty()) {
+                throw new Exception("Giỏ hàng trống");
+            }
 
-            if (isBuyNow != null && isBuyNow) {
-                // Nếu là buy-now, chuyển hướng đến payment
-                response.sendRedirect(request.getContextPath() + "/checkout/payment");
-            } else {
-                // Nếu là từ giỏ hàng, chuyển hướng đến payment-cart
-                response.sendRedirect(request.getContextPath() + "/checkout/payment-cart");
+            // Tính tổng tiền
+            double subtotal = 0;
+            for (CartCheckoutItemDTO item : selectedCartItems) {
+                subtotal += item.getSubtotal();
+            }
+
+            double shippingFee = 30000; // Phí ship cố định
+            double tax = 0; // VAT 10%
+            double totalPrice = subtotal + shippingFee + tax;
+
+            // Xử lý theo phương thức thanh toán
+            if ("VNPAY".equals(paymentMethod)) {
+                // Tạo đơn hàng tạm với status PENDING
+                String orderNumber = VNPayConfig.generateOrderNumber();
+
+                // Giả sử vendorId = 1 (bạn cần logic để lấy vendorId thực tế)
+                int vendorId = 1;
+
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.DAY_OF_MONTH, 3); // Giao hàng sau 3 ngày
+                Date estimatedDelivery = cal.getTime();
+
+                Order order = new Order(
+                        orderNumber,
+                        fullCustomer.getUserId(),
+                        vendorId,
+                        selectedAddress.getAddressId(),
+                        "PENDING_PAYMENT", // Chờ thanh toán
+                        subtotal,
+                        shippingFee,
+                        0, // discount
+                        tax,
+                        0, // voucherDiscount
+                        0, // loyaltyPointsUsed
+                        0, // loyaltyPointsDiscount
+                        totalPrice,
+                        note,
+                        estimatedDelivery
+                );
+
+                // Lưu order vào database
+                orderDAO.insert(order);
+
+                // Lưu orderNumber vào session để xử lý sau khi thanh toán
+                session.setAttribute("pendingOrderNumber", orderNumber);
+
+                // Tạo URL thanh toán VNPay
+                String orderInfo = "Thanh toan don hang " + orderNumber;
+                long amount = (long) totalPrice;
+                String vnpayUrl = VNPayConfig.createPaymentUrl(request, orderNumber, amount, orderInfo);
+
+                // Redirect tới VNPay
+                response.sendRedirect(vnpayUrl);
+
+            } else if ("COD".equals(paymentMethod)) {
+                // Xử lý COD như cũ
+                Boolean isBuyNow = (Boolean) session.getAttribute("isBuyNow");
+                if (isBuyNow != null && isBuyNow) {
+                    response.sendRedirect(request.getContextPath() + "/checkout/payment");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/checkout/payment-cart");
+                }
+
+            } else if ("MOMO".equals(paymentMethod)) {
+                // TODO: Implement MoMo payment
+                throw new Exception("Phương thức thanh toán MoMo chưa được hỗ trợ");
             }
 
         } catch (NumberFormatException e) {
