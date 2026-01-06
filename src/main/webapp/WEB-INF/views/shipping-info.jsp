@@ -53,30 +53,35 @@
             <h5><i class="bi bi-cart-check"></i> Đơn hàng từ giỏ hàng</h5>
           </div>
 
-          <div class="order-items-container">
-            <c:forEach var="item" items="${selectedCartItems}" varStatus="status">
-              <div class="order-item">
-                <div class="order-item-image">
-                  <img src="${item.productImage}" alt="${item.productName}"
-                       onerror="this.src='${pageContext.request.contextPath}/assets/images/default-product.jpg'">
+          <!-- NỘI DUNG CHÍNH - Phải có class này -->
+          <div class="order-summary-main">
+            <!-- Container cho danh sách sản phẩm -->
+            <div class="order-items-container">
+              <c:forEach var="item" items="${selectedCartItems}" varStatus="status">
+                <div class="order-item">
+                  <div class="order-item-image">
+                    <img src="${item.productImage}" alt="${item.productName}"
+                         onerror="this.src='${pageContext.request.contextPath}/assets/images/default-product.jpg'">
+                  </div>
+                  <div class="order-item-details">
+                    <h6>${item.productName}</h6>
+                    <p class="text-muted mb-0">Số lượng: ${item.quantity}</p>
+                    <c:if test="${not empty item.variantDisplay}">
+                      <p class="text-muted mb-0">${item.variantDisplay}</p>
+                    </c:if>
+                  </div>
+                  <div class="order-item-price">
+                    <h5>
+                      <fmt:formatNumber value="${item.price}" type="currency"
+                                        currencySymbol="₫" groupingUsed="true" />
+                    </h5>
+                  </div>
                 </div>
-                <div class="order-item-details">
-                  <h6>${item.productName}</h6>
-                  <p class="text-muted mb-0">Số lượng: ${item.quantity}</p>
-                  <c:if test="${not empty item.variantDisplay}">
-                    <p class="text-muted mb-0">${item.variantDisplay}</p>
-                  </c:if>
-                </div>
-                <div class="order-item-price">
-                  <h5>
-                    <fmt:formatNumber value="${item.price}" type="currency"
-                                      currencySymbol="₫" groupingUsed="true" />
-                  </h5>
-                </div>
-              </div>
-            </c:forEach>
+              </c:forEach>
+            </div>
           </div>
 
+          <!-- Total section - LUÔN Ở DƯỚI CÙNG -->
           <div class="total-section">
             <div class="total-row">
               <div class="total-label">Tổng cộng:</div>
@@ -90,7 +95,7 @@
       </c:if>
     </div>
 
-    <!-- Phần 2: Chọn địa chỉ -->
+    <!-- Phần 2: Chọn địa chỉ và phương thức thanh toán -->
     <div class="address-selection-wrapper">
       <div class="card shadow">
         <div class="card-header bg-primary text-white">
@@ -98,7 +103,6 @@
         </div>
         <div class="card-body">
           <div class="card-body-content">
-            <!-- ... phần nội dung địa chỉ giữ nguyên ... -->
             <c:choose>
               <c:when test="${empty savedAddresses}">
                 <div class="text-center py-5">
@@ -170,20 +174,37 @@
                     </c:forEach>
                   </div>
 
+                  <!-- Phương thức thanh toán -->
+                  <div class="payment-method-section mb-4">
+                    <label for="paymentMethod" class="form-label fw-bold">Chọn phương thức thanh toán:</label>
+                    <select class="form-select form-select-lg" id="paymentMethod" name="paymentMethod" required>
+                      <option value="" disabled selected>-- Vui lòng chọn --</option>
+                      <option value="COD">Thanh toán khi nhận hàng (COD)</option>
+                      <option value="MOMO">Ví điện tử MoMo</option>
+                      <option value="VNPAY">VNPay</option>
+                    </select>
+                    <div class="payment-method-icons mt-2">
+                      <small class="text-muted">
+                        <i class="bi bi-truck me-1"></i>COD: Thanh toán khi nhận hàng
+                      </small>
+                    </div>
+                  </div>
+
                   <div class="action-buttons-container">
-                    <div class="d-flex justify-content-between">
+                    <!-- Hàng trên: Nút quay lại và thêm địa chỉ -->
+                    <div class="d-flex justify-content-between mb-3">
                       <a href="${pageContext.request.contextPath}/cart" class="btn btn-secondary">
                         <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
                       </a>
-                      <div>
-                        <a href="${pageContext.request.contextPath}/profile/address/add" class="btn btn-outline-primary me-2">
-                          <i class="bi bi-plus-circle"></i> Thêm địa chỉ mới
-                        </a>
-                        <button type="submit" class="btn btn-primary">
-                          Tiếp tục thanh toán <i class="bi bi-arrow-right"></i>
-                        </button>
-                      </div>
+                      <a href="${pageContext.request.contextPath}/profile/address" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle"></i> Thêm địa chỉ mới
+                      </a>
                     </div>
+
+                    <!-- Hàng dưới: Nút tiếp tục thanh toán chiếm toàn bộ chiều ngang -->
+                    <button type="submit" class="btn btn-primary w-100 btn-lg">
+                      Tiếp tục thanh toán <i class="bi bi-arrow-right"></i>
+                    </button>
                   </div>
                 </form>
               </c:otherwise>
