@@ -21,7 +21,6 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/variant-selector.css">
 
-
     <!-- JavaScript cho chọn variant -->
     <script src="${pageContext.request.contextPath}/assets/js/variant-selector.js" defer></script>
     <script src="${pageContext.request.contextPath}/assets/js/cart-ajax.js" defer></script>
@@ -52,7 +51,6 @@
             ]
         };
         </c:if>
-
     </script>
 </head>
 
@@ -72,7 +70,6 @@
         </div>
     </div>
 </div>
-
 
 <div class="container">
     <!-- Breadcrumb -->
@@ -103,7 +100,6 @@
         <div class="product-images">
             <div class="main-image">
                 <img id="product-img" src="${product.primaryImageUrl}" alt="${product.name}">
-
                 <div class="zoom-controls">
                     <button type="button" onclick="zoomIn()" class="btn-zoom" title="Phóng to">
                         <i class="bi bi-zoom-in"></i>
@@ -139,18 +135,18 @@
             <p class="product-brand">Thương hiệu: <strong>${product.brand}</strong></p>
 
             <div class="product-rating">
-                    <span class="stars">
-                        <c:forEach begin="1" end="5" var="i">
-                            <c:choose>
-                                <c:when test="${i <= product.averageRating}">★</c:when>
-                                <c:otherwise>☆</c:otherwise>
-                            </c:choose>
-                        </c:forEach>
-                    </span>
+                <span class="stars">
+                    <c:forEach begin="1" end="5" var="i">
+                        <c:choose>
+                            <c:when test="${i <= product.averageRating}">★</c:when>
+                            <c:otherwise>☆</c:otherwise>
+                        </c:choose>
+                    </c:forEach>
+                </span>
                 <span class="rating-text">
-                        <fmt:formatNumber value="${product.averageRating}" pattern="#.#" /> / 5.0
-                        (${product.totalReviews} đánh giá)
-                    </span>
+                    <fmt:formatNumber value="${product.averageRating}" pattern="#.#" /> / 5.0
+                    (${product.totalReviews} đánh giá)
+                </span>
             </div>
 
             <div class="product-price">
@@ -212,7 +208,6 @@
                 <!-- Kiểm tra đăng nhập cho nút Thêm vào giỏ hàng -->
                 <c:choose>
                     <c:when test="${not empty sessionScope.user}">
-                        <!-- Đã đăng nhập: Hiển thị form thêm vào giỏ hàng bình thường -->
                         <form action="${pageContext.request.contextPath}/cart" method="POST"
                               class="d-inline" id="add-to-cart-form">
                             <input type="hidden" name="productId" value="${product.productId}">
@@ -225,7 +220,6 @@
                         </form>
                     </c:when>
                     <c:otherwise>
-                        <!-- Chưa đăng nhập: Hiển thị nút mở modal Smember -->
                         <button type="button"
                                 class="btn btn-primary"
                                 id="add-to-cart-btn"
@@ -239,7 +233,6 @@
                 <!-- Kiểm tra đăng nhập cho nút Mua ngay -->
                 <c:choose>
                     <c:when test="${not empty sessionScope.user}">
-                        <!-- Đã đăng nhập: Hiển thị form mua ngay bình thường -->
                         <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post" id="buy-now-form">
                             <input type="hidden" name="productId" value="${product.productId}">
                             <input type="hidden" name="quantity" value="1">
@@ -250,7 +243,6 @@
                         </form>
                     </c:when>
                     <c:otherwise>
-                        <!-- Chưa đăng nhập: Hiển thị nút mở modal Smember -->
                         <button type="button"
                                 class="btn btn-secondary"
                                 id="buy-now-btn"
@@ -268,7 +260,7 @@
     <div class="specs-section">
         <h2 class="section-title">Thông số kỹ thuật</h2>
 
-        <!-- Variant Attributes Section (sẽ được cập nhật bằng JavaScript) -->
+        <!-- Variant Attributes Section -->
         <div id="variant-specs-container" class="variant-specs-container">
             <!-- Thông tin variant sẽ được thêm vào đây -->
         </div>
@@ -386,10 +378,10 @@
                         <div class="spec-item">
                             <span class="spec-label">Jack tai nghe 3.5mm:</span>
                             <span class="spec-value">
-                                    <span class="spec-boolean ${product.audioJack ? 'spec-yes' : 'spec-no'}">
-                                            ${product.audioJack ? 'Có' : 'Không'}
-                                    </span>
+                                <span class="spec-boolean ${product.audioJack ? 'spec-yes' : 'spec-no'}">
+                                        ${product.audioJack ? 'Có' : 'Không'}
                                 </span>
+                            </span>
                         </div>
                     </div>
                 </c:when>
@@ -516,10 +508,10 @@
                         <div class="spec-item">
                             <span class="spec-label">Thunderbolt:</span>
                             <span class="spec-value">
-                                    <span class="spec-boolean ${product.thunderbolt ? 'spec-yes' : 'spec-no'}">
-                                            ${product.thunderbolt ? 'Có' : 'Không'}
-                                    </span>
+                                <span class="spec-boolean ${product.thunderbolt ? 'spec-yes' : 'spec-no'}">
+                                        ${product.thunderbolt ? 'Có' : 'Không'}
                                 </span>
+                            </span>
                         </div>
                     </div>
                 </c:when>
@@ -543,34 +535,9 @@
                             <span class="spec-label">Dung lượng pin:</span>
                             <span class="spec-value">${product.batteryCapacity}mAh</span>
                         </div>
-                        <!-- THÊM CÁC TRƯỜNG SAU ĐÂY -->
                         <div class="spec-item">
                             <span class="spec-label">Chip xử lý:</span>
                             <span class="spec-value">${product.processor}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label">RAM:</span>
-                            <!-- THÊM TRƯỜNG RAM CHO TABLET -->
-                            <c:choose>
-                                <c:when test="${not empty product.ram}">
-                                    <span class="spec-value">${product.ram}GB ${product.ramType}</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <span class="spec-value">Không có thông tin</span>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label">Bộ nhớ trong:</span>
-                            <!-- THÊM TRƯỜNG STORAGE CHO TABLET -->
-                            <c:choose>
-                                <c:when test="${not empty product.storage}">
-                                    <span class="spec-value">${product.storage}GB</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <span class="spec-value">Không có thông tin</span>
-                                </c:otherwise>
-                            </c:choose>
                         </div>
                         <div class="spec-item">
                             <span class="spec-label">GPU:</span>
@@ -659,10 +626,10 @@
                         <div class="spec-item">
                             <span class="spec-label">Vân tay:</span>
                             <span class="spec-value">
-                                    <span class="spec-boolean ${product.fingerprintSensor ? 'spec-yes' : 'spec-no'}">
-                                            ${product.fingerprintSensor ? 'Có' : 'Không'}
-                                    </span>
+                                <span class="spec-boolean ${product.fingerprintSensor ? 'spec-yes' : 'spec-no'}">
+                                        ${product.fingerprintSensor ? 'Có' : 'Không'}
                                 </span>
+                            </span>
                         </div>
                     </div>
                 </c:when>
@@ -768,28 +735,47 @@
                         </div>
                         <div class="spec-item">
                             <span class="spec-label">Multipoint:</span>
-                            <span class="specvalue"> <span
-                                    class="spec-boolean ${product.multipoint ? 'spec-yes' : 'spec-no'}">
-                                    ${product.multipoint ? 'Có' : 'Không'} </span> </span> </div>
-                        <div class="spec-item"> <span class="spec-label">Chất âm:</span> <span
-                                class="spec-value">${product.soundProfile}</span> </div>
-                        <div class="spec-item"> <span class="spec-label">Điều khiển qua app:</span> <span
-                                class="spec-value"> <span
-                                class="spec-boolean ${product.appControl ? 'spec-yes' : 'spec-no'}">
-                                ${product.appControl ? 'Có' : 'Không'} </span> </span> </div>
-                        <div class="spec-item"> <span class="spec-label">EQ tùy chỉnh:</span> <span class="spec-value">
+                            <span class="spec-value">
+                                <span class="spec-boolean ${product.multipoint ? 'spec-yes' : 'spec-no'}">
+                                        ${product.multipoint ? 'Có' : 'Không'}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Chất âm:</span>
+                            <span class="spec-value">${product.soundProfile}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Điều khiển qua app:</span>
+                            <span class="spec-value">
+                                <span class="spec-boolean ${product.appControl ? 'spec-yes' : 'spec-no'}">
+                                        ${product.appControl ? 'Có' : 'Không'}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">EQ tùy chỉnh:</span>
+                            <span class="spec-value">
                                 <span class="spec-boolean ${product.customEQ ? 'spec-yes' : 'spec-no'}">
-                                        ${product.customEQ ? 'Có' : 'Không'} </span> </span> </div>
-                        <div class="spec-item"> <span class="spec-label">Âm thanh vòm:</span> <span class="spec-value">
+                                        ${product.customEQ ? 'Có' : 'Không'}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Âm thanh vòm:</span>
+                            <span class="spec-value">
                                 <span class="spec-boolean ${product.surroundSound ? 'spec-yes' : 'spec-no'}">
-                                        ${product.surroundSound ? 'Có' : 'Không'} </span> </span> </div>
+                                        ${product.surroundSound ? 'Có' : 'Không'}
+                                </span>
+                            </span>
+                        </div>
                         <div class="spec-item">
                             <span class="spec-label">Gấp gọn:</span>
                             <span class="spec-value">
-                                    <span class="spec-boolean ${product.foldable ? 'spec-yes' : 'spec-no'}">
-                                            ${product.foldable ? 'Có' : 'Không'}
-                                    </span>
+                                <span class="spec-boolean ${product.foldable ? 'spec-yes' : 'spec-no'}">
+                                        ${product.foldable ? 'Có' : 'Không'}
                                 </span>
+                            </span>
                         </div>
                     </div>
                 </c:when>
@@ -831,23 +817,23 @@
             <div class="spec-item">
                 <span class="spec-label">Ngày thêm:</span>
                 <span class="spec-value">
-                        <fmt:formatDate value="${product.createdAt}" pattern="dd/MM/yyyy HH:mm" />
-                    </span>
+                    <fmt:formatDate value="${product.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                </span>
             </div>
             <c:if test="${not empty product.updatedAt}">
                 <div class="spec-item">
                     <span class="spec-label">Cập nhật lần cuối:</span>
                     <span class="spec-value">
-                            <fmt:formatDate value="${product.updatedAt}" pattern="dd/MM/yyyy HH:mm" />
-                        </span>
+                        <fmt:formatDate value="${product.updatedAt}" pattern="dd/MM/yyyy HH:mm" />
+                    </span>
                 </div>
             </c:if>
             <c:if test="${product.featured}">
                 <div class="spec-item">
                     <span class="spec-label">Sản phẩm nổi bật:</span>
                     <span class="spec-value">
-                            <span class="spec-boolean spec-yes">Có</span>
-                        </span>
+                        <span class="spec-boolean spec-yes">Có</span>
+                    </span>
                 </div>
             </c:if>
         </div>
@@ -856,9 +842,8 @@
 
 <jsp:include page="/footer.jsp" />
 
-<!-- Biến JavaScript để kiểm tra trạng thái đăng nhập (truyền từ server) -->
+<!-- Biến JavaScript để kiểm tra trạng thái đăng nhập -->
 <script>
-    // Biến toàn cục cho JavaScript - QUAN TRỌNG: PHẢI CÓ
     const contextPath = "${pageContext.request.contextPath}";
     const isLoggedIn = ${not empty sessionScope.user};
 </script>

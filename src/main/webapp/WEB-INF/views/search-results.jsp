@@ -14,7 +14,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
 
-  <!-- CSS riêng -->
+  <!-- CSS riêng - THÊM MAIN.CSS TRƯỚC -->
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/search-result.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/chatbot.css">
@@ -106,9 +107,9 @@
                 <div class="product-price">
                   <fmt:formatNumber value="${product.price}" type="number" groupingUsed="true"/>đ
                   <c:if test="${product.oldPrice > product.price}">
-                                            <span class="old-price">
-                                                <fmt:formatNumber value="${product.oldPrice}" type="number" groupingUsed="true"/>đ
-                                            </span>
+                                        <span class="old-price">
+                                            <fmt:formatNumber value="${product.oldPrice}" type="number" groupingUsed="true"/>đ
+                                        </span>
                   </c:if>
                 </div>
 
@@ -140,11 +141,14 @@
   </div>
 </section>
 
-<jsp:include page="/footer.jsp" />
+<!-- THÊM FOOTER ĐẦY ĐỦ -->
+<%@ include file="/footer.jsp" %>
 
 <!-- Scripts -->
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/chatbot.js"></script>
+<!-- THÊM MAIN.JS -->
+<script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
 </body>
 </html>
