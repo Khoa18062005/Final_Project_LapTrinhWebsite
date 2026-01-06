@@ -730,4 +730,9 @@ public class ProductService {
 
         return resultList;
     }
+
+    public void increaseViewProduct(int item_id){
+        ProductDAO productDAO = new ProductDAO();
+        productDAO.incrementViewCount(item_id);
+    }
 }
