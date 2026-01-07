@@ -21,13 +21,13 @@ public class Review {
     @Column(name = "product_id", nullable = false)
     private int productId;
 
-    @Column(name = "variant_id")
+    @Column(name = "variant_id", nullable = true)
     private Integer variantId;
 
     @Column(name = "customer_id", nullable = false)
     private int customerId;
 
-    @Column(name = "order_detail_id")
+    @Column(name = "order_detail_id", nullable = true)
     private Integer orderDetailId;
 
     /* =========================
