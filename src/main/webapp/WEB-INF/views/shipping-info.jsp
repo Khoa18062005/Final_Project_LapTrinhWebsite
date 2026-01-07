@@ -19,6 +19,78 @@
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/shipping-info.css">
+
+  <style>
+    .voucher-section {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      border: 1px solid #dee2e6;
+    }
+
+    .voucher-input-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .voucher-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .voucher-card {
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .voucher-card:hover {
+      border-color: #0d6efd;
+      box-shadow: 0 2px 8px rgba(13, 110, 253, 0.15);
+    }
+
+    .voucher-card.selected {
+      border-color: #0d6efd;
+      background-color: #e7f1ff;
+    }
+
+    .voucher-code {
+      font-weight: bold;
+      color: #0d6efd;
+      font-size: 1.1rem;
+    }
+
+    .voucher-discount {
+      color: #dc3545;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    .voucher-condition {
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+
+    .voucher-expiry {
+      font-size: 0.8rem;
+      color: #6c757d;
+    }
+
+    .discount-badge {
+      background-color: #ffc107;
+      color: #000;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 
 <body>
@@ -174,6 +246,100 @@
                     </c:forEach>
                   </div>
 
+                  <!-- ========================================== -->
+                  <!-- PHẦN CHỌN VOUCHER - MỚI THÊM -->
+                  <!-- ========================================== -->
+                  <div class="voucher-section">
+                    <h5 class="mb-3"><i class="bi bi-ticket-perforated"></i> Mã giảm giá</h5>
+
+                    <!-- Input nhập mã voucher -->
+                    <div class="voucher-input-group">
+                      <input type="text"
+                             class="form-control"
+                             id="voucherCodeInput"
+                             name="voucherCode"
+                             placeholder="Nhập mã voucher (nếu có)">
+                      <button type="button"
+                              class="btn btn-outline-primary"
+                              id="applyVoucherBtn">
+                        Áp dụng
+                      </button>
+                    </div>
+
+                    <!-- Hiển thị voucher đang áp dụng -->
+                    <div id="appliedVoucherDisplay" class="alert alert-success d-none">
+                      <i class="bi bi-check-circle"></i>
+                      Đã áp dụng voucher: <strong id="appliedVoucherCode"></strong>
+                      <button type="button" class="btn-close float-end" id="removeVoucherBtn"></button>
+                    </div>
+
+                    <!-- Danh sách voucher có sẵn -->
+                    <c:if test="${not empty availableVouchers}">
+                      <div class="mt-3">
+                        <h6 class="text-muted mb-2">Hoặc chọn từ danh sách voucher:</h6>
+                        <div class="voucher-list">
+                          <c:forEach var="voucher" items="${availableVouchers}">
+                            <div class="voucher-card"
+                                 data-voucher-code="${voucher.code}"
+                                 data-voucher-id="${voucher.voucherId}"
+                                 data-min-order="${voucher.minOrderValue}">
+                              <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                  <div class="voucher-code">${voucher.code}</div>
+                                  <div class="voucher-name mb-1">${voucher.name}</div>
+                                  <div class="voucher-discount mb-1">
+                                    <c:choose>
+                                      <c:when test="${voucher.type == 'PERCENTAGE'}">
+                                        Giảm ${voucher.discountPercent}%
+                                        <c:if test="${voucher.maxDiscount > 0}">
+                                          (Tối đa <fmt:formatNumber value="${voucher.maxDiscount}" type="currency" currencySymbol="₫" groupingUsed="true" />)
+                                        </c:if>
+                                      </c:when>
+                                      <c:when test="${voucher.type == 'FIXED_AMOUNT'}">
+                                        Giảm ngay <fmt:formatNumber value="${voucher.discountAmount}" type="currency" currencySymbol="₫" groupingUsed="true" />
+                                      </c:when>
+                                      <c:otherwise>
+                                        Tối đa <fmt:formatNumber value="${voucher.maxDiscount}" type="currency" currencySymbol="₫" groupingUsed="true" />
+                                      </c:otherwise>
+                                    </c:choose>
+                                  </div>
+                                  <div class="voucher-condition">
+                                    Đơn tối thiểu: <fmt:formatNumber value="${voucher.minOrderValue}" type="currency" currencySymbol="₫" groupingUsed="true" />
+                                  </div>
+                                  <div class="voucher-expiry">
+                                    <i class="bi bi-clock"></i>
+                                    HSD: <fmt:formatDate value="${voucher.expiryDate}" pattern="dd/MM/yyyy HH:mm" />
+                                  </div>
+                                </div>
+                                <div>
+                                  <span class="discount-badge">
+                                    <c:choose>
+                                      <c:when test="${voucher.type == 'PERCENTAGE'}">
+                                        -${voucher.discountPercent}%
+                                      </c:when>
+                                      <c:otherwise>
+                                        -<fmt:formatNumber value="${voucher.discountAmount}" pattern="#,###" />đ
+                                      </c:otherwise>
+                                    </c:choose>
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </c:forEach>
+                        </div>
+                      </div>
+                    </c:if>
+
+                    <c:if test="${empty availableVouchers}">
+                      <div class="alert alert-info mt-3">
+                        <i class="bi bi-info-circle"></i> Hiện tại không có voucher khả dụng
+                      </div>
+                    </c:if>
+                  </div>
+                  <!-- ========================================== -->
+                  <!-- KẾT THÚC PHẦN CHỌN VOUCHER -->
+                  <!-- ========================================== -->
+
                   <!-- Phương thức thanh toán -->
                   <div class="payment-method-section mb-4">
                     <label for="paymentMethod" class="form-label fw-bold">Chọn phương thức thanh toán:</label>
@@ -218,10 +384,12 @@
 
 <!-- Footer -->
 <jsp:include page="../../footer.jsp" />
+
 <script>
   // Biến toàn cục cho JavaScript - QUAN TRỌNG: PHẢI CÓ
   const contextPath = "${pageContext.request.contextPath}";
   const isLoggedIn = ${not empty sessionScope.user};
+  const orderTotal = ${total}; // Tổng tiền đơn hàng
 </script>
 
 <!-- Script riêng cho popup login -->
@@ -229,5 +397,68 @@
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
 <!-- Script riêng cho chọn địa chỉ -->
 <script src="${pageContext.request.contextPath}/assets/js/address-dropdown.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/voucher-handler.js"></script>
+
+
+<!-- Script xử lý voucher -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const voucherCodeInput = document.getElementById('voucherCodeInput');
+    const applyVoucherBtn = document.getElementById('applyVoucherBtn');
+    const appliedVoucherDisplay = document.getElementById('appliedVoucherDisplay');
+    const appliedVoucherCode = document.getElementById('appliedVoucherCode');
+    const removeVoucherBtn = document.getElementById('removeVoucherBtn');
+    const voucherCards = document.querySelectorAll('.voucher-card');
+
+    // Xử lý click vào voucher card
+    voucherCards.forEach(card => {
+      card.addEventListener('click', function() {
+        const voucherCode = this.dataset.voucherCode;
+        const minOrder = parseFloat(this.dataset.minOrder);
+
+        // Kiểm tra giá trị đơn hàng
+        if (orderTotal < minOrder) {
+          alert('Đơn hàng chưa đạt giá trị tối thiểu để áp dụng voucher này!');
+          return;
+        }
+
+        // Remove selected class từ tất cả cards
+        voucherCards.forEach(c => c.classList.remove('selected'));
+
+        // Add selected class cho card được chọn
+        this.classList.add('selected');
+
+        // Set giá trị cho input
+        voucherCodeInput.value = voucherCode;
+
+        // Hiển thị thông báo đã áp dụng
+        appliedVoucherCode.textContent = voucherCode;
+        appliedVoucherDisplay.classList.remove('d-none');
+      });
+    });
+
+    // Xử lý nút áp dụng voucher
+    if (applyVoucherBtn) {
+      applyVoucherBtn.addEventListener('click', function() {
+        const code = voucherCodeInput.value.trim();
+        if (code) {
+          appliedVoucherCode.textContent = code;
+          appliedVoucherDisplay.classList.remove('d-none');
+        } else {
+          alert('Vui lòng nhập mã voucher!');
+        }
+      });
+    }
+
+    // Xử lý nút xóa voucher
+    if (removeVoucherBtn) {
+      removeVoucherBtn.addEventListener('click', function() {
+        voucherCodeInput.value = '';
+        appliedVoucherDisplay.classList.add('d-none');
+        voucherCards.forEach(c => c.classList.remove('selected'));
+      });
+    }
+  });
+</script>
 </body>
 </html>
