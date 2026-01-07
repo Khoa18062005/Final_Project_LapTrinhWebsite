@@ -12,6 +12,9 @@ public class ProductCardDTO implements Serializable {
     private double rating;
     private int memberDiscount;
 
+    // === THÊM MỚI: Trường brand ===
+    private String brand;
+
     public ProductCardDTO() {
         this.id = 0;
         this.rating = 0;
@@ -21,6 +24,7 @@ public class ProductCardDTO implements Serializable {
         this.oldPrice = 0;
         this.discountPercent = 0;
         this.memberDiscount = 0;
+        this.brand = ""; // khởi tạo mặc định
     }
 
     public ProductCardDTO(int id, double rating, String primaryImage, double price, String name, double oldPrice, int discountPercent, int memberDiscount) {
@@ -32,8 +36,19 @@ public class ProductCardDTO implements Serializable {
         this.oldPrice = oldPrice;
         this.discountPercent = discountPercent;
         this.memberDiscount = memberDiscount;
+        this.brand = ""; // mặc định khi dùng constructor cũ
     }
 
+    // === GETTER & SETTER CHO BRAND ===
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand != null ? brand.trim() : "";
+    }
+
+    // Các getter/setter cũ giữ nguyên
     public int getId() {
         return id;
     }

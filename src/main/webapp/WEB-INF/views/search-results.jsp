@@ -111,7 +111,7 @@
                        class="form-control form-control-sm price-input"
                        placeholder="Giá từ"
                        value="<c:if test="${currentMinPrice != null}"><fmt:formatNumber value="${currentMinPrice}" pattern="#,###"/></c:if>">
-                <input type="hidden" name="min_price" id="minPriceHidden">
+                <input type="hidden" name="minPrice" id="minPriceHidden">
               </div>
 
               <div class="text-secondary align-self-center">-</div>
@@ -122,7 +122,7 @@
                        class="form-control form-control-sm price-input"
                        placeholder="Giá đến"
                        value="<c:if test="${currentMaxPrice != null}"><fmt:formatNumber value="${currentMaxPrice}" pattern="#,###"/></c:if>">
-                <input type="hidden" name="max_price" id="maxPriceHidden">
+                <input type="hidden" name="maxPrice" id="maxPriceHidden">
               </div>
 
               <button type="submit" class="btn btn-primary btn-sm">Lọc</button>

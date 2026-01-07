@@ -661,7 +661,7 @@ public class ProductService {
         return dto;
     }
 
-    public List<ProductCardDTO> getFeaturedOrNewestAsCardDTO(int limit) {
+    private List<ProductCardDTO> getFeaturedOrNewestAsCardDTO(int limit) {
         List<Product> products = productDAO.findFeatured();
         if (products.isEmpty()) {
             products = productDAO.findNewest(limit);
@@ -679,19 +679,6 @@ public class ProductService {
      * @param sortType     Kiểu sắp xếp: "price_asc", "price_desc"
      * @param minPrice     Giá thấp nhất (null hoặc -1 nếu không lọc)
      * @param maxPrice     Giá cao nhất (null hoặc -1 nếu không lọc)
-     */
-    /**
-     * Lọc và sắp xếp danh sách sản phẩm
-     *
-     * @param originalList Danh sách sản phẩm gốc (từ search hoặc category)
-     * @param sortType     Các giá trị hỗ trợ:
-     *                     - "price_asc"   : Giá thấp → cao
-     *                     - "price_desc"  : Giá cao → thấp
-     *                     - "rating_desc" : Đánh giá cao → thấp
-     * @param minPrice     Giá tối thiểu (null hoặc < 0 nếu không lọc)
-     * @param maxPrice     Giá tối đa (null hoặc < 0 nếu không lọc)
-     * @param minRating    Số sao tối thiểu (ví dụ: 4.0 để lấy ≥ 4 sao, null nếu không lọc)
-     * @return Danh sách đã lọc và sắp xếp
      */
     public List<ProductCardDTO> filterAndSort(
             List<ProductCardDTO> originalList,
