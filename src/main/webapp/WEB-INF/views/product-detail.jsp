@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -18,7 +19,7 @@
     <!-- CSS riêng -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css?v=2">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/variant-selector.css">
 
     <!-- JavaScript cho chọn variant -->
@@ -838,6 +839,196 @@
             </c:if>
         </div>
     </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section" style="background: white; border-radius: 12px; padding: 2rem; margin-top: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h2 class="section-title" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e0e0e0;">
+            <i class="bi bi-star-fill" style="color: #ffc107;"></i> Đánh giá sản phẩm
+            <span class="review-count" style="font-size: 0.9rem; font-weight: 400; color: #6c757d;">(${fn:length(reviews)} đánh giá)</span>
+        </h2>
+
+        <!-- Review Summary -->
+        <div class="review-summary">
+            <div class="rating-overview">
+                <div class="average-rating">
+                    <span class="rating-number">
+                        <fmt:formatNumber value="${product.averageRating}" pattern="#.#"/>
+                    </span>
+                    <span class="rating-max">/5</span>
+                </div>
+                <div class="rating-stars">
+                    <c:forEach begin="1" end="5" var="i">
+                        <c:choose>
+                            <c:when test="${i <= product.averageRating}">
+                                <i class="bi bi-star-fill text-warning"></i>
+                            </c:when>
+                            <c:when test="${i - 0.5 <= product.averageRating}">
+                                <i class="bi bi-star-half text-warning"></i>
+                            </c:when>
+                            <c:otherwise>
+                                <i class="bi bi-star text-warning"></i>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:forEach>
+                </div>
+                <div class="total-reviews">${product.totalReviews} đánh giá</div>
+            </div>
+        </div>
+
+        <!-- Add Review Form -->
+        <div class="add-review-section">
+            <c:choose>
+                <c:when test="${not empty sessionScope.user}">
+                    <c:choose>
+                        <c:when test="${hasUserReviewed}">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Bạn đã đánh giá sản phẩm này rồi.
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="review-form-container" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 12px; padding: 1.75rem; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <h4 style="margin-bottom: 1.25rem; color: #212529; display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; font-weight: 700; padding-bottom: 0.75rem; border-bottom: 2px solid #0d6efd;"><i class="bi bi-pencil-square" style="color: #0d6efd;"></i> Viết đánh giá của bạn</h4>
+                                <form id="reviewForm" class="review-form">
+                                    <input type="hidden" name="productId" value="${product.productId}">
+
+                                    <div class="form-group rating-input">
+                                        <label>Đánh giá của bạn <span class="text-danger">*</span></label>
+                                        <div class="star-rating-input">
+                                            <input type="radio" id="star5" name="rating" value="5">
+                                            <label for="star5" title="5 sao"><i class="bi bi-star-fill"></i></label>
+                                            <input type="radio" id="star4" name="rating" value="4">
+                                            <label for="star4" title="4 sao"><i class="bi bi-star-fill"></i></label>
+                                            <input type="radio" id="star3" name="rating" value="3">
+                                            <label for="star3" title="3 sao"><i class="bi bi-star-fill"></i></label>
+                                            <input type="radio" id="star2" name="rating" value="2">
+                                            <label for="star2" title="2 sao"><i class="bi bi-star-fill"></i></label>
+                                            <input type="radio" id="star1" name="rating" value="1">
+                                            <label for="star1" title="1 sao"><i class="bi bi-star-fill"></i></label>
+                                        </div>
+                                        <span id="ratingText" class="rating-text-display"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="reviewTitle">Tiêu đề</label>
+                                        <input type="text" id="reviewTitle" name="title" class="form-control"
+                                               placeholder="Nhập tiêu đề đánh giá (tùy chọn)" maxlength="200">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="reviewComment">Nội dung đánh giá <span class="text-danger">*</span></label>
+                                        <textarea id="reviewComment" name="comment" class="form-control" rows="4"
+                                                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..." required></textarea>
+                                    </div>
+
+                                    <div class="form-group text-end">
+                                        <button type="submit" class="btn btn-submit-review" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.85rem 2rem; font-weight: 600; font-size: 1rem; background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%); color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);">
+                                            <i class="bi bi-send-fill"></i> Gửi đánh giá
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </c:when>
+                <c:otherwise>
+                    <div class="login-to-review">
+                        <p><i class="bi bi-person-circle"></i> Vui lòng
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#smemberModal">đăng nhập</a>
+                            để viết đánh giá
+                        </p>
+                    </div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+
+        <!-- Reviews List -->
+        <div class="reviews-list">
+            <c:choose>
+                <c:when test="${not empty reviews}">
+                    <c:forEach items="${reviews}" var="review">
+                        <div class="review-item" data-review-id="${review.reviewId}">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <div class="reviewer-avatar">
+                                        <c:choose>
+                                            <c:when test="${not empty review.customerAvatar}">
+                                                <img src="${review.customerAvatar}" alt="Avatar">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <i class="bi bi-person-circle"></i>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div class="reviewer-details">
+                                        <span class="reviewer-name">${review.customerName}</span>
+                                        <c:if test="${review.verifiedPurchase}">
+                                            <span class="verified-badge">
+                                                <i class="bi bi-patch-check-fill"></i> Đã mua hàng
+                                            </span>
+                                        </c:if>
+                                    </div>
+                                </div>
+                                <div class="review-date">
+                                    <fmt:formatDate value="${review.reviewDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                </div>
+                            </div>
+
+                            <div class="review-rating">
+                                <c:forEach begin="1" end="5" var="i">
+                                    <c:choose>
+                                        <c:when test="${i <= review.rating}">
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <i class="bi bi-star text-warning"></i>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:forEach>
+                            </div>
+
+                            <c:if test="${not empty review.title}">
+                                <h5 class="review-title">${review.title}</h5>
+                            </c:if>
+
+                            <div class="review-content">
+                                <p>${review.comment}</p>
+                            </div>
+
+                            <div class="review-actions">
+                                <button class="btn btn-sm btn-outline-secondary btn-helpful"
+                                        data-review-id="${review.reviewId}">
+                                    <i class="bi bi-hand-thumbs-up"></i>
+                                    Hữu ích <span class="helpful-count">(${review.helpfulCount})</span>
+                                </button>
+                            </div>
+
+                            <c:if test="${not empty review.responseContent}">
+                                <div class="vendor-response">
+                                    <div class="response-header">
+                                        <i class="bi bi-reply-fill"></i>
+                                        <strong>Phản hồi từ người bán</strong>
+                                        <span class="response-date">
+                                            - <fmt:formatDate value="${review.responseDate}" pattern="dd/MM/yyyy"/>
+                                        </span>
+                                    </div>
+                                    <div class="response-content">
+                                        ${review.responseContent}
+                                    </div>
+                                </div>
+                            </c:if>
+                        </div>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <div class="no-reviews">
+                        <i class="bi bi-chat-square-text"></i>
+                        <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                        <p>Hãy là người đầu tiên đánh giá!</p>
+                    </div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+    </div>
 </div>
 
 <jsp:include page="/footer.jsp" />
@@ -851,5 +1042,6 @@
 <!-- Script riêng cho popup login -->
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/product-review.js"></script>
 </body>
 </html>

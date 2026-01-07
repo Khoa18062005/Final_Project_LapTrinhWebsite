@@ -1,9 +1,11 @@
 package viettech.controller;
 
-import viettech.dto.ProductDetailDTO; // Giả sử bạn có DTO chi tiết, hoặc dùng ProductCardDTO tạm
+import viettech.dto.ProductDetailDTO;
+import viettech.dto.ReviewDTO;
 import viettech.dto.VariantDTO;
 import viettech.entity.user.User;
 import viettech.service.ProductService;
+import viettech.service.ReviewService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -19,11 +21,13 @@ import java.util.Set;
 @WebServlet("/product")
 public class ProductDetailServlet extends HttpServlet {
 
-    ProductService productService = new ProductService();
+    private ProductService productService;
+    private ReviewService reviewService;
 
     @Override
     public void init() throws ServletException {
         productService = new ProductService();
+        reviewService = new ReviewService();
     }
 
     @Override
@@ -44,10 +48,18 @@ public class ProductDetailServlet extends HttpServlet {
             ProductDetailDTO product = productService.getProductDetail(id);
             List<VariantDTO> variants = productService.getAllVariantsById(id);
 
-
             if (product == null) {
                 response.sendRedirect(request.getContextPath() + "/");
                 return;
+            }
+
+            // Load reviews for the product
+            List<ReviewDTO> reviews = reviewService.getReviewsByProductId(id);
+            boolean hasUserReviewed = false;
+
+            // Check if current user has already reviewed this product
+            if (user != null) {
+                hasUserReviewed = reviewService.hasCustomerReviewedProduct(user.getUserId(), id);
             }
 
             Set<Integer> viewedProducts = (Set<Integer>) session.getAttribute("VIEWED_PRODUCTS");
@@ -64,6 +76,8 @@ public class ProductDetailServlet extends HttpServlet {
 
             request.setAttribute("product", product);
             request.setAttribute("variants", variants);
+            request.setAttribute("reviews", reviews);
+            request.setAttribute("hasUserReviewed", hasUserReviewed);
 
             // ✅ FORWARD — KHÔNG redirect
             request.getRequestDispatcher("/WEB-INF/views/product-detail.jsp")
