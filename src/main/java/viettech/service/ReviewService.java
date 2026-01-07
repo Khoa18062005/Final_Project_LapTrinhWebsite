@@ -192,24 +192,27 @@ public class ReviewService {
         dto.setVerifiedPurchase(review.isVerifiedPurchase());
         dto.setStatus(review.getStatus());
 
-        // Lấy thông tin customer
+        // Lấy thông tin customer từ DAO (tránh lazy loading issues)
         try {
-            Customer customer = review.getCustomer();
+            int customerId = review.getCustomerId();
+            logger.debug(">>> Loading customer info for customerId: {}", customerId);
+
+            Customer customer = customerDAO.findById(customerId);
             if (customer != null) {
-                dto.setCustomerName(customer.getFirstName() + " " + customer.getLastName());
+                String firstName = customer.getFirstName() != null ? customer.getFirstName() : "";
+                String lastName = customer.getLastName() != null ? customer.getLastName() : "";
+                String fullName = (firstName + " " + lastName).trim();
+
+                dto.setCustomerName(fullName.isEmpty() ? "Khách hàng #" + customerId : fullName);
                 dto.setCustomerAvatar(customer.getAvatar());
+                logger.debug(">>> Customer found: {}", dto.getCustomerName());
             } else {
-                // Fallback: load customer từ DAO
-                Customer customerFromDao = customerDAO.findById(review.getCustomerId());
-                if (customerFromDao != null) {
-                    dto.setCustomerName(customerFromDao.getFirstName() + " " + customerFromDao.getLastName());
-                    dto.setCustomerAvatar(customerFromDao.getAvatar());
-                } else {
-                    dto.setCustomerName("Khách hàng");
-                    dto.setCustomerAvatar(null);
-                }
+                dto.setCustomerName("Khách hàng #" + customerId);
+                dto.setCustomerAvatar(null);
+                logger.warn(">>> Customer not found for ID: {}", customerId);
             }
         } catch (Exception e) {
+            logger.error(">>> Error loading customer info: {}", e.getMessage());
             dto.setCustomerName("Khách hàng");
             dto.setCustomerAvatar(null);
         }

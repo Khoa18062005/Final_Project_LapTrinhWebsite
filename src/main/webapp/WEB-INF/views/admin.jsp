@@ -131,9 +131,33 @@
                 </div>
 
                 <!-- Notifications -->
-                <div class="notifications" onclick="toggleNotifications()">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge">5</span>
+                <div class="notifications dropdown" id="adminNotificationBell">
+                    <button class="notification-bell-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" style="display: none;">0</span>
+                    </button>
+
+                    <!-- Notification Dropdown -->
+                    <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+                        <div class="notification-dropdown-header">
+                            <h6>Thông báo</h6>
+                            <a href="${pageContext.request.contextPath}/admin/notifications" class="view-all-link">Xem tất cả</a>
+                        </div>
+                        <div class="notification-dropdown-body">
+                            <!-- Notifications will be loaded here via JavaScript -->
+                            <div class="notification-loading text-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 text-muted small">Đang tải thông báo...</p>
+                            </div>
+                        </div>
+                        <div class="notification-dropdown-footer">
+                            <a href="${pageContext.request.contextPath}/admin/notifications/mark-all-read" class="mark-all-read">
+                                <i class="fas fa-check-double"></i> Đánh dấu tất cả đã đọc
+                            </a>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- User Profile -->
@@ -431,6 +455,15 @@
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Notification Variables -->
+    <script>
+        const contextPath = "${pageContext.request.contextPath}";
+        const isLoggedIn = true; // Admin luôn đăng nhập
+    </script>
+
+    <!-- Admin Notification JS -->
+    <script src="${pageContext.request.contextPath}/assets/js/admin-notification.js"></script>
 </body>
 </html>
 
