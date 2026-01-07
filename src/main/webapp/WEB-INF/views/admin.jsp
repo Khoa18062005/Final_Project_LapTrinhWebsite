@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page isErrorPage="false" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -160,134 +162,13 @@
         <section id="orders" class="content-section">
             <div class="section-header">
                 <h2>Quản lý đơn hàng</h2>
-                <div class="filter-group">
-                    <select id="orderStatusFilter" onchange="filterOrders()">
-                        <option value="">Tất cả trạng thái</option>
-                        <option value="pending">Chờ xử lý</option>
-                        <option value="processing">Đang xử lý</option>
-                        <option value="shipping">Đang giao</option>
-                        <option value="delivered">Đã giao</option>
-                        <option value="cancelled">Đã hủy</option>
-                    </select>
-                </div>
             </div>
-
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Mã đơn</th>
-                            <th>Khách hàng</th>
-                            <th>Ngày đặt</th>
-                            <th>Tổng tiền</th>
-                            <th>Trạng thái</th>
-                            <th>Thanh toán</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTable">
-                        <c:forEach var="order" items="${orderList}">
-                            <tr>
-                                <td><strong>#${order.orderId}</strong></td>
-                                <td>${order.customerName}</td>
-                                <td><fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm"/></td>
-                                <td><fmt:formatNumber value="${order.totalAmount}" type="currency" currencySymbol="₫"/></td>
-                                <td>
-                                    <span class="status-badge ${order.status == 'Delivered' ? 'delivered' : order.status == 'Pending' ? 'pending' : 'processing'}">
-                                        ${order.status}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="badge ${order.paymentStatus == 'Paid' ? 'badge-info' : 'badge-warning'}">
-                                        ${order.paymentStatus}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-icon view" title="Xem chi tiết đơn hàng">
-                                            <i class="fas fa-info-circle"></i>
-                                        </button>
-                                        <button class="btn-icon edit" title="Cập nhật trạng thái">
-                                            <i class="fas fa-pen"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                        <c:if test="${empty orderList}">
-                            <tr>
-                                <td colspan="7" style="text-align: center; padding: 48px;">
-                                    <i class="fas fa-shopping-cart" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px; display: block;"></i>
-                                    <p style="color: var(--text-muted);">Chưa có đơn hàng nào</p>
-                                </td>
-                            </tr>
-                        </c:if>
-                    </tbody>
-                </table>
-            </div>
+            <p>Đang phát triển...</p>
         </section>
 
         <!-- Users Section -->
         <section id="users" class="content-section">
-            <div class="section-header">
-                <h2>Quản lý người dùng</h2>
-                <button class="btn btn-primary" onclick="openAddUserModal()">
-                    <i class="fas fa-plus"></i> Thêm người dùng
-                </button>
-            </div>
-
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Avatar</th>
-                            <th>Họ tên</th>
-                            <th>Email</th>
-                            <th>Số điện thoại</th>
-                            <th>Vai trò</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTable">
-                        <c:forEach var="user" items="${userList}">
-                            <tr>
-                                <td>#${user.userId}</td>
-                                <td>
-                                    <img src="https://ui-avatars.com/api/?name=${user.fullName}&background=random" alt="${user.fullName}">
-                                </td>
-                                <td><strong>${user.fullName}</strong></td>
-                                <td>${user.email}</td>
-                                <td>${user.phone}</td>
-                                <td>
-                                    <span class="badge ${user.role == 'admin' ? 'badge-info' : 'badge-warning'}">
-                                        ${user.role}
-                                    </span>
-                                </td>
-                                <td>
-                                    <span class="status-badge ${user.status == 'Active' ? 'active' : 'inactive'}">
-                                        ${user.status}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <button class="btn-icon view" title="Xem chi tiết">
-                                            <i class="fas fa-info-circle"></i>
-                                        </button>
-                                        <button class="btn-icon edit" title="Chỉnh sửa">
-                                            <i class="fas fa-pen"></i>
-                                        </button>
-                                        <button class="btn-icon delete" title="Xóa người dùng">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
-            </div>
+            <jsp:include page="/WEB-INF/views/admin_pages/users.jsp"/>
         </section>
 
         <!-- Vouchers Section -->

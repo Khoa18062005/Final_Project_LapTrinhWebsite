@@ -104,11 +104,17 @@ public class AdminDAO {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
             List<Admin> admins = em.createQuery("SELECT a FROM Admin a", Admin.class).getResultList();
+            // Ensure roleID is set correctly
+            for (Admin a : admins) {
+                if (a.getRoleID() != 1) {
+                    a.setRoleID(1);
+                }
+            }
             logger.debug("✓ Retrieved {} admin(s)", admins.size());
             return admins;
         } catch (Exception e) {
             logger.error("✗ Error retrieving all admins", e);
-            throw new RuntimeException("Failed to retrieve admins", e);
+            return new java.util.ArrayList<>();
         } finally {
             em.close();
         }

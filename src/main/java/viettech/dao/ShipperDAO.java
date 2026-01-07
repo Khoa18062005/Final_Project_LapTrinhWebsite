@@ -99,11 +99,17 @@ public class ShipperDAO {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
             List<Shipper> shippers = em.createQuery("SELECT s FROM Shipper s", Shipper.class).getResultList();
+            // Ensure roleID is set correctly
+            for (Shipper s : shippers) {
+                if (s.getRoleID() != 3) {
+                    s.setRoleID(3);
+                }
+            }
             logger.debug("✓ Retrieved {} shipper(s)", shippers.size());
             return shippers;
         } catch (Exception e) {
             logger.error("✗ Error retrieving all shippers", e);
-            throw new RuntimeException("Failed to retrieve shippers", e);
+            return new java.util.ArrayList<>();
         } finally {
             em.close();
         }

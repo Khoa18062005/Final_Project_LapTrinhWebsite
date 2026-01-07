@@ -81,12 +81,16 @@ public class CustomerDAO {
     public List<Customer> findAll() {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            List<Customer> customers = em.createQuery("SELECT c FROM Customer c", Customer.class).getResultList();
+            String jpql = "SELECT c FROM Customer c";
+            List<Customer> customers = em.createQuery(jpql, Customer.class).getResultList();
+
+
             logger.debug("✓ Retrieved {} customer(s)", customers.size());
             return customers;
         } catch (Exception e) {
             logger.error("✗ Error retrieving all customers", e);
-            throw new RuntimeException("Failed to retrieve customers", e);
+            //throw new RuntimeException("Failed to retrieve customers", e);
+            return new java.util.ArrayList<>();
         } finally {
             em.close();
         }

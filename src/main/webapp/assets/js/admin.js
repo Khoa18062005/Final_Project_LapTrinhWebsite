@@ -30,14 +30,24 @@ function showSection(sectionId, clickedItem) {
     const targetSection = document.getElementById(sectionId);
     if (!targetSection) {
         console.warn('Section not found:', sectionId);
+        // Try to find any content-section and show the first one (dashboard) as fallback
+        const fallbackSection = document.getElementById('dashboard');
+        if (fallbackSection) {
+            console.log('Falling back to dashboard section');
+            return showSection('dashboard', document.querySelector('a[href="#dashboard"]'));
+        }
         return false;
     }
 
+    // Hide all sections first
     document.querySelectorAll('.content-section').forEach(section => {
         if (section) section.classList.remove('active');
     });
+
+    // Show target section
     targetSection.classList.add('active');
 
+    // Update nav items
     document.querySelectorAll('.nav-item').forEach(item => {
         if (item) item.classList.remove('active');
     });
@@ -769,6 +779,71 @@ function closeProductDetailModal() {
     }
 }
 
+// ===== MODAL FUNCTIONS =====
+
+/**
+ * Open a modal by ID
+ * @param {string} modalId - The ID of the modal to open
+ */
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+        // Focus on first input if exists
+        setTimeout(() => {
+            const firstInput = modal.querySelector('input:not([type="hidden"]), select, textarea');
+            if (firstInput) firstInput.focus();
+        }, 100);
+    }
+}
+
+/**
+ * Close a modal by ID
+ * @param {string} modalId - The ID of the modal to close
+ */
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+}
+
+/**
+ * Close modal when clicking outside
+ */
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.style.display = 'none';
+        e.target.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+});
+
+/**
+ * Close modal on Escape key
+ */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const openModals = document.querySelectorAll('.modal.show');
+        openModals.forEach(modal => {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        });
+        document.body.style.overflow = '';
+    }
+});
+
+// ===== PRODUCT MODAL FUNCTIONS =====
+
+function openAddProductModal() {
+    openModal('productModal');
+}
+
 
 // Initialize chat input event listener when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
@@ -780,6 +855,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 sendMessage();
             }
         });
+    }
+
+    // Debug: Log available sections
+    const sections = document.querySelectorAll('.content-section');
+    console.log('Available sections:', Array.from(sections).map(s => s.id));
+
+    // Handle hash-based navigation for admin sections
+    if (window.location.hash) {
+        const hash = window.location.hash.substring(1);
+        const navItem = document.querySelector(`a[href="#${hash}"]`);
+        if (navItem) {
+            // Small delay to ensure all content is loaded
+            setTimeout(() => {
+                showSection(hash, navItem);
+            }, 100);
+        }
     }
 });
 
