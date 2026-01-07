@@ -85,36 +85,79 @@
         <!-- Contact Form -->
         <div class="contact-form-section">
             <h3><i class="bi bi-chat-dots"></i> Gửi Tin Nhắn Cho Chúng Tôi</h3>
+
+            <!-- ✅ THÊM NOTE BOX -->
+            <div class="note-box mb-4">
+                <strong><i class="bi bi-info-circle"></i> Lưu ý:</strong>
+                <p class="mb-0">Chúng tôi sẽ phản hồi tin nhắn của bạn trong vòng 24 giờ làm việc. Vui lòng kiểm tra email để nhận thông báo.</p>
+            </div>
+
             <form id="contactForm" method="post" action="${pageContext.request.contextPath}/contact">
                 <div class="row g-3">
+                    <!-- ✅ AUTO-FILL: Họ và tên -->
                     <div class="col-md-6">
                         <label for="fullName" class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="fullName" name="fullName" required>
+                        <input type="text"
+                               class="form-control"
+                               id="fullName"
+                               name="fullName"
+                               value="${not empty sessionScope.user ? sessionScope.user.firstName.concat(' ').concat(sessionScope.user.lastName) : ''}"
+                               required>
                     </div>
+
+                    <!-- ✅ AUTO-FILL: Email (READONLY nếu đã đăng nhập) -->
                     <div class="col-md-6">
                         <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+                        <input type="email"
+                               class="form-control"
+                               id="email"
+                               name="email"
+                               value="${not empty sessionScope.user ? sessionScope.user.email : ''}"
+                        ${not empty sessionScope.user ? 'readonly' : ''}
+                               required>
+                        <c:if test="${not empty sessionScope.user}">
+                            <small class="text-muted">Email không thể thay đổi</small>
+                        </c:if>
                     </div>
+
+                    <!-- ✅ AUTO-FILL: Số điện thoại -->
                     <div class="col-md-6">
                         <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                        <input type="tel" class="form-control" id="phone" name="phone" required>
+                        <input type="tel"
+                               class="form-control"
+                               id="phone"
+                               name="phone"
+                               value="${not empty sessionScope.user ? sessionScope.user.phone : ''}"
+                               pattern="[0-9]{10}"
+                               required>
                     </div>
+
+                    <!-- Chủ đề -->
                     <div class="col-md-6">
                         <label for="subject" class="form-label">Chủ đề <span class="text-danger">*</span></label>
                         <select class="form-select" id="subject" name="subject" required>
                             <option value="">-- Chọn chủ đề --</option>
-                            <option value="order">Hỏi về đơn hàng</option>
-                            <option value="product">Hỏi về sản phẩm</option>
-                            <option value="warranty">Bảo hành</option>
-                            <option value="return">Đổi trả</option>
-                            <option value="complaint">Khiếu nại</option>
-                            <option value="other">Khác</option>
+                            <option value="Hỏi về đơn hàng">Hỏi về đơn hàng</option>
+                            <option value="Hỏi về sản phẩm">Hỏi về sản phẩm</option>
+                            <option value="Bảo hành">Bảo hành</option>
+                            <option value="Đổi trả">Đổi trả</option>
+                            <option value="Khiếu nại">Khiếu nại</option>
+                            <option value="Khác">Khác</option>
                         </select>
                     </div>
+
+                    <!-- Nội dung -->
                     <div class="col-12">
                         <label for="message" class="form-label">Nội dung <span class="text-danger">*</span></label>
-                        <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                        <textarea class="form-control"
+                                  id="message"
+                                  name="message"
+                                  rows="5"
+                                  placeholder="Nhập nội dung tin nhắn của bạn..."
+                                  required></textarea>
                     </div>
+
+                    <!-- Submit Button -->
                     <div class="col-12">
                         <button type="submit" class="btn btn-primary btn-lg">
                             <i class="bi bi-send me-2"></i>Gửi Tin Nhắn
@@ -137,6 +180,5 @@
 <jsp:include page="../../footer.jsp" />
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/contact.js"></script>
 </body>
 </html>

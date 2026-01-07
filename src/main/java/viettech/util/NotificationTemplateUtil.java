@@ -19,6 +19,7 @@ public class NotificationTemplateUtil {
     public static final String TYPE_SECURITY = "security";  // ← THÊM MỚI
     public static final String TYPE_REFERRAL = "referral";  // ← THÊM MỚI
     public static final String TYPE_CAREER = "career";  // ← Type mới
+    public static final String TYPE_CONTACT = "contact";  // ← Type mới
 
 
     // ========== IMAGE URLS ==========
@@ -28,6 +29,8 @@ public class NotificationTemplateUtil {
     private static final String IMG_REFERRAL = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767514645/z7395974565366_948ddc35641f7189f5fb9119c7a934ed_eexyg8.jpg";  // ← THÊM MỚI (bạn có thể đổi)
     private static final String IMG_VENDOR = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767775253/867c9a11-c20b-4725-9fa3-25ae3063bb35.png";
     private static final String IMG_SHIPPER = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767775253/867c9a11-c20b-4725-9fa3-25ae3063bb35.png";
+    private static final String IMG_CONTACT = "https://bom.edu.vn/public/upload/2024/12/meme-buaa-53.webp";
+
 
 
     /**
@@ -422,6 +425,81 @@ public class NotificationTemplateUtil {
         notification.setExpiresAt(null);
         notification.setData(null);
         notification.setActionUrl("/admin/career-applications");
+
+        return notification;
+    }
+
+    /**
+     * ========== THÔNG BÁO USER ĐÃ GỬI TIN NHẮN CONTACT ==========
+     */
+    public static Notification createContactUserNotification(int userId, String fullName, String subject) {
+        Notification notification = new Notification();
+
+        notification.setUserId(userId);
+        notification.setType(TYPE_CONTACT);
+
+        notification.setTitle("📩 Tin nhắn của bạn đã được gửi!");
+        notification.setMessage(
+                String.format("Xin chào %s! Cảm ơn bạn đã liên hệ với VietTech về chủ đề \"%s\". " +
+                                "Chúng tôi đã nhận được tin nhắn và sẽ phản hồi qua email trong vòng 24 giờ làm việc. " +
+                                "Vui lòng kiểm tra hộp thư để biết thêm chi tiết.",
+                        fullName, subject)
+        );
+
+        notification.setImageUrl(IMG_CONTACT);
+        notification.setRead(false);
+        notification.setReadAt(null);
+        notification.setCreatedAt(new Date());
+        notification.setExpiresAt(null);
+        notification.setData(null);
+        notification.setActionUrl(null);
+
+        return notification;
+    }
+
+    /**
+     * ========== THÔNG BÁO ADMIN NHẬN TIN NHẮN CONTACT ==========
+     */
+    public static Notification createContactAdminNotification(
+            int adminId,
+            String fullName,
+            String email,
+            String phone,
+            String subject,
+            String message) {
+
+        Notification notification = new Notification();
+
+        notification.setUserId(adminId);
+        notification.setType(TYPE_CONTACT);
+
+        notification.setTitle("📧 Tin nhắn liên hệ mới từ khách hàng!");
+
+        // ========== MESSAGE ĐẦY ĐỦ THÔNG TIN ==========
+        StringBuilder msg = new StringBuilder();
+        msg.append("📬 TIN NHẮN LIÊN HỆ MỚI\n\n");
+
+        msg.append("👤 THÔNG TIN KHÁCH HÀNG:\n");
+        msg.append(String.format("• Họ tên: %s\n", fullName));
+        msg.append(String.format("• Email: %s\n", email));
+        msg.append(String.format("• Số điện thoại: %s\n\n", phone));
+
+        msg.append("📋 CHỦ ĐỀ:\n");
+        msg.append(String.format("• %s\n\n", subject));
+
+        msg.append("💬 NỘI DUNG:\n");
+        msg.append(String.format("• %s\n\n", message));
+
+        msg.append("⚠️ Vui lòng phản hồi khách hàng trong vòng 24 giờ làm việc.");
+
+        notification.setMessage(msg.toString());
+        notification.setImageUrl(IMG_CONTACT);
+        notification.setRead(false);
+        notification.setReadAt(null);
+        notification.setCreatedAt(new Date());
+        notification.setExpiresAt(null);
+        notification.setData(null);
+        notification.setActionUrl("/admin/contact-messages");
 
         return notification;
     }
