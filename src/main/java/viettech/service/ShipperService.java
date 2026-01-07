@@ -24,10 +24,14 @@ public class ShipperService {
         try {
             // 1. Lấy thông tin Shipper
             Shipper shipper = em.find(Shipper.class, shipperId);
-            if (shipper == null) return null;
+            if (shipper == null) {
+                System.out.println("DEBUG: Không tìm thấy Shipper với ID: " + shipperId);
+                return null;
+            }
             dto.setShipperInfo(shipper);
 
             // 2. Lấy danh sách nhiệm vụ giao hàng
+            // Sử dụng JOIN FETCH để lấy luôn dữ liệu liên quan, tránh lỗi Lazy Loading
             String jpql = "SELECT da FROM DeliveryAssignment da " +
                     "LEFT JOIN FETCH da.delivery d " +
                     "LEFT JOIN FETCH d.order o " +
@@ -40,51 +44,59 @@ public class ShipperService {
             query.setParameter("sid", shipperId);
             List<DeliveryAssignment> allAssignments = query.getResultList();
 
+            // --- LOG DEBUG QUAN TRỌNG ---
+            System.out.println("================ SHIPPER DASHBOARD DEBUG ================");
+            System.out.println("Shipper ID: " + shipperId);
+            System.out.println("Tổng số đơn tìm thấy trong DB: " + allAssignments.size());
+
             // 3. Phân loại đơn hàng
             List<DeliveryAssignment> pending = new ArrayList<>();
             List<DeliveryAssignment> ongoing = new ArrayList<>();
             List<DeliveryAssignment> history = new ArrayList<>();
 
             for (DeliveryAssignment da : allAssignments) {
-                // Lấy status từ bảng Assignment
-                String status = (da.getStatus() != null) ? da.getStatus().trim() : "";
-
-                // Lấy thêm status từ bảng Order để kiểm tra dự phòng
-                String orderStatus = "";
-                if (da.getDelivery() != null && da.getDelivery().getOrder() != null) {
-                    orderStatus = da.getDelivery().getOrder().getStatus();
+                // Kiểm tra an toàn để tránh NullPointerException
+                if (da.getDelivery() == null || da.getDelivery().getOrder() == null) {
+                    System.out.println("WARNING: Đơn Assignment ID " + da.getAssignmentId() + " bị lỗi dữ liệu (thiếu Delivery hoặc Order). Bỏ qua.");
+                    continue;
                 }
 
+                String status = (da.getStatus() != null) ? da.getStatus().trim() : "";
+                String orderStatus = (da.getDelivery().getOrder().getStatus() != null) ? da.getDelivery().getOrder().getStatus().trim() : "";
+
+                System.out.println("-> Đơn #" + da.getDelivery().getOrder().getOrderNumber() +
+                        " | AssignStatus: " + status +
+                        " | OrderStatus: " + orderStatus);
+
                 // --- NHÓM 1: CHỜ NHẬN (Pending) ---
-                // Gồm: Assigned, Pending, Processing, Ready, Created
                 if (containsIgnoreCase(status, "Assigned", "Pending", "Processing", "Ready", "Created")) {
                     pending.add(da);
                 }
-
                 // --- NHÓM 2: ĐANG THỰC HIỆN (Ongoing) ---
-                // Gồm: Accepted, Picking Up, In Transit, Shipping, On Delivery
                 else if (containsIgnoreCase(status, "Accepted", "Picking Up", "In Transit", "Shipping", "On Delivery")) {
                     ongoing.add(da);
                 }
-
                 // --- NHÓM 3: LỊCH SỬ (History) ---
-                // Gồm: Completed, Delivered, Cancelled, Returned, Fail
-                else if (containsIgnoreCase(status, "Completed", "Delivered", "Cancelled", "Returned", "Fail")) {
+                else if (containsIgnoreCase(status, "Completed", "Delivered", "Cancelled", "Returned", "Fail", "Success")) {
                     history.add(da);
                 }
-
-                // --- TRƯỜNG HỢP LẠ (Fallback theo Order Status) ---
+                // --- TRƯỜNG HỢP LẠ (Fallback) ---
                 else {
+                    // Nếu trạng thái Shipper lạ, thử check theo trạng thái Order
                     if (containsIgnoreCase(orderStatus, "Shipping", "In Transit")) {
                         ongoing.add(da);
                     } else if (containsIgnoreCase(orderStatus, "Completed", "Delivered")) {
                         history.add(da);
                     } else {
-                        // Mặc định ném vào pending để không bị mất đơn
+                        // Mặc định ném vào pending để Shipper thấy
+                        System.out.println("   (Trạng thái lạ -> Chuyển vào Pending)");
                         pending.add(da);
                     }
                 }
             }
+
+            System.out.println("Kết quả phân loại: Pending=" + pending.size() + ", Ongoing=" + ongoing.size() + ", History=" + history.size());
+            System.out.println("=========================================================");
 
             dto.setPendingOrders(pending);
             dto.setOngoingOrders(ongoing);
@@ -101,93 +113,98 @@ public class ShipperService {
         return dto;
     }
 
-    // Hàm hỗ trợ so sánh chuỗi không phân biệt hoa thường
     private boolean containsIgnoreCase(String source, String... keywords) {
         if (source == null) return false;
         for (String keyword : keywords) {
-            if (source.equalsIgnoreCase(keyword)) return true;
+            if (source.trim().equalsIgnoreCase(keyword)) return true;
         }
         return false;
     }
 
     private void calculateStatistics(EntityManager em, int shipperId, Shipper_dto dto, List<DeliveryAssignment> allAssignments) {
-        // Query lấy dữ liệu tổng hợp theo ngày
-        String sqlStats = "SELECT DATE(completed_at), SUM(earnings), COUNT(assignment_id) " +
-                "FROM delivery_assignments " +
-                "WHERE shipper_id = ? AND status = 'Completed' " +
-                "AND completed_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) " +
-                "GROUP BY DATE(completed_at)";
+        try {
+            // Query lấy dữ liệu tổng hợp theo ngày
+            String sqlStats = "SELECT DATE(completed_at), SUM(earnings), COUNT(assignment_id) " +
+                    "FROM delivery_assignments " +
+                    "WHERE shipper_id = ? AND (status = 'Completed' OR status = 'Delivered') " +
+                    "AND completed_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) " +
+                    "GROUP BY DATE(completed_at)";
 
-        Query qStats = em.createNativeQuery(sqlStats);
-        qStats.setParameter(1, shipperId);
-        List<Object[]> results = qStats.getResultList();
+            Query qStats = em.createNativeQuery(sqlStats);
+            qStats.setParameter(1, shipperId);
+            List<Object[]> results = qStats.getResultList();
 
-        Map<String, Double> dailyIncomeMap = new HashMap<>();
-        double sumToday = 0; long countToday = 0;
-        double sum7Days = 0; long count7Days = 0;
-        double sumMonth = 0; long countMonth = 0;
+            Map<String, Double> dailyIncomeMap = new HashMap<>();
+            double sumToday = 0; long countToday = 0;
+            double sum7Days = 0; long count7Days = 0;
+            double sumMonth = 0; long countMonth = 0;
 
-        LocalDate now = LocalDate.now();
-        LocalDate sevenDaysAgo = now.minusDays(6);
-        LocalDate monthAgo = now.minusDays(29);
+            LocalDate now = LocalDate.now();
+            LocalDate sevenDaysAgo = now.minusDays(6);
+            LocalDate monthAgo = now.minusDays(29);
 
-        for (Object[] row : results) {
-            String dateStr = row[0].toString();
-            // Xử lý Null an toàn
-            double money = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
-            long count = row[2] != null ? ((Number) row[2]).longValue() : 0;
+            for (Object[] row : results) {
+                if (row[0] == null) continue;
+                String dateStr = row[0].toString();
+                double money = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
+                long count = row[2] != null ? ((Number) row[2]).longValue() : 0;
 
-            LocalDate rowDate = LocalDate.parse(dateStr);
-            dailyIncomeMap.put(dateStr, money);
+                LocalDate rowDate = LocalDate.parse(dateStr);
+                dailyIncomeMap.put(dateStr, money);
 
-            if (rowDate.isEqual(now)) {
-                sumToday += money;
-                countToday += count;
+                if (rowDate.isEqual(now)) {
+                    sumToday += money;
+                    countToday += count;
+                }
+                if (!rowDate.isBefore(sevenDaysAgo)) {
+                    sum7Days += money;
+                    count7Days += count;
+                }
+                if (!rowDate.isBefore(monthAgo)) {
+                    sumMonth += money;
+                    countMonth += count;
+                }
             }
-            if (!rowDate.isBefore(sevenDaysAgo)) {
-                sum7Days += money;
-                count7Days += count;
+
+            dto.setTodayIncome(sumToday);
+            dto.setSuccessOrderCount(countToday);
+            dto.setIncome7Days(sum7Days);
+            dto.setCount7Days(count7Days);
+            dto.setIncomeMonth(sumMonth);
+            dto.setCountMonth(countMonth);
+
+            long assignedToday = allAssignments.stream()
+                    .filter(a -> a.getAssignedAt() != null &&
+                            a.getAssignedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isEqual(now))
+                    .count();
+            dto.setTodayOrderCount(assignedToday);
+
+            // A. Biểu đồ 7 Ngày
+            for (int i = 6; i >= 0; i--) {
+                LocalDate d = now.minusDays(i);
+                String key = d.toString();
+                dto.getChartLabels7Days().add(d.getDayOfMonth() + "/" + d.getMonthValue());
+                dto.getChartData7Days().add(dailyIncomeMap.getOrDefault(key, 0.0));
             }
-            if (!rowDate.isBefore(monthAgo)) {
-                sumMonth += money;
-                countMonth += count;
+
+            // B. Biểu đồ Tháng (4 Tuần)
+            double[] weekSum = new double[4];
+            String[] weekLabels = {"Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4"};
+
+            for (int i = 0; i < 28; i++) {
+                LocalDate d = now.minusDays(27 - i);
+                String key = d.toString();
+                double val = dailyIncomeMap.getOrDefault(key, 0.0);
+                int weekIndex = i / 7;
+                if(weekIndex < 4) weekSum[weekIndex] += val;
             }
-        }
 
-        dto.setTodayIncome(sumToday);
-        dto.setSuccessOrderCount(countToday);
-        dto.setIncome7Days(sum7Days);
-        dto.setCount7Days(count7Days);
-        dto.setIncomeMonth(sumMonth);
-        dto.setCountMonth(countMonth);
-
-        long assignedToday = allAssignments.stream()
-                .filter(a -> a.getAssignedAt() != null &&
-                        a.getAssignedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isEqual(now))
-                .count();
-        dto.setTodayOrderCount(assignedToday);
-
-        for (int i = 6; i >= 0; i--) {
-            LocalDate d = now.minusDays(i);
-            String key = d.toString();
-            dto.getChartLabels7Days().add(d.getDayOfMonth() + "/" + d.getMonthValue());
-            dto.getChartData7Days().add(dailyIncomeMap.getOrDefault(key, 0.0));
-        }
-
-        double[] weekSum = new double[4];
-        String[] weekLabels = {"Tuần 1", "Tuần 2", "Tuần 3", "Tuần 4"};
-
-        for (int i = 0; i < 28; i++) {
-            LocalDate d = now.minusDays(27 - i);
-            String key = d.toString();
-            double val = dailyIncomeMap.getOrDefault(key, 0.0);
-            int weekIndex = i / 7;
-            if(weekIndex < 4) weekSum[weekIndex] += val;
-        }
-
-        for(int i=0; i<4; i++) {
-            dto.getChartLabelsMonth().add(weekLabels[i]);
-            dto.getChartDataMonth().add(weekSum[i]);
+            for(int i=0; i<4; i++) {
+                dto.getChartLabelsMonth().add(weekLabels[i]);
+                dto.getChartDataMonth().add(weekSum[i]);
+            }
+        } catch (Exception e) {
+            System.out.println("ERROR calculating statistics: " + e.getMessage());
         }
     }
 
@@ -199,9 +216,10 @@ public class ShipperService {
             DeliveryAssignment da = em.find(DeliveryAssignment.class, assignmentId);
             if (da != null) {
                 if ("accept".equals(action)) {
-                    da.setStatus("Accepted");
+                    da.setStatus("In Transit"); // Đổi thành In Transit cho khớp logic
                     da.setAcceptedAt(new Date());
-                    if (da.getDelivery() != null) da.getDelivery().setStatus("Picking Up");
+                    da.setStartedAt(new Date()); // Ghi nhận bắt đầu luôn
+                    if (da.getDelivery() != null) da.getDelivery().setStatus("In Transit");
                 } else if ("complete".equals(action)) {
                     da.setStatus("Completed");
                     da.setCompletedAt(new Date());
@@ -218,41 +236,41 @@ public class ShipperService {
             }
             trans.commit();
         } catch (Exception e) {
-            trans.rollback();
+            if (trans.isActive()) trans.rollback();
             e.printStackTrace();
         } finally {
             em.close();
         }
     }
 
-    // --- HÀM UPDATE PROFILE ĐÃ SỬA ---
-    // Nhận đủ 8 tham số bao gồm avatarUrl
     public void updateProfile(int userId, String firstName, String lastName, String phone, String password, String vehiclePlate, String licenseNumber, String avatarUrl) {
         EntityManager em = JPAConfig.getEntityManager();
         EntityTransaction trans = em.getTransaction();
         try {
             trans.begin();
 
-            // 1. Cập nhật bảng USERS (Thông tin chung + Avatar)
+            // 1. Cập nhật bảng USERS (Thông tin chung)
             User user = em.find(User.class, userId);
             if (user != null) {
                 if (firstName != null) user.setFirstName(firstName.trim());
                 if (lastName != null) user.setLastName(lastName.trim());
                 if (phone != null) user.setPhone(phone.trim());
 
-                // Logic cập nhật Avatar
+                // Xử lý Avatar:
+                // - Nếu null: Không làm gì (giữ ảnh cũ)
+                // - Nếu rỗng "": Xóa ảnh (set null)
+                // - Nếu có link: Cập nhật ảnh mới
                 if (avatarUrl != null) {
-                    if (avatarUrl.isEmpty()) {
-                        user.setAvatar(null); // Xóa ảnh
+                    if (avatarUrl.trim().isEmpty()) {
+                        user.setAvatar(null);
                     } else {
-                        user.setAvatar(avatarUrl); // Set ảnh mới
+                        user.setAvatar(avatarUrl);
                     }
                 }
 
-                // Logic cập nhật Password
                 if (password != null && !password.trim().isEmpty()) {
                     String pwd = password.trim();
-                    if (pwd.startsWith("$2a$") || pwd.startsWith("$2b$") || pwd.startsWith("$2y$")) {
+                    if (pwd.startsWith("$2a$") || pwd.startsWith("$2b$")) {
                         user.setPassword(pwd);
                     } else {
                         user.setPassword(BCrypt.hashpw(pwd, BCrypt.gensalt(12)));
@@ -261,8 +279,7 @@ public class ShipperService {
                 em.merge(user);
             }
 
-            // 2. Cập nhật bảng SHIPPERS (Biển số & GPLX) bằng SQL THUẦN
-            // Dùng Native Query để đảm bảo cập nhật xuống DB (tránh lỗi cache Inheritance)
+            // 2. Cập nhật bảng SHIPPERS bằng SQL THUẦN
             String sql = "UPDATE shippers SET vehicle_plate = ?, license_number = ? WHERE user_id = ?";
             Query query = em.createNativeQuery(sql);
 
@@ -274,7 +291,7 @@ public class ShipperService {
             query.setParameter(3, userId);
 
             int rows = query.executeUpdate();
-            System.out.println("DEBUG: Updated Shipper Info (Plate/License). Rows affected: " + rows);
+            System.out.println("DEBUG: Updated Shipper Info. Rows affected: " + rows);
 
             trans.commit();
         } catch (Exception e) {
