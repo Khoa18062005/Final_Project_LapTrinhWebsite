@@ -1,15 +1,13 @@
 package viettech.service;
 
-import viettech.dao.CartDAO;
-import viettech.dao.CartItemDAO;
-import viettech.dao.VariantAttributeDAO;
-import viettech.dao.VariantDAO;
+import viettech.dao.*;
 import viettech.dto.CartCheckoutItemDTO;
 import viettech.dto.CartItemDTO;
 import viettech.dto.ProductDetailDTO;
 import viettech.dto.VariantDTO;
 import viettech.entity.cart.Cart;
 import viettech.entity.cart.CartItem;
+import viettech.entity.product.Product;
 import viettech.entity.product.VariantAttribute;
 import viettech.entity.user.User;
 
@@ -234,6 +232,44 @@ public class CartService {
         }
 
         return dto;
+    }
+
+    private boolean isProductInCart(List<CartCheckoutItemDTO> items, int productId) {
+        for (CartCheckoutItemDTO item : items) {
+            if (item.getProductId() == productId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isCategoryInCart(List<CartCheckoutItemDTO> items, int categoryId){
+        ProductDAO productDAO = new ProductDAO();
+        for (CartCheckoutItemDTO item : items) {
+            Product product = productDAO.findById(item.getProductId());
+            if (product.getCategoryId() == categoryId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isCategoriesInCart(List<CartCheckoutItemDTO> items, List<Integer> categoryIds){
+        for (int id : categoryIds){
+            if(this.isCategoryInCart(items, id)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isProductsInCart(List<CartCheckoutItemDTO> items, List<Integer> productIds){
+        for (int id : productIds){
+            if(this.isProductInCart(items, id)){
+                return true;
+            }
+        }
+        return false;
     }
 
 }

@@ -83,7 +83,7 @@ public class VoucherDAO {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
             Date now = new Date();
-            String jpql = "SELECT v FROM Voucher v WHERE v.isActive = true AND v.startDate <= :now AND v.expiryDate >= :now AND v.usageCount < v.usageLimit";
+            String jpql = "SELECT v FROM Voucher v WHERE v.isActive = true AND v.startDate <= :now AND v.expiryDate >= :now AND v.usageCount < v.usageLimit AND v.isPublic = true";
             TypedQuery<Voucher> query = em.createQuery(jpql, Voucher.class);
             query.setParameter("now", now);
             List<Voucher> vouchers = query.getResultList();
