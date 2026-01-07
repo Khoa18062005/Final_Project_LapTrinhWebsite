@@ -311,6 +311,198 @@ public class EmailUtilBrevo {
         );
     }
 
+    // ========== THÊM VÀO EmailUtilBrevo.java ==========
+
+    /**
+     * Gửi email xác nhận đơn Vendor
+     */
+    public static boolean sendVendorApplicationConfirmation(String toEmail, String fullName, String businessName) {
+        String subject = "Xác nhận đơn đăng ký Đối tác Kinh doanh - VietTech";
+        String htmlContent = buildVendorApplicationTemplate(fullName, businessName);
+
+        try {
+            sendMail(toEmail, SENDER_EMAIL, subject, htmlContent, true);
+            logger.info("✓ Vendor application confirmation sent to: {}", toEmail);
+            return true;
+        } catch (IOException e) {
+            logger.error("✗ Failed to send vendor application confirmation to: {}", toEmail, e);
+            return false;
+        }
+    }
+
+    /**
+     * Gửi email xác nhận đơn Shipper
+     */
+    public static boolean sendShipperApplicationConfirmation(String toEmail, String fullName, String vehicleType) {
+        String subject = "Xác nhận đơn đăng ký Tài xế Giao hàng - VietTech";
+        String htmlContent = buildShipperApplicationTemplate(fullName, vehicleType);
+
+        try {
+            sendMail(toEmail, SENDER_EMAIL, subject, htmlContent, true);
+            logger.info("✓ Shipper application confirmation sent to: {}", toEmail);
+            return true;
+        } catch (IOException e) {
+            logger.error("✗ Failed to send shipper application confirmation to: {}", toEmail, e);
+            return false;
+        }
+    }
+
+    /**
+     * Template email Vendor
+     */
+    private static String buildVendorApplicationTemplate(String fullName, String businessName) {
+        return String.format("""
+        <!DOCTYPE html>
+        <html lang="vi">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Xác nhận đơn đăng ký</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+            <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f4; padding: 40px 0;">
+                <tr>
+                    <td align="center">
+                        <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            
+                            <!-- Header -->
+                            <tr>
+                                <td align="center" style="padding: 30px 20px; background: linear-gradient(135deg, #0d6efd, #1e40af); border-radius: 10px 10px 0 0;">
+                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                        🎉 Cảm ơn bạn đã đăng ký!
+                                    </h1>
+                                </td>
+                            </tr>
+                            
+                            <!-- Body -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                        Xin chào <strong>%s</strong>,
+                                    </p>
+                                    
+                                    <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                        Chúng tôi đã nhận được đơn đăng ký <strong>Đối tác Kinh doanh</strong> của bạn 
+                                        với doanh nghiệp <strong>"%s"</strong>.
+                                    </p>
+                                    
+                                    <div style="background: #e7f3ff; border-left: 4px solid #0d6efd; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                                        <h3 style="margin: 0 0 15px; color: #0d6efd; font-size: 18px;">📋 Các bước tiếp theo:</h3>
+                                        <ol style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                                            <li>Bộ phận nhân sự sẽ xem xét hồ sơ trong <strong>3-5 ngày làm việc</strong></li>
+                                            <li>Nếu phù hợp, chúng tôi sẽ liên hệ qua <strong>email</strong> hoặc <strong>điện thoại</strong></li>
+                                            <li>Bạn sẽ được mời tham gia <strong>buổi phỏng vấn trực tuyến</strong> hoặc <strong>trực tiếp</strong></li>
+                                            <li>Sau phỏng vấn, chúng tôi sẽ thông báo kết quả trong <strong>1-2 ngày</strong></li>
+                                        </ol>
+                                    </div>
+                                    
+                                    <p style="margin: 20px 0; font-size: 14px; color: #666666; line-height: 1.6;">
+                                        Nếu có thắc mắc, vui lòng liên hệ: <br>
+                                        📧 Email: <a href="mailto:careers@viettech.vn" style="color: #0d6efd; text-decoration: none;">careers@viettech.vn</a><br>
+                                        📞 Hotline: <strong>0866 448 892</strong>
+                                    </p>
+                                    
+                                    <p style="margin: 20px 0; font-size: 16px; color: #333333;">
+                                        Chúc bạn may mắn! 🍀
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td align="center" style="padding: 20px; background-color: #f8f9fa; border-radius: 0 0 10px 10px;">
+                                    <p style="margin: 0; font-size: 12px; color: #999999;">
+                                        © 2025 <strong>VietTech</strong> - Sàn Thương Mại Điện Tử
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+        """, fullName, businessName);
+    }
+
+    /**
+     * Template email Shipper
+     */
+    private static String buildShipperApplicationTemplate(String fullName, String vehicleType) {
+        return String.format("""
+        <!DOCTYPE html>
+        <html lang="vi">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Xác nhận đơn đăng ký</title>
+        </head>
+        <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+            <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f4; padding: 40px 0;">
+                <tr>
+                    <td align="center">
+                        <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            
+                            <!-- Header -->
+                            <tr>
+                                <td align="center" style="padding: 30px 20px; background: linear-gradient(135deg, #0d6efd, #1e40af); border-radius: 10px 10px 0 0;">
+                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                        🚚 Cảm ơn bạn đã đăng ký!
+                                    </h1>
+                                </td>
+                            </tr>
+                            
+                            <!-- Body -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                        Xin chào <strong>%s</strong>,
+                                    </p>
+                                    
+                                    <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                        Chúng tôi đã nhận được đơn đăng ký <strong>Tài xế Giao hàng</strong> của bạn 
+                                        với phương tiện <strong>"%s"</strong>.
+                                    </p>
+                                    
+                                    <div style="background: #e7f3ff; border-left: 4px solid #0d6efd; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                                        <h3 style="margin: 0 0 15px; color: #0d6efd; font-size: 18px;">📋 Các bước tiếp theo:</h3>
+                                        <ol style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                                            <li>Bộ phận nhân sự sẽ xem xét hồ sơ trong <strong>3-5 ngày làm việc</strong></li>
+                                            <li>Nếu phù hợp, chúng tôi sẽ liên hệ qua <strong>email</strong> hoặc <strong>điện thoại</strong></li>
+                                            <li>Bạn sẽ được mời tham gia <strong>buổi định hướng</strong> về quy trình giao hàng</li>
+                                            <li>Sau định hướng, bạn có thể <strong>bắt đầu nhận đơn</strong> ngay lập tức</li>
+                                        </ol>
+                                    </div>
+                                    
+                                    <p style="margin: 20px 0; font-size: 14px; color: #666666; line-height: 1.6;">
+                                        Nếu có thắc mắc, vui lòng liên hệ: <br>
+                                        📧 Email: <a href="mailto:careers@viettech.vn" style="color: #0d6efd; text-decoration: none;">careers@viettech.vn</a><br>
+                                        📞 Hotline: <strong>0866 448 892</strong>
+                                    </p>
+                                    
+                                    <p style="margin: 20px 0; font-size: 16px; color: #333333;">
+                                        Chúc bạn may mắn! 🍀
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td align="center" style="padding: 20px; background-color: #f8f9fa; border-radius: 0 0 10px 10px;">
+                                    <p style="margin: 0; font-size: 12px; color: #999999;">
+                                        © 2025 <strong>VietTech</strong> - Sàn Thương Mại Điện Tử
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+        """, fullName, vehicleType);
+    }
+
     private EmailUtilBrevo() {
         throw new AssertionError("Cannot instantiate utility class");
     }

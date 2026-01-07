@@ -116,31 +116,60 @@
                 <div class="tab-pane fade show active" id="vendor" role="tabpanel">
                     <form id="vendorForm" method="post" action="${pageContext.request.contextPath}/careers/vendor">
                         <div class="row g-3">
+                            <!-- ✅ Họ - Tự động điền từ session -->
                             <div class="col-md-6">
                                 <label class="form-label">Họ <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="firstName" required>
+                                <input type="text"
+                                       class="form-control"
+                                       name="firstName"
+                                       value="${not empty sessionScope.user ? sessionScope.user.firstName : ''}"
+                                       required>
                             </div>
+
+                            <!-- ✅ Tên - Tự động điền từ session -->
                             <div class="col-md-6">
                                 <label class="form-label">Tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="lastName" required>
+                                <input type="text"
+                                       class="form-control"
+                                       name="lastName"
+                                       value="${not empty sessionScope.user ? sessionScope.user.lastName : ''}"
+                                       required>
                             </div>
+
+                            <!-- ✅ Email - Tự động điền và READONLY -->
                             <div class="col-md-6">
                                 <label class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" name="email" required>
+                                <input type="email"
+                                       class="form-control"
+                                       name="email"
+                                       value="${not empty sessionScope.user ? sessionScope.user.email : ''}"
+                                       readonly
+                                       required>
+                                <small class="text-muted">Email không thể thay đổi</small>
                             </div>
+
+                            <!-- ✅ Số điện thoại - Tự động điền -->
                             <div class="col-md-6">
                                 <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control" name="phone" pattern="[0-9]{10}" required>
+                                <input type="tel"
+                                       class="form-control"
+                                       name="phone"
+                                       value="${not empty sessionScope.user ? sessionScope.user.phone : ''}"
+                                       pattern="[0-9]{10}"
+                                       required>
                             </div>
+
+                            <!-- ✅ Giới tính - Tự động chọn -->
                             <div class="col-md-6">
                                 <label class="form-label">Giới tính <span class="text-danger">*</span></label>
                                 <select class="form-select" name="gender" required>
                                     <option value="">-- Chọn --</option>
-                                    <option value="Nam">Nam</option>
-                                    <option value="Nữ">Nữ</option>
-                                    <option value="Khác">Khác</option>
+                                    <option value="Nam" ${sessionScope.user.gender == 'Male' ? 'selected' : ''}>Nam</option>
+                                    <option value="Nữ" ${sessionScope.user.gender == 'Female' ? 'selected' : ''}>Nữ</option>
+                                    <option value="Khác" ${sessionScope.user.gender == 'Other' ? 'selected' : ''}>Khác</option>
                                 </select>
                             </div>
+
                             <div class="col-md-6">
                                 <label class="form-label">Tên doanh nghiệp <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="businessName" required>
@@ -182,31 +211,60 @@
                 <div class="tab-pane fade" id="shipper" role="tabpanel">
                     <form id="shipperForm" method="post" action="${pageContext.request.contextPath}/careers/shipper">
                         <div class="row g-3">
+                            <!-- ✅ Họ - Tự động điền -->
                             <div class="col-md-6">
                                 <label class="form-label">Họ <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="firstName" required>
+                                <input type="text"
+                                       class="form-control"
+                                       name="firstName"
+                                       value="${not empty sessionScope.user ? sessionScope.user.firstName : ''}"
+                                       required>
                             </div>
+
+                            <!-- ✅ Tên - Tự động điền -->
                             <div class="col-md-6">
                                 <label class="form-label">Tên <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" name="lastName" required>
+                                <input type="text"
+                                       class="form-control"
+                                       name="lastName"
+                                       value="${not empty sessionScope.user ? sessionScope.user.lastName : ''}"
+                                       required>
                             </div>
+
+                            <!-- ✅ Email - Tự động điền và READONLY -->
                             <div class="col-md-6">
                                 <label class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control" name="email" required>
+                                <input type="email"
+                                       class="form-control"
+                                       name="email"
+                                       value="${not empty sessionScope.user ? sessionScope.user.email : ''}"
+                                       readonly
+                                       required>
+                                <small class="text-muted">Email không thể thay đổi</small>
                             </div>
+
+                            <!-- ✅ Số điện thoại - Tự động điền -->
                             <div class="col-md-6">
                                 <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control" name="phone" pattern="[0-9]{10}" required>
+                                <input type="tel"
+                                       class="form-control"
+                                       name="phone"
+                                       value="${not empty sessionScope.user ? sessionScope.user.phone : ''}"
+                                       pattern="[0-9]{10}"
+                                       required>
                             </div>
+
+                            <!-- ✅ Giới tính - Tự động chọn -->
                             <div class="col-md-6">
                                 <label class="form-label">Giới tính <span class="text-danger">*</span></label>
                                 <select class="form-select" name="gender" required>
                                     <option value="">-- Chọn --</option>
-                                    <option value="Nam">Nam</option>
-                                    <option value="Nữ">Nữ</option>
-                                    <option value="Khác">Khác</option>
+                                    <option value="Nam" ${sessionScope.user.gender == 'Male' ? 'selected' : ''}>Nam</option>
+                                    <option value="Nữ" ${sessionScope.user.gender == 'Female' ? 'selected' : ''}>Nữ</option>
+                                    <option value="Khác" ${sessionScope.user.gender == 'Other' ? 'selected' : ''}>Khác</option>
                                 </select>
                             </div>
+
                             <div class="col-md-6">
                                 <label class="form-label">Số bằng lái xe <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="licenseNumber" required>
@@ -258,6 +316,5 @@
 <jsp:include page="../../footer.jsp" />
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
-<script src="${pageContext.request.contextPath}/assets/js/careers.js"></script>
 </body>
 </html>
