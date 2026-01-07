@@ -4,9 +4,11 @@ import viettech.config.VNPayConfig;
 import viettech.dao.AddressDAO;
 import viettech.dao.CustomerDAO;
 import viettech.dao.OrderDAO;
+import viettech.dao.OrderStatusDAO;
 import viettech.dto.CartCheckoutItemDTO;
 import viettech.entity.Address;
 import viettech.entity.order.Order;
+import viettech.entity.order.OrderStatus;
 import viettech.entity.user.Customer;
 import viettech.entity.user.User;
 
@@ -24,6 +26,7 @@ public class CheckoutServlet extends HttpServlet {
     private CustomerDAO customerDAO;
     private AddressDAO addressDAO;
     private OrderDAO orderDAO;
+    private OrderStatusDAO orderStatusDAO;
 
     @Override
     public void init() throws ServletException {
@@ -31,6 +34,7 @@ public class CheckoutServlet extends HttpServlet {
         customerDAO = new CustomerDAO();
         addressDAO = new AddressDAO();
         orderDAO = new OrderDAO();
+        orderStatusDAO = new OrderStatusDAO();
     }
 
     @Override
@@ -162,7 +166,7 @@ public class CheckoutServlet extends HttpServlet {
 
             // Xử lý theo phương thức thanh toán
             if ("VNPAY".equals(paymentMethod)) {
-                // Tạo đơn hàng tạm với status PENDING
+                // Tạo đơn hàng tạm với status PENDING_PAYMENT
                 String orderNumber = VNPayConfig.generateOrderNumber();
 
                 // Giả sử vendorId = 1 (bạn cần logic để lấy vendorId thực tế)
@@ -177,7 +181,7 @@ public class CheckoutServlet extends HttpServlet {
                         fullCustomer.getUserId(),
                         vendorId,
                         selectedAddress.getAddressId(),
-                        "PENDING_PAYMENT", // Chờ thanh toán
+                        "Pending_Payment", // Chờ thanh toán
                         subtotal,
                         shippingFee,
                         0, // discount
@@ -192,6 +196,22 @@ public class CheckoutServlet extends HttpServlet {
 
                 // Lưu order vào database
                 orderDAO.insert(order);
+
+                // Lấy order vừa tạo để có orderId
+                Order createdOrder = orderDAO.findByOrderNumber(orderNumber);
+
+                if (createdOrder != null) {
+                    // Tạo OrderStatus đầu tiên: PENDING_PAYMENT
+                    OrderStatus orderStatus = new OrderStatus(
+                            createdOrder.getOrderId(),
+                            "Pending_Payment",
+                            "Đơn hàng đã được tạo, đang chờ thanh toán qua VNPay",
+                            null, // location
+                            "SYSTEM", // updatedBy
+                            null  // images
+                    );
+                    orderStatusDAO.insert(orderStatus);
+                }
 
                 // Lưu orderNumber vào session để xử lý sau khi thanh toán
                 session.setAttribute("pendingOrderNumber", orderNumber);
