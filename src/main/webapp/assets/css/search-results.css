@@ -249,3 +249,6 @@ section.products .product-badges .badge.installment {
 .col-12 .d-flex{
    margin-left: 45px;
 }
+#filter-price{
+    margin-right: 45px;
+}

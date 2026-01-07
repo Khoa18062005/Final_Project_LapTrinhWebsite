@@ -90,11 +90,17 @@
                  class="btn btn-sort ${currentSort == 'price_asc' ? 'btn-sort-active' : 'btn-sort-inactive'}">
                 <i class="bi bi-arrow-up"></i> Giá thấp
               </a>
+
+              <!-- === THÊM MỚI: Đánh giá cao nhất === -->
+              <a href="?q=${keyword}&sort=rating_desc&min_price=${currentMinPrice}&max_price=${currentMaxPrice}"
+                 class="btn btn-sort ${currentSort == 'rating_desc' ? 'btn-sort-active' : 'btn-sort-inactive'}">
+                <i class="bi bi-star-fill text-warning"></i> Đánh giá cao
+              </a>
             </div>
           </div>
 
           <!-- LỌC GIÁ -->
-          <div class="col-12 col-md">
+          <div class="col-12 col-md" id="filter-price">
             <form method="get" id="priceFilterForm" class="d-flex flex-wrap gap-2 align-items-end justify-content-md-end">
               <input type="hidden" name="q" value="${keyword}">
               <input type="hidden" name="sort" value="${currentSort}">

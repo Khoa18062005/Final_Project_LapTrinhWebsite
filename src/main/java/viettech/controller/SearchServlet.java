@@ -23,51 +23,40 @@ public class SearchServlet extends HttpServlet {
         String q = req.getParameter("q");
         String keyword = (q != null) ? q.trim() : "";
 
-        // Nếu không có tham số q HOẶC q chỉ là chuỗi rỗng/khoảng trắng → redirect về trang chủ
-        if (q == null || keyword.isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/"); // Redirect về index (trang chủ)
-            return; // Quan trọng: dừng xử lý tiếp theo
+        // Nếu không có từ khóa → redirect về trang chủ
+        if (keyword.isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/");
+            return;
         }
 
-        // Các tham số lọc và sắp xếp
-        String sort = req.getParameter("sort"); // "price_asc", "price_desc"
-        String minPriceStr = req.getParameter("min_price");
-        String maxPriceStr = req.getParameter("max_price");
+        // === 1. Lấy các tham số lọc và sắp xếp từ request ===
+        String sort = req.getParameter("sort"); // price_asc, price_desc, rating_desc
 
-        Double minPrice = null;
-        Double maxPrice = null;
+        Double minPrice = parseDoubleOrNull(req.getParameter("minPrice"));
+        Double maxPrice = parseDoubleOrNull(req.getParameter("maxPrice"));
+        Double minRating = parseDoubleOrNull(req.getParameter("minRating")); // ví dụ: 4.0
 
-        if (minPriceStr != null && !minPriceStr.trim().isEmpty()) {
-            try {
-                minPrice = Double.parseDouble(minPriceStr.trim());
-            } catch (NumberFormatException e) {
-                minPrice = null;
-            }
-        }
-        if (maxPriceStr != null && !maxPriceStr.trim().isEmpty()) {
-            try {
-                maxPrice = Double.parseDouble(maxPriceStr.trim());
-            } catch (NumberFormatException e) {
-                maxPrice = null;
-            }
-        }
-
-        // Có từ khóa hợp lệ → thực hiện tìm kiếm
+        // === 2. Thực hiện tìm kiếm ===
         List<ProductCardDTO> products = productService.searchProducts(keyword);
 
-        // Áp dụng lọc và sắp xếp (nếu có)
-        if ((sort != null && !sort.isEmpty()) || minPrice != null || maxPrice != null) {
-            products = productService.filterAndSort(products, sort, minPrice, maxPrice);
-        }
+        // === 3. Áp dụng lọc + sắp xếp (nếu có) ===
+        products = productService.filterAndSort(products, sort, minPrice, maxPrice, minRating);
 
-        // Đưa dữ liệu ra JSP
+        // === 4. Đưa dữ liệu vào request để JSP hiển thị ===
         req.setAttribute("products", products);
         req.setAttribute("keyword", keyword);
-        req.setAttribute("currentSort", sort);
-        req.setAttribute("currentMinPrice", minPrice);
-        req.setAttribute("currentMaxPrice", maxPrice);
         req.setAttribute("pageTitle", "Tìm kiếm: " + keyword);
 
+        // Giữ lại các tham số lọc để JSP đánh dấu (selected, checked...)
+        req.setAttribute("sort", sort);
+        req.setAttribute("minPrice", minPrice);
+        req.setAttribute("maxPrice", maxPrice);
+        req.setAttribute("minRating", minRating);
+
+        // Đếm số kết quả
+        req.setAttribute("totalResults", products.size());
+
+        // Forward sang JSP
         req.getRequestDispatcher("/WEB-INF/views/search-results.jsp")
                 .forward(req, resp);
     }
@@ -75,6 +64,18 @@ public class SearchServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        doGet(req, resp); // xử lý giống GET
+        doGet(req, resp);
+    }
+
+    // Helper method để parse Double an toàn
+    private Double parseDoubleOrNull(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }
