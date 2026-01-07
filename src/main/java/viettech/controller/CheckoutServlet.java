@@ -1,16 +1,15 @@
 package viettech.controller;
 
 import viettech.config.VNPayConfig;
-import viettech.dao.AddressDAO;
-import viettech.dao.CustomerDAO;
-import viettech.dao.OrderDAO;
-import viettech.dao.OrderStatusDAO;
+import viettech.dao.*;
 import viettech.dto.CartCheckoutItemDTO;
 import viettech.entity.Address;
 import viettech.entity.order.Order;
 import viettech.entity.order.OrderStatus;
 import viettech.entity.user.Customer;
 import viettech.entity.user.User;
+import viettech.entity.voucher.Voucher;
+import viettech.entity.voucher.VoucherUsage;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
@@ -27,6 +26,8 @@ public class CheckoutServlet extends HttpServlet {
     private AddressDAO addressDAO;
     private OrderDAO orderDAO;
     private OrderStatusDAO orderStatusDAO;
+    private VoucherDAO voucherDAO;
+    private VoucherUsageDAO voucherUsageDAO;
 
     @Override
     public void init() throws ServletException {
@@ -35,6 +36,8 @@ public class CheckoutServlet extends HttpServlet {
         addressDAO = new AddressDAO();
         orderDAO = new OrderDAO();
         orderStatusDAO = new OrderStatusDAO();
+        voucherDAO = new VoucherDAO();
+        voucherUsageDAO = new VoucherUsageDAO();
     }
 
     @Override
@@ -77,6 +80,10 @@ public class CheckoutServlet extends HttpServlet {
             request.setAttribute("savedAddresses", savedAddresses);
             request.setAttribute("defaultAddress", defaultAddress);
 
+            // Lấy danh sách voucher active và valid
+            List<Voucher> availableVouchers = voucherDAO.findActiveAndValid();
+            request.setAttribute("availableVouchers", availableVouchers);
+
             List<CartCheckoutItemDTO> selectedCartItems = (List<CartCheckoutItemDTO>) session.getAttribute("selectedCartItems");
             if (selectedCartItems != null && !selectedCartItems.isEmpty()) {
                 request.setAttribute("selectedCartItems", selectedCartItems);
@@ -114,6 +121,7 @@ public class CheckoutServlet extends HttpServlet {
             String selectedAddressIdStr = request.getParameter("selectedAddressId");
             String paymentMethod = request.getParameter("paymentMethod");
             String note = request.getParameter("note");
+            String voucherCode = request.getParameter("voucherCode");
 
             if (selectedAddressIdStr == null || selectedAddressIdStr.trim().isEmpty()) {
                 throw new Exception("Vui lòng chọn địa chỉ giao hàng");
@@ -160,20 +168,71 @@ public class CheckoutServlet extends HttpServlet {
                 subtotal += item.getSubtotal();
             }
 
-            double shippingFee = 30000; // Phí ship cố định
-            double tax = 0; // VAT 10%
-            double totalPrice = subtotal + shippingFee + tax;
+            double shippingFee = 30000;
+            double tax = 0;
+            double voucherDiscount = 0.0;
+            Voucher appliedVoucher = null;
+
+            // Xử lý voucher nếu có
+            if (voucherCode != null && !voucherCode.trim().isEmpty()) {
+                appliedVoucher = voucherDAO.findByCode(voucherCode);
+
+                if (appliedVoucher != null) {
+                    // Kiểm tra voucher còn hợp lệ không
+                    Date now = new Date();
+                    if (!appliedVoucher.isActive() ||
+                            appliedVoucher.getStartDate().after(now) ||
+                            appliedVoucher.getExpiryDate().before(now)) {
+                        throw new Exception("Voucher không còn hiệu lực");
+                    }
+
+                    // Kiểm tra đã sử dụng hết chưa
+                    if (appliedVoucher.getUsageCount() >= appliedVoucher.getUsageLimit()) {
+                        throw new Exception("Voucher đã hết lượt sử dụng");
+                    }
+
+                    // Kiểm tra giá trị đơn hàng tối thiểu
+                    if (subtotal < appliedVoucher.getMinOrderValue()) {
+                        throw new Exception("Đơn hàng chưa đạt giá trị tối thiểu để áp dụng voucher");
+                    }
+
+                    // Kiểm tra user đã dùng voucher này chưa (nếu có giới hạn per user)
+                    if (appliedVoucher.getUsageLimitPerUser() > 0) {
+                        long userUsageCount = voucherUsageDAO.countByVoucherId(appliedVoucher.getVoucherId());
+                        if (userUsageCount >= appliedVoucher.getUsageLimitPerUser()) {
+                            throw new Exception("Bạn đã sử dụng hết lượt áp dụng voucher này");
+                        }
+                    }
+
+                    // Tính toán giảm giá
+                    if ("PERCENTAGE".equals(appliedVoucher.getType())) {
+                        voucherDiscount = subtotal * (appliedVoucher.getDiscountPercent() / 100.0);
+                        if (appliedVoucher.getMaxDiscount() > 0 && voucherDiscount > appliedVoucher.getMaxDiscount()) {
+                            voucherDiscount = appliedVoucher.getMaxDiscount();
+                        }
+                    } else if ("FIXED_AMOUNT".equals(appliedVoucher.getType())) {
+                        voucherDiscount = appliedVoucher.getDiscountAmount();
+                    } else if ("SHIPPING".equals(appliedVoucher.getType())) {
+                        voucherDiscount = appliedVoucher.getDiscountAmount();
+                        shippingFee -= voucherDiscount;
+                    }
+
+                    // Lưu voucher vào session để dùng sau
+                    session.setAttribute("appliedVoucher", appliedVoucher);
+                } else {
+                    throw new Exception("Mã voucher không hợp lệ");
+                }
+            }
+
+            double totalPrice = subtotal + shippingFee + tax - voucherDiscount;
 
             // Xử lý theo phương thức thanh toán
             if ("VNPAY".equals(paymentMethod)) {
-                // Tạo đơn hàng tạm với status PENDING_PAYMENT
                 String orderNumber = VNPayConfig.generateOrderNumber();
-
-                // Giả sử vendorId = 1 (bạn cần logic để lấy vendorId thực tế)
                 int vendorId = 1;
 
                 Calendar cal = Calendar.getInstance();
-                cal.add(Calendar.DAY_OF_MONTH, 3); // Giao hàng sau 3 ngày
+                cal.add(Calendar.DAY_OF_MONTH, 3);
                 Date estimatedDelivery = cal.getTime();
 
                 Order order = new Order(
@@ -181,51 +240,61 @@ public class CheckoutServlet extends HttpServlet {
                         fullCustomer.getUserId(),
                         vendorId,
                         selectedAddress.getAddressId(),
-                        "Pending_Payment", // Chờ thanh toán
+                        "Pending_Payment",
                         subtotal,
                         shippingFee,
-                        0, // discount
+                        0,
                         tax,
-                        0, // voucherDiscount
-                        0, // loyaltyPointsUsed
-                        0, // loyaltyPointsDiscount
+                        voucherDiscount,
+                        0,
+                        0,
                         totalPrice,
                         note,
                         estimatedDelivery
                 );
 
-                // Lưu order vào database
                 orderDAO.insert(order);
-
-                // Lấy order vừa tạo để có orderId
                 Order createdOrder = orderDAO.findByOrderNumber(orderNumber);
 
                 if (createdOrder != null) {
-                    // Tạo OrderStatus đầu tiên: PENDING_PAYMENT
+                    // Tạo OrderStatus
                     OrderStatus orderStatus = new OrderStatus(
                             createdOrder.getOrderId(),
                             "Pending_Payment",
                             "Đơn hàng đã được tạo, đang chờ thanh toán qua VNPay",
-                            null, // location
-                            "SYSTEM", // updatedBy
-                            null  // images
+                            null,
+                            "SYSTEM",
+                            null
                     );
                     orderStatusDAO.insert(orderStatus);
+
+                    // Lưu VoucherUsage nếu có voucher
+                    if (appliedVoucher != null) {
+                        VoucherUsage voucherUsage = new VoucherUsage(
+                                appliedVoucher.getVoucherId(),
+                                fullCustomer.getUserId(),
+                                createdOrder.getOrderId(),
+                                new Date(),
+                                subtotal,
+                                voucherDiscount
+                        );
+                        voucherUsageDAO.insert(voucherUsage);
+
+                        // Tăng usage count của voucher
+                        appliedVoucher.setUsageCount(appliedVoucher.getUsageCount() + 1);
+                        voucherDAO.update(appliedVoucher);
+                    }
                 }
 
-                // Lưu orderNumber vào session để xử lý sau khi thanh toán
                 session.setAttribute("pendingOrderNumber", orderNumber);
 
-                // Tạo URL thanh toán VNPay
                 String orderInfo = "Thanh toan don hang " + orderNumber;
                 long amount = (long) totalPrice;
                 String vnpayUrl = VNPayConfig.createPaymentUrl(request, orderNumber, amount, orderInfo);
 
-                // Redirect tới VNPay
                 response.sendRedirect(vnpayUrl);
 
             } else if ("COD".equals(paymentMethod)) {
-                // Xử lý COD như cũ
                 Boolean isBuyNow = (Boolean) session.getAttribute("isBuyNow");
                 if (isBuyNow != null && isBuyNow) {
                     response.sendRedirect(request.getContextPath() + "/checkout/payment");
@@ -234,7 +303,6 @@ public class CheckoutServlet extends HttpServlet {
                 }
 
             } else if ("MOMO".equals(paymentMethod)) {
-                // TODO: Implement MoMo payment
                 throw new Exception("Phương thức thanh toán MoMo chưa được hỗ trợ");
             }
 

@@ -158,15 +158,12 @@
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Tạm tính:</span>
                                 <span id="subtotal-amount">
-                                        <fmt:formatNumber value="${total}"
-                                                          type="currency"
-                                                          currencySymbol="₫"
-                                                          groupingUsed="true" />
+                                        <fmt:formatNumber value="${total}" type="currency" currencySymbol="₫" groupingUsed="true" />
                                     </span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Phí vận chuyển:</span>
-                                <span id="shipping-fee">₫0</span>
+                                <span id="shipping-fee">30.000₫</span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Giảm giá:</span>
@@ -201,7 +198,7 @@
                                     class="btn btn-success w-100 py-3 fw-bold"
                                     id="checkout-btn"
                                     onclick="cartController.checkout()">
-                                <i class="bi bi-credit-card me-2"></i>THANH TOÁN
+                                <i class="bi bi-credit-card me-2"></i>TIẾP TỤC
                             </button>
 
                             <div class="mt-3 text-center">
