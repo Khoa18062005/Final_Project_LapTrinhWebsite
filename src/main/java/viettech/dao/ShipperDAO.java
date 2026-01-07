@@ -222,7 +222,18 @@ public class ShipperDAO {
     public DeliveryAssignment findAssignmentById(int id) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            return em.find(DeliveryAssignment.class, id);
+            // SỬA: Dùng JPQL với JOIN FETCH thay vì em.find() đơn thuần
+            String jpql = "SELECT da FROM DeliveryAssignment da " +
+                    "LEFT JOIN FETCH da.delivery d " +
+                    "LEFT JOIN FETCH d.order o " +
+                    "WHERE da.assignmentId = :id";
+
+            TypedQuery<DeliveryAssignment> query = em.createQuery(jpql, DeliveryAssignment.class);
+            query.setParameter("id", id);
+
+            return query.getSingleResult();
+        } catch (NoResultException e) {
+            return null;
         } catch (Exception e) {
             logger.error("✗ Error finding assignment ID {}", id, e);
             return null;
@@ -296,6 +307,33 @@ public class ShipperDAO {
         } catch (Exception e) {
             if (trans.isActive()) trans.rollback();
             e.printStackTrace();
+        } finally {
+            em.close();
+        }
+    }
+    /**
+     * Lấy danh sách đơn hàng CHƯA CÓ SHIPPER (Pool đơn hàng tự do)
+     * Điều kiện: shipper_id IS NULL và trạng thái là 'Ready' hoặc 'Processing'
+     */
+    public List<DeliveryAssignment> getAvailableAssignments() {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            // Lấy các đơn chưa ai nhận (shipperId NULL)
+            String jpql = "SELECT da FROM DeliveryAssignment da " +
+                    "LEFT JOIN FETCH da.delivery d " +
+                    "LEFT JOIN FETCH d.order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "LEFT JOIN FETCH d.warehouse w " +
+                    "WHERE da.shipperId IS NULL " + // <--- Quan trọng: Chưa có shipper
+                    "AND (da.status = 'Ready' OR da.status = 'Processing' OR da.status = 'Created') " +
+                    "ORDER BY da.assignedAt DESC";
+
+            TypedQuery<DeliveryAssignment> query = em.createQuery(jpql, DeliveryAssignment.class);
+            return query.getResultList();
+        } catch (Exception e) {
+            logger.error("✗ Error fetching available assignments", e);
+            return Collections.emptyList();
         } finally {
             em.close();
         }

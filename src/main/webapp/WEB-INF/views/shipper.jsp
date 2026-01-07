@@ -17,17 +17,19 @@
         /* Màn hình khóa GPS */
         #gps-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 99999;
+            background: rgba(0,0,0,0.95); z-index: 99999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             color: white; text-align: center;
         }
-        .gps-btn {
-            margin-top: 20px; padding: 10px 20px; border-radius: 5px;
-            border: none; cursor: pointer; font-weight: bold; font-size: 16px;
-        }
+        .gps-btn { margin-top: 20px; padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; font-size: 16px; }
         .btn-retry { background: #3498db; color: white; }
         .btn-logout { background: #e74c3c; color: white; margin-left: 10px; text-decoration: none; display: inline-block;}
+
+        /* CSS Review */
+        .review-stars { color: #f1c40f; font-size: 24px; margin-bottom: 10px; }
+        .review-comment { font-style: italic; color: #555; background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db; text-align: left;}
+        .btn-view-review { background: #f1c40f; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .btn-view-review:hover { background: #f39c12; }
     </style>
 </head>
 <body>
@@ -39,7 +41,6 @@
         Hệ thống yêu cầu quyền truy cập vị trí để hỗ trợ giao hàng. <br>
         Vui lòng chọn <strong>"Cho phép" (Allow)</strong> khi trình duyệt yêu cầu.
     </p>
-
     <div id="gps-actions" style="display: none;">
         <button class="gps-btn btn-retry" onclick="location.reload()">Thử lại</button>
         <a href="${pageContext.request.contextPath}/logout" class="gps-btn btn-logout">Đăng xuất</a>
@@ -52,14 +53,6 @@
         <h1>Shipper Dashboard</h1>
     </div>
     <div class="header-right">
-        <div class="status-toggle">
-            <label class="switch">
-                <input type="checkbox" id="onlineStatus" ${data.shipperInfo.available ? 'checked' : ''}>
-                <span class="slider"></span>
-            </label>
-            <span class="status-text" id="statusText">${data.shipperInfo.available ? 'Đang hoạt động' : 'Tạm nghỉ'}</span>
-        </div>
-
         <div class="shipper-profile" style="cursor:pointer" onclick="openProfileModal()" title="Chỉnh sửa thông tin">
             <img src="${not empty data.shipperInfo.avatar ? data.shipperInfo.avatar : 'https://via.placeholder.com/40'}" alt="Shipper">
             <div class="profile-info">
@@ -77,8 +70,8 @@
                 <i class="fas fa-tachometer-alt"></i> <span>Tổng quan</span>
             </a>
             <a href="#orders" class="nav-item" onclick="showSection('orders')">
-                <i class="fas fa-box"></i> <span>Đơn hàng</span>
-                <span class="count-badge">${fn:length(data.pendingOrders) + fn:length(data.ongoingOrders)}</span>
+                <i class="fas fa-box"></i> <span>Sàn đơn hàng</span>
+                <span class="count-badge" style="background-color: #f39c12;">${fn:length(data.pendingOrders)}</span>
             </a>
             <a href="#income" class="nav-item" onclick="showSection('income')"><i class="fas fa-wallet"></i> <span>Thu nhập</span></a>
             <a href="#history" class="nav-item" onclick="showSection('history')"><i class="fas fa-history"></i> <span>Lịch sử</span></a>
@@ -91,20 +84,21 @@
     </aside>
 
     <main class="main-content">
+
         <section id="overview" class="content-section active">
             <div class="section-title">
-                <h2>Tổng quan hôm nay</h2>
+                <h2>Công việc hôm nay</h2>
                 <p class="date"><script>document.write(new Date().toLocaleDateString('vi-VN'))</script></p>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-icon blue"><i class="fas fa-box"></i></div>
-                    <div class="stat-info"><h3>Đơn phân công</h3><p class="stat-number">${data.todayOrderCount}</p></div>
+                    <div class="stat-info"><h3>Đơn cần giao</h3><p class="stat-number">${fn:length(data.ongoingOrders)}</p></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-                    <div class="stat-info"><h3>Hoàn thành</h3><p class="stat-number">${data.successOrderCount}</p></div>
+                    <div class="stat-info"><h3>Đã hoàn thành</h3><p class="stat-number">${data.successOrderCount}</p></div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon purple"><i class="fas fa-money-bill-wave"></i></div>
@@ -116,124 +110,109 @@
             </div>
 
             <div class="current-delivery">
-                <h3><i class="fas fa-motorcycle"></i> Đơn hàng đang thực hiện</h3>
+                <h3><i class="fas fa-shipping-fast" style="color: #3498db;"></i> Danh sách đơn đang thực hiện (${fn:length(data.ongoingOrders)})</h3>
                 <c:choose>
                     <c:when test="${not empty data.ongoingOrders}">
-                        <c:set var="current" value="${data.ongoingOrders[0]}" />
-                        <c:if test="${not empty current.delivery and not empty current.delivery.order}">
-                            <div class="delivery-card active-delivery">
-                                <div class="delivery-header">
-                                    <div class="order-id"><span class="label">Mã vận đơn:</span> <span class="value">${current.delivery.trackingNumber}</span></div>
-                                    <div class="delivery-status ongoing"><i class="fas fa-shipping-fast"></i> ${current.status}</div>
-                                </div>
-                                <div class="delivery-body">
-                                    <div class="customer-info">
-                                        <i class="fas fa-user"></i>
-                                        <div>
-                                            <strong>${current.delivery.order.customer.lastName} ${current.delivery.order.customer.firstName}</strong>
-                                            <p>${current.delivery.order.customer.phone}</p>
+                        <c:forEach var="current" items="${data.ongoingOrders}">
+                            <c:if test="${not empty current.delivery and not empty current.delivery.order}">
+                                <div class="delivery-card active-delivery" style="margin-bottom: 20px; border-left: 5px solid #3498db;">
+                                    <div class="delivery-header">
+                                        <div class="order-id"><span class="label">Mã vận đơn:</span> <span class="value">${current.delivery.trackingNumber}</span></div>
+                                        <div class="delivery-status ongoing"><i class="fas fa-spinner fa-spin"></i> ${current.status}</div>
+                                    </div>
+                                    <div class="delivery-body">
+                                        <div class="customer-info">
+                                            <i class="fas fa-user"></i>
+                                            <div>
+                                                <strong>${current.delivery.order.customer.lastName} ${current.delivery.order.customer.firstName}</strong>
+                                                <p>${current.delivery.order.customer.phone}</p>
+                                            </div>
+                                        </div>
+                                        <div class="address-info">
+                                            <i class="fas fa-map-marker-alt" style="color: #e74c3c;"></i>
+                                            <div>
+                                                <strong>Giao đến:</strong>
+                                                <a href="https://www.google.com/maps/dir/?api=1&destination=${current.delivery.order.address.street}, ${current.delivery.order.address.ward}, ${current.delivery.order.address.district}, ${current.delivery.order.address.city}"
+                                                   target="_blank"
+                                                   class="address-link" style="color:#3498db; text-decoration: none; font-weight: bold;">
+                                                    ${current.delivery.order.address.street}, ${current.delivery.order.address.district}
+                                                    <i class="fas fa-directions" style="margin-left: 5px;"></i> (Chỉ đường)
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="delivery-details">
+                                            <div class="detail-item"><i class="fas fa-money-bill"></i> <span>Thu hộ: <strong style="color: #c0392b;"><fmt:formatNumber value="${current.delivery.order.totalPrice}" type="number"/> ₫</strong></span></div>
+                                            <div class="detail-item"><i class="fas fa-box"></i> <span>Kho: ${current.delivery.warehouse.name}</span></div>
                                         </div>
                                     </div>
-                                    <div class="address-info">
-                                        <i class="fas fa-map-marker-alt" style="color: #e74c3c;"></i>
-                                        <div>
-                                            <strong>Địa chỉ nhận:</strong>
-
-                                            <a href="https://www.google.com/maps/dir/?api=1&destination=${current.delivery.order.address.street}, ${current.delivery.order.address.ward}, ${current.delivery.order.address.district}, ${current.delivery.order.address.city}"
-                                               target="_blank" class="address-link" style="color:#3498db; text-decoration: none; font-weight: bold;">
-                                                ${current.delivery.order.address.street}, ${current.delivery.order.address.ward}, ${current.delivery.order.address.district}, ${current.delivery.order.address.city}
-                                                <i class="fas fa-directions" style="margin-left: 5px;"></i>
-                                            </a>
-
-                                        </div>
-                                    </div>
-                                    <div class="delivery-details">
-                                        <div class="detail-item"><i class="fas fa-money-bill"></i> <span>Thu hộ: <fmt:formatNumber value="${current.delivery.order.totalPrice}" type="number"/> ₫</span></div>
-                                        <div class="detail-item"><i class="fas fa-box"></i> <span>Kho lấy: ${current.delivery.warehouse.name}</span></div>
+                                    <div class="delivery-actions">
+                                        <form action="${pageContext.request.contextPath}/shipper" method="post" style="width: 100%;">
+                                            <input type="hidden" name="action" value="complete">
+                                            <input type="hidden" name="id" value="${current.assignmentId}">
+                                            <button type="submit" class="btn btn-primary" style="width: 100%; background-color: #2980b9;">
+                                                <i class="fas fa-check-circle"></i> Xác nhận Giao Thành Công
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
-                                <div class="delivery-actions">
-                                    <form action="${pageContext.request.contextPath}/shipper" method="post" style="width: 100%;">
-                                        <input type="hidden" name="action" value="complete">
-                                        <input type="hidden" name="id" value="${current.assignmentId}">
-                                        <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fas fa-check"></i> Hoàn thành</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </c:if>
+                            </c:if>
+                        </c:forEach>
                     </c:when>
                     <c:otherwise>
-                        <p class="empty-state">Hiện không có đơn hàng nào đang giao.</p>
+                        <p class="empty-state">Hiện tại bạn không có đơn hàng nào đang giao.</p>
+                        <button onclick="showSection('orders')" class="btn btn-success" style="margin-top: 10px;">
+                            <i class="fas fa-plus"></i> Nhận đơn mới ngay
+                        </button>
                     </c:otherwise>
                 </c:choose>
             </div>
         </section>
 
         <section id="orders" class="content-section">
-            <div class="section-title"><h2>Danh sách đơn hàng</h2></div>
+            <div class="section-title"><h2>Sàn đơn hàng mới</h2></div>
             <div class="orders-list">
-                <h4 style="margin: 20px 0 10px; color: #f39c12;"><i class="fas fa-clock"></i> Chờ nhận (${fn:length(data.pendingOrders)})</h4>
+                <h4 style="margin: 20px 0 10px; color: #f39c12;"><i class="fas fa-bell"></i> Đơn hàng khả dụng (${fn:length(data.pendingOrders)})</h4>
+
                 <c:forEach var="item" items="${data.pendingOrders}">
                     <c:if test="${not empty item.delivery and not empty item.delivery.order}">
-                        <div class="order-card pending">
+                        <div class="order-card pending" style="border-left: 5px solid #f39c12;">
                              <div class="order-header">
                                 <div class="order-id">#${item.delivery.order.orderNumber}</div>
-                                <div class="order-status pending">${item.status}</div>
+                                <div class="order-status pending">Chờ Shipper</div>
                             </div>
                             <div class="order-info">
-                                <div class="info-row"><i class="fas fa-map-marker-alt"></i> <span>Kho: ${item.delivery.warehouse.name}</span></div>
+                                <div class="info-row"><i class="fas fa-map-marker-alt"></i> <span>Lấy tại: ${item.delivery.warehouse.name}</span></div>
                                 <div class="info-row">
                                     <i class="fas fa-map-pin" style="color: #e74c3c;"></i>
                                     <span>Giao đến:
-                                        <a href="https://www.google.com/maps/dir/?api=1&destination=${item.delivery.order.address.street}, ${item.delivery.order.address.district}, ${item.delivery.order.address.city}"
+                                        <a href="https://www.google.com/maps/dir/?api=1&destination=${item.delivery.order.address.street}, ${item.delivery.order.address.ward}, ${item.delivery.order.address.district}, ${item.delivery.order.address.city}"
                                            target="_blank" style="color:#3498db; text-decoration: none;">
                                             ${item.delivery.order.address.street}, ${item.delivery.order.address.district}
                                             <i class="fas fa-external-link-alt" style="font-size: 12px;"></i>
                                         </a>
                                     </span>
                                 </div>
-                                <div class="info-row"><i class="fas fa-money-bill"></i> <span>Tiền công: <fmt:formatNumber value="${item.earnings}" type="number"/> ₫</span></div>
+                                <div class="info-row"><i class="fas fa-money-bill-wave"></i> <span>Phí Ship: <strong style="color: green;">+<fmt:formatNumber value="${item.earnings}" type="number"/> ₫</strong></span></div>
                             </div>
                             <div class="order-actions">
                                 <form action="${pageContext.request.contextPath}/shipper" method="post" style="width: 100%;">
                                     <input type="hidden" name="action" value="accept">
                                     <input type="hidden" name="id" value="${item.assignmentId}">
-                                    <button type="submit" class="btn btn-success" style="width: 100%;"><i class="fas fa-check"></i> Nhận đơn</button>
+                                    <button type="submit" class="btn btn-success" style="width: 100%;">
+                                        <i class="fas fa-hand-paper"></i> Nhận đơn ngay
+                                    </button>
                                 </form>
                             </div>
                         </div>
                     </c:if>
                 </c:forEach>
 
-                <h4 style="margin: 30px 0 10px; color: #3498db;"><i class="fas fa-motorcycle"></i> Đang thực hiện (${fn:length(data.ongoingOrders)})</h4>
-                <c:forEach var="item" items="${data.ongoingOrders}">
-                    <c:if test="${not empty item.delivery and not empty item.delivery.order}">
-                        <div class="order-card ongoing">
-                            <div class="order-header">
-                                <div class="order-id">#${item.delivery.order.orderNumber}</div>
-                                <div class="order-status ongoing">${item.status}</div>
-                            </div>
-                            <div class="order-info">
-                                <div class="info-row"><i class="fas fa-user"></i> <span>${item.delivery.order.customer.lastName}</span></div>
-                                <div class="info-row">
-                                    <i class="fas fa-map-pin" style="color:#e74c3c"></i>
-                                    <a href="https://www.google.com/maps/dir/?api=1&destination=${item.delivery.order.address.street}, ${item.delivery.order.address.district}, ${item.delivery.order.address.city}"
-                                       target="_blank" style="color:#3498db; text-decoration: none;">
-                                       ${item.delivery.order.address.street}
-                                    </a>
-                                </div>
-                                <div class="info-row"><i class="fas fa-hand-holding-usd" style="color: #2980b9;"></i> <span>COD: <fmt:formatNumber value="${item.delivery.order.totalPrice}" type="number"/> ₫</span></div>
-                            </div>
-                            <div class="order-actions">
-                                <form action="${pageContext.request.contextPath}/shipper" method="post" style="width: 100%;">
-                                    <input type="hidden" name="action" value="complete">
-                                    <input type="hidden" name="id" value="${item.assignmentId}">
-                                    <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fas fa-check"></i> Hoàn thành</button>
-                                </form>
-                            </div>
-                        </div>
-                    </c:if>
-                </c:forEach>
+                <c:if test="${empty data.pendingOrders}">
+                    <div class="empty-state" style="margin-top: 50px;">
+                        <i class="fas fa-inbox" style="font-size: 50px; color: #ddd; margin-bottom: 20px;"></i>
+                        <p>Hiện tại không có đơn hàng mới nào trên hệ thống.</p>
+                    </div>
+                </c:if>
             </div>
         </section>
 
@@ -262,16 +241,35 @@
             <div class="history-table">
                 <c:choose>
                     <c:when test="${not empty data.historyOrders}">
-                        <table style="width:100%">
-                            <thead><tr><th>Mã đơn</th><th>Ngày xong</th><th>Thu nhập</th><th>Trạng thái</th></tr></thead>
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background:#f8f9fa; border-bottom:2px solid #eee;">
+                                    <th style="padding:12px;">Mã đơn</th>
+                                    <th>Ngày xong</th>
+                                    <th>Thu nhập</th>
+                                    <th>Trạng thái</th>
+                                    <th>Đánh giá</th>
+                                </tr>
+                            </thead>
                             <tbody>
                             <c:forEach var="h" items="${data.historyOrders}">
                                 <c:if test="${not empty h.delivery and not empty h.delivery.order}">
-                                    <tr>
-                                        <td>#${h.delivery.order.orderNumber}</td>
+                                    <tr style="border-bottom:1px solid #eee;">
+                                        <td style="padding:12px;">#${h.delivery.order.orderNumber}</td>
                                         <td><fmt:formatDate value="${h.completedAt}" pattern="dd/MM/yyyy HH:mm"/></td>
-                                        <td><fmt:formatNumber value="${h.earnings}" type="number"/> ₫</td>
+                                        <td style="color:#27ae60; font-weight:bold;">+<fmt:formatNumber value="${h.earnings}" type="number"/> ₫</td>
                                         <td><span class="status-badge completed">${h.status}</span></td>
+                                        <td>
+                                            <c:if test="${not empty h.rating and h.rating > 0}">
+                                                <button class="btn-view-review"
+                                                        onclick="openReviewModal('${h.delivery.order.orderNumber}', ${h.rating}, '${fn:escapeXml(h.feedback)}')">
+                                                    <i class="fas fa-star" style="margin-right:4px;"></i> Xem
+                                                </button>
+                                            </c:if>
+                                            <c:if test="${empty h.rating or h.rating == 0}">
+                                                <span style="color:#bdc3c7; font-size:13px;">--</span>
+                                            </c:if>
+                                        </td>
                                     </tr>
                                 </c:if>
                             </c:forEach>
@@ -287,42 +285,56 @@
     </main>
 </div>
 
-<div id="profileModalBackdrop" class="profile-modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
-  <div class="profile-modal" role="document">
-    <h3><i class="fas fa-user-edit" style="color: #3498db;"></i> Cập nhật thông tin</h3>
-    <form id="profileForm" action="${pageContext.request.contextPath}/shipper" method="post" enctype="multipart/form-data" onsubmit="return submitProfileForm()">
-      <input type="hidden" name="action" value="updateProfile" />
-      <input type="hidden" name="deleteAvatar" id="deleteAvatarFlag" value="false" />
-      <div style="text-align: center; margin-bottom: 20px;">
-          <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 10px;">
-              <img id="avatarPreview" src="${not empty data.shipperInfo.avatar ? data.shipperInfo.avatar : 'https://via.placeholder.com/100'}"
-                   style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #f0f2f5;">
-              <label for="avatarInput" style="position: absolute; bottom: 0; right: 0; background: #3498db; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white;">
-                  <i class="fas fa-camera"></i>
-              </label>
-              <input type="file" id="avatarInput" name="avatarFile" accept="image/*" style="display: none;" onchange="previewImage(this)">
-          </div>
-          <button type="button" style="background: none; border: none; color: #e74c3c; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="removeAvatar()">
-              <i class="fas fa-trash"></i> Xóa ảnh
-          </button>
-      </div>
-      <div class="profile-row">
-        <div style="flex: 1;"><label>Họ</label><input type="text" name="lastName" id="pfLastName" value="${data.shipperInfo.lastName}" required /></div>
-        <div style="flex: 1;"><label>Tên</label><input type="text" name="firstName" id="pfFirstName" value="${data.shipperInfo.firstName}" required /></div>
-      </div>
-      <div class="form-group"><label>Email</label><input type="email" value="${data.shipperInfo.email}" disabled /></div>
-      <div class="profile-row">
-          <div style="flex: 1;"><label>Số điện thoại</label><input type="tel" name="phone" id="pfPhone" value="${data.shipperInfo.phone}" required /></div>
-          <div style="flex: 1;"><label>Biển số xe</label><input type="text" name="vehiclePlate" value="${data.shipperInfo.vehiclePlate}" placeholder="59A-123.45" /></div>
-      </div>
-      <div class="form-group"><label>Giấy phép lái xe</label><input type="text" name="licenseNumber" value="${data.shipperInfo.licenseNumber}" placeholder="Nhập số GPLX..." /></div>
-      <div class="form-group"><label>Đổi mật khẩu</label><input type="password" name="password" id="pfPassword" placeholder="Nhập mật khẩu mới (để trống nếu không đổi)" /></div>
-      <div class="profile-actions">
-        <button type="button" class="btn btn-secondary" onclick="closeProfileModal()">Đóng</button>
-        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu thay đổi</button>
-      </div>
-    </form>
-  </div>
+<div id="profileModalBackdrop" class="profile-modal-backdrop" role="dialog">
+    <div class="profile-modal" role="document">
+        <h3><i class="fas fa-user-edit" style="color: #3498db;"></i> Cập nhật thông tin</h3>
+        <form id="profileForm" action="${pageContext.request.contextPath}/shipper" method="post" enctype="multipart/form-data" onsubmit="return submitProfileForm()">
+            <input type="hidden" name="action" value="updateProfile" />
+            <input type="hidden" name="deleteAvatar" id="deleteAvatarFlag" value="false" />
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="position: relative; width: 100px; height: 100px; margin: 0 auto 10px;">
+                    <img id="avatarPreview" src="${not empty data.shipperInfo.avatar ? data.shipperInfo.avatar : 'https://via.placeholder.com/100'}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid #f0f2f5;">
+                    <label for="avatarInput" style="position: absolute; bottom: 0; right: 0; background: #3498db; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 2px solid white;">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                    <input type="file" id="avatarInput" name="avatarFile" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                </div>
+                <button type="button" style="background: none; border: none; color: #e74c3c; font-size: 13px; cursor: pointer; text-decoration: underline;" onclick="removeAvatar()"><i class="fas fa-trash"></i> Xóa ảnh</button>
+            </div>
+            <div class="profile-row">
+                <div style="flex: 1;"><label>Họ</label><input type="text" name="lastName" id="pfLastName" value="${data.shipperInfo.lastName}" required /></div>
+                <div style="flex: 1;"><label>Tên</label><input type="text" name="firstName" id="pfFirstName" value="${data.shipperInfo.firstName}" required /></div>
+            </div>
+            <div class="form-group"><label>Email</label><input type="email" value="${data.shipperInfo.email}" disabled /></div>
+            <div class="profile-row">
+                <div style="flex: 1;"><label>Số điện thoại</label><input type="tel" name="phone" id="pfPhone" value="${data.shipperInfo.phone}" required /></div>
+                <div style="flex: 1;"><label>Biển số xe</label><input type="text" name="vehiclePlate" value="${data.shipperInfo.vehiclePlate}" placeholder="59A-123.45" /></div>
+            </div>
+            <div class="form-group"><label>Giấy phép lái xe</label><input type="text" name="licenseNumber" value="${data.shipperInfo.licenseNumber}" placeholder="Nhập số GPLX..." /></div>
+            <div class="form-group"><label>Đổi mật khẩu</label><input type="password" name="password" id="pfPassword" placeholder="Nhập mật khẩu mới (để trống nếu không đổi)" /></div>
+            <div class="profile-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeProfileModal()">Đóng</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="reviewModalBackdrop" class="profile-modal-backdrop" style="display: none;" role="dialog">
+    <div class="profile-modal" role="document" style="max-width: 500px;">
+        <h3 style="text-align:center; margin-bottom: 20px;">Đánh giá từ khách hàng</h3>
+        <div style="text-align: center;">
+            <p style="color:#7f8c8d; margin-bottom: 5px;">Đơn hàng: <strong id="reviewOrderId">#0000</strong></p>
+            <div id="reviewStars" class="review-stars"></div>
+        </div>
+        <div style="margin-top: 15px;">
+            <label style="display:block; margin-bottom:5px; font-weight:600;">Lời nhắn:</label>
+            <div id="reviewComment" class="review-comment"></div>
+        </div>
+        <div class="profile-actions" style="margin-top: 25px;">
+            <button type="button" class="btn btn-secondary" onclick="closeReviewModal()" style="width: 100%;">Đóng</button>
+        </div>
+    </div>
 </div>
 
 <script src="${pageContext.request.contextPath}/assets/js/shipper.js"></script>
@@ -370,7 +382,20 @@
         xhr.send("action=updateLocation&lat=" + lat + "&lon=" + lon);
     }
 
-    // --- CHART & DASHBOARD LOGIC ---
+    function openReviewModal(orderNumber, rating, feedback) {
+        document.getElementById('reviewOrderId').innerText = '#' + orderNumber;
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= rating) starsHtml += '<i class="fas fa-star" style="color: #f1c40f;"></i>';
+            else starsHtml += '<i class="far fa-star" style="color: #f1c40f;"></i>';
+        }
+        document.getElementById('reviewStars').innerHTML = starsHtml;
+        const commentDiv = document.getElementById('reviewComment');
+        commentDiv.innerText = (feedback && feedback !== 'null') ? feedback : "Khách hàng không để lại lời nhắn.";
+        document.getElementById('reviewModalBackdrop').style.display = 'flex';
+    }
+    function closeReviewModal() { document.getElementById('reviewModalBackdrop').style.display = 'none'; }
+
     const dbData = {
         today: { income: ${data.todayIncome != null ? data.todayIncome : 0}, count: ${data.successOrderCount != null ? data.successOrderCount : 0}, labels: ["Hôm nay"], values: [${data.todayIncome != null ? data.todayIncome : 0}] },
         week: { income: ${data.income7Days != null ? data.income7Days : 0}, count: ${data.count7Days != null ? data.count7Days : 0}, labels: [<c:forEach items="${data.chartLabels7Days}" var="l">"${l}",</c:forEach>], values: [<c:forEach items="${data.chartData7Days}" var="v">${v != null ? v : 0},</c:forEach>] },
@@ -389,8 +414,6 @@
         if (document.getElementById('lblCount')) document.getElementById('lblCount').innerText = currentData.count + " đơn";
         renderChart(currentData.labels, currentData.values);
     }
-
-    // --- OTHER UI FUNCTIONS ---
     function showSection(sectionId) {
         document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
@@ -400,21 +423,8 @@
     function openProfileModal() { document.getElementById('profileModalBackdrop').style.display = 'flex'; }
     function closeProfileModal() { document.getElementById('profileModalBackdrop').style.display = 'none'; }
     function submitProfileForm() { return true; }
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('avatarPreview').src = e.target.result;
-                document.getElementById('deleteAvatarFlag').value = "false";
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-    function removeAvatar() {
-        document.getElementById('avatarPreview').src = 'https://via.placeholder.com/100?text=No+Img';
-        document.getElementById('avatarInput').value = "";
-        document.getElementById('deleteAvatarFlag').value = "true";
-    }
+    function previewImage(input) { if (input.files && input.files[0]) { var reader = new FileReader(); reader.onload = function(e) { document.getElementById('avatarPreview').src = e.target.result; document.getElementById('deleteAvatarFlag').value = "false"; }; reader.readAsDataURL(input.files[0]); } }
+    function removeAvatar() { document.getElementById('avatarPreview').src = 'https://via.placeholder.com/100?text=No+Img'; document.getElementById('avatarInput').value = ""; document.getElementById('deleteAvatarFlag').value = "true"; }
 </script>
 </body>
 </html>
