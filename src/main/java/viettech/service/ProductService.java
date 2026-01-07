@@ -661,7 +661,7 @@ public class ProductService {
         return dto;
     }
 
-    private List<ProductCardDTO> getFeaturedOrNewestAsCardDTO(int limit) {
+    public List<ProductCardDTO> getFeaturedOrNewestAsCardDTO(int limit) {
         List<Product> products = productDAO.findFeatured();
         if (products.isEmpty()) {
             products = productDAO.findNewest(limit);
