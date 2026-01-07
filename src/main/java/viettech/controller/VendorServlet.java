@@ -46,18 +46,50 @@ public class VendorServlet extends HttpServlet {
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
 
-        // 2. Bảo mật: Chỉ Vendor (Role = 2) được vào
-//        if (user == null) {
-//            response.sendRe(request.getContextPath() + "/login");
-//            return;
-//        }
-//        if (user.getRoleID() != 2) {
-//            response.sendRe(request.getContextPath() + "/");
-//            return;
-//        }
-
         // 3. Lấy action từ request
         String action = request.getParameter("action");
+
+        // --- API actions that must return JSON and must NOT forward JSP ---
+        // Note: keep this early to avoid accidentally forwarding vendor.jsp (HTML).
+        if ("statsData".equals(action)) {
+            if (user == null || user.getRoleID() != 2) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                sendJsonResponse(response, false, "Unauthorized access", null);
+                return;
+            }
+
+            int vendorId = user.getUserId();
+            try {
+                String period = request.getParameter("period");
+                Map<String, Object> stats;
+                try {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> s = (Map<String, Object>) vendorService.getClass()
+                            .getMethod("getVendorStats", int.class, String.class)
+                            .invoke(vendorService, vendorId, period);
+                    stats = s;
+                } catch (Exception reflectEx) {
+                    throw new RuntimeException("Stats API method not available: getVendorStats", reflectEx);
+                }
+                sendJsonResponse(response, true, "OK", stats);
+            } catch (Exception e) {
+                logger.error("Error getting vendor stats", e);
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                sendJsonResponse(response, false, e.getMessage(), null);
+            }
+            return;
+        }
+
+        // From here onward, pages are HTML. Require authenticated vendor.
+        if (user == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+        if (user.getRoleID() != 2) {
+            response.sendRedirect(request.getContextPath() + "/");
+            return;
+        }
+
         int vendorId = user.getUserId();
 
         try {
@@ -100,6 +132,9 @@ public class VendorServlet extends HttpServlet {
                 logger.debug("Products for vendor {}: {}", vendorId, products);
                 logger.info("Setting {} products for products page", products != null ? products.size() : 0);
                 request.setAttribute("products", products);
+            } else if (action.equals("stats")) {
+                // Page render only (HTML). Data will be loaded via AJAX from action=statsData.
+                // Nothing else to do here.
             } else if (action.equals("getProduct")) {
                 // Lấy thông tin sản phẩm để chỉnh sửa
                 String productIdStr = request.getParameter("productId");
@@ -317,6 +352,9 @@ public class VendorServlet extends HttpServlet {
                 case "assignShipper":
                     AssignShipper(request, response, vendorId);
                     break;
+                case "broadcastDelivery":
+                    BroadcastDelivery(request, response, vendorId);
+                    break;
                 case "getAvailableShippers":
                     GetAvailableShippers(request, response, vendorId);
                     break;
@@ -469,6 +507,35 @@ public class VendorServlet extends HttpServlet {
         } catch (Exception e) {
             logger.error("Error assigning shipper", e);
             sendJsonResponse(response, false, "Không thể phân chia shipper: " + e.getMessage(), null);
+        }
+    }
+
+    private void BroadcastDelivery(HttpServletRequest request, HttpServletResponse response, int vendorId)
+            throws IOException {
+        try {
+            String orderIdStr = request.getParameter("orderId");
+            if (orderIdStr == null || orderIdStr.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                sendJsonResponse(response, false, "Order ID is required", null);
+                return;
+            }
+
+            int orderId;
+            try {
+                orderId = Integer.parseInt(orderIdStr);
+            } catch (NumberFormatException e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                sendJsonResponse(response, false, "Invalid order ID format", null);
+                return;
+            }
+
+            // call service
+            vendorService.broadcastDeliveryRequest(orderId, vendorId);
+            sendJsonResponse(response, true, "Đã gửi yêu cầu giao hàng tới các shipper đang rảnh", null);
+        } catch (Exception e) {
+            logger.error("Error broadcasting delivery request", e);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            sendJsonResponse(response, false, "Không thể gửi yêu cầu giao hàng: " + e.getMessage(), null);
         }
     }
 

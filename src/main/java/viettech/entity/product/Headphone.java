@@ -135,7 +135,7 @@ public class Headphone extends Product {
                      double weight,
                      String dimensions,
                      boolean isFeatured,
-
+                     int quantity,
                      String type,
                      String formFactor,
                      Integer batteryLife,
@@ -165,7 +165,7 @@ public class Headphone extends Product {
 
         super(vendorId, categoryId, name, slug, basePrice,
               description, brand, specifications, status,
-              condition, weight, dimensions, isFeatured);
+              condition, weight, dimensions, isFeatured, quantity);
 
         this.type = type != null ? type : "";
         this.formFactor = formFactor != null ? formFactor : "";

@@ -72,6 +72,8 @@ public abstract class Product {
 
     @Column(name = "is_featured")
     protected boolean isFeatured;
+    @Column(name = "quantity")
+    protected int quantity;
     /* =========================
        RELATIONSHIP MAPPINGS
        ========================= */
@@ -136,6 +138,7 @@ public abstract class Product {
         this.totalSold = 0;
         this.viewCount = 0;
         this.isFeatured = false;
+        this.quantity = 0;
     }
 
     // Constructor dùng khi tạo Product (cho class con gọi super)
@@ -151,7 +154,8 @@ public abstract class Product {
                       String conditions,
                       double weight,
                       String dimensions,
-                      boolean isFeatured) {
+                      boolean isFeatured,
+                      int quantity) {
 
         this.vendorId = vendorId;
         this.categoryId = categoryId;
@@ -172,6 +176,7 @@ public abstract class Product {
         this.totalSold = 0;
         this.viewCount = 0;
         this.isFeatured = isFeatured;
+        this.quantity = quantity;
     }
 
     /* =========================
@@ -204,6 +209,13 @@ public abstract class Product {
 
     public void setName(String name) {
         this.name = name != null ? name : "";
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
     public String getSlug() {
@@ -395,7 +407,7 @@ public abstract class Product {
         return createdAt;
     }
 
-    public void setCreatedAt(Date updatedAt) {
+    public void setCreatedAt(Date createdAt) {
         this.createdAt = createdAt;
     }
 

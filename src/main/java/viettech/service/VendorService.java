@@ -365,22 +365,52 @@ public class VendorService {
                 throw new RuntimeException("Order does not belong to this vendor");
             }
 
+            // ----- Enforce minimal vendor flow: CONFIRMED -> PROCESSING -> READY -> SHIPPING -> COMPLETED -----
+            final String oldStatusRaw = order.getStatus();
+            final String oldStatus = oldStatusRaw == null ? "" : oldStatusRaw.trim().toUpperCase();
+            final String targetStatus = newStatus == null ? "" : newStatus.trim().toUpperCase();
+
+            if (targetStatus.isEmpty()) {
+                throw new RuntimeException("Status is required");
+            }
+
+            // Only statuses vendor is allowed to see/change
+            java.util.Set<String> vendorAllowed = java.util.Set.of(
+                    "CONFIRMED", "PROCESSING", "READY", "SHIPPING", "COMPLETED"
+            );
+            if (!vendorAllowed.contains(targetStatus)) {
+                throw new RuntimeException("Vendor is not allowed to set status: " + targetStatus);
+            }
+
+            // Next-step rules
+            java.util.Map<String, String> next = new java.util.HashMap<>();
+            next.put("CONFIRMED", "PROCESSING");
+            next.put("PROCESSING", "READY");
+            next.put("READY", "SHIPPING");
+            next.put("SHIPPING", "COMPLETED");
+
+            // If current is empty/unknown, do not allow vendor to jump
+            if (oldStatus.isEmpty() || !next.containsKey(oldStatus)) {
+                throw new RuntimeException("Order status is not in vendor flow: " + oldStatusRaw);
+            }
+
+            String expectedNext = next.get(oldStatus);
+            if (!targetStatus.equals(expectedNext)) {
+                throw new RuntimeException("Invalid status transition: " + oldStatus + " -> " + targetStatus + ". Expected: " + expectedNext);
+            }
+
             // Cập nhật trạng thái
-            String oldStatus = order.getStatus();
-            order.setStatus(newStatus);
+            order.setStatus(targetStatus);
 
             // Cập nhật các timestamp tương ứng
-            if ("Completed".equalsIgnoreCase(newStatus)) {
+            if ("COMPLETED".equals(targetStatus)) {
                 order.setCompletedAt(new Date());
-            } else if ("Cancelled".equalsIgnoreCase(newStatus)) {
-                order.setCancelledAt(new Date());
-                order.setCancelledBy("Vendor");
             }
 
             orderDAO.update(order);
 
             // If moved to READY -> broadcast to all available shippers
-            if ("Ready".equalsIgnoreCase(newStatus) && !"Ready".equalsIgnoreCase(oldStatus)) {
+            if ("READY".equals(targetStatus) && !"READY".equals(oldStatus)) {
                 try {
                     broadcastReadyToShippers(orderId);
                 } catch (Exception ex) {
@@ -390,7 +420,7 @@ public class VendorService {
             }
 
             logger.info("✓ Vendor {} updated order {} status from {} to {}",
-                    vendorId, orderId, oldStatus, newStatus);
+                    vendorId, orderId, oldStatusRaw, targetStatus);
             return order;
         } catch (Exception e) {
             logger.error("✗ Failed to update order status for vendor {}", vendorId, e);
@@ -672,12 +702,13 @@ public class VendorService {
         EntityManager em = JPAConfig.getEntityManager();
         try {
 
+            // Shipping management should only list orders that are READY (waiting pickup) or SHIPPING (in transit)
             String jpql = "SELECT DISTINCT o FROM Order o " +
                     "LEFT JOIN FETCH o.customer c " +
                     "LEFT JOIN FETCH o.address a " +
                     "LEFT JOIN FETCH o.delivery d " +
                     "WHERE o.vendorId = :vendorId " +
-                    "AND (LOWER(o.status) = 'processing' OR LOWER(o.status) = 'confirmed' OR LOWER(o.status) = 'ready') " +
+                    "AND (LOWER(o.status) = 'ready' OR LOWER(o.status) = 'shipping') " +
                     "ORDER BY o.orderDate DESC";
 
             List<Order> orders = em.createQuery(jpql, Order.class)
@@ -729,10 +760,10 @@ public class VendorService {
                 }
             }
 
-            logger.info("✓ Loaded {} orders ready for shipping for vendor {}", orders.size(), vendorId);
+            logger.info("✓ Loaded {} orders (READY/SHIPPING) for shipping for vendor {}", orders.size(), vendorId);
             return orders;
         } catch (Exception ex) {
-            logger.error("✗ Failed to get orders ready for shipping for vendor {}", vendorId, ex);
+            logger.error("✗ Failed to get orders (READY/SHIPPING) for vendor {}", vendorId, ex);
             throw new RuntimeException("Failed to get orders ready for shipping: " + ex.getMessage(), ex);
         } finally {
             em.close();
@@ -1010,10 +1041,11 @@ public class VendorService {
     public List<Shipper> getAvailableShippers() {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            String jpql = "SELECT s FROM Shipper s WHERE s.isAvailable = true";
+            // Only shippers (roleID=3) that are currently available
+            String jpql = "SELECT s FROM Shipper s WHERE s.roleID = 3 AND s.isAvailable = true";
             TypedQuery<Shipper> query = em.createQuery(jpql, Shipper.class);
             List<Shipper> shippers = query.getResultList();
-            logger.info("✓ Found {} available shippers", shippers.size());
+            logger.info("✓ Found {} available shippers (roleID=3)", shippers.size());
             return shippers;
         } catch (Exception e) {
             logger.error("✗ Failed to get available shippers", e);
@@ -1023,151 +1055,35 @@ public class VendorService {
         }
     }
 
+    // ==================== BROADCAST DELIVERY (Vendor -> Shippers) ====================
+
     /**
-     * Vendor statistics payload for vendor.jsp (no entity serialization).
-     *
-     * period: month | 3months | year | all
+     * Vendor bấm nút "Gửi cho shipper" ở trang giao hàng.
+     * Service chỉ validate quyền sở hữu đơn, sau đó broadcast notification cho shipper rảnh.
      */
-    public Map<String, Object> getVendorStats(int vendorId, String period) {
-        EntityManager em = JPAConfig.getEntityManager();
-        try {
-            // Resolve a warehouse to estimate stock (prefer managerId mapping first for consistency with dashboard)
-            Integer warehouseId = null;
-            try {
-                String wq = "SELECT w.warehouseId FROM Warehouse w WHERE w.managerId = :vid";
-                List<Integer> ids = em.createQuery(wq, Integer.class).setParameter("vid", vendorId).setMaxResults(1).getResultList();
-                if (!ids.isEmpty()) warehouseId = ids.get(0);
-            } catch (Exception ignored) {
-            }
-            if (warehouseId == null) {
-                try {
-                    List<Warehouse> ws = warehouseDAO.findByVendorId(vendorId);
-                    if (ws != null && !ws.isEmpty()) warehouseId = ws.get(0).getWarehouseId();
-                } catch (Exception ignored) {
-                }
-            }
-
-            // Period filter on orderDate
-            Date fromDate = null;
-            LocalDate now = LocalDate.now();
-            switch ((period == null ? "month" : period).toLowerCase()) {
-                case "3months":
-                    fromDate = Date.from(now.minusMonths(3).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    break;
-                case "year":
-                    fromDate = Date.from(now.withDayOfYear(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    break;
-                case "all":
-                    fromDate = null;
-                    break;
-                case "month":
-                default:
-                    fromDate = Date.from(now.withDayOfMonth(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
-                    break;
-            }
-
-            // 1) Total sold quantity (Completed orders only)
-            String totalSoldJpql = "SELECT COALESCE(SUM(od.quantity), 0) " +
-                    "FROM OrderDetail od JOIN od.order o " +
-                    "WHERE o.vendorId = :vid AND LOWER(o.status) = 'completed' " +
-                    (fromDate != null ? "AND o.orderDate >= :fromDate" : "");
-            Query totalSoldQuery = em.createQuery(totalSoldJpql);
-            totalSoldQuery.setParameter("vid", vendorId);
-            if (fromDate != null) totalSoldQuery.setParameter("fromDate", fromDate);
-            Number totalSold = (Number) totalSoldQuery.getSingleResult();
-
-            // 2) Top sold products (by productName snapshot on order_detail)
-            String topSoldJpql = "SELECT od.productName, COALESCE(SUM(od.quantity), 0) " +
-                    "FROM OrderDetail od JOIN od.order o " +
-                    "WHERE o.vendorId = :vid AND LOWER(o.status) = 'completed' " +
-                    (fromDate != null ? "AND o.orderDate >= :fromDate " : "") +
-                    "GROUP BY od.productName ORDER BY COALESCE(SUM(od.quantity), 0) DESC";
-            Query topSoldQuery = em.createQuery(topSoldJpql);
-            topSoldQuery.setParameter("vid", vendorId);
-            if (fromDate != null) topSoldQuery.setParameter("fromDate", fromDate);
-            topSoldQuery.setMaxResults(10);
-            @SuppressWarnings("unchecked")
-            List<Object[]> topSoldRows = topSoldQuery.getResultList();
-            List<Map<String, Object>> topSoldProducts = topSoldRows.stream().map(r -> {
-                Map<String, Object> m = new HashMap<>();
-                m.put("productName", r[0]);
-                m.put("soldQuantity", ((Number) r[1]).intValue());
-                return m;
-            }).toList();
-
-            // 3) Product status counts
-            String statusCountJpql = "SELECT p.status, COUNT(p) FROM Product p WHERE p.vendorId = :vid GROUP BY p.status";
-            Query statusCountQuery = em.createQuery(statusCountJpql);
-            statusCountQuery.setParameter("vid", vendorId);
-            @SuppressWarnings("unchecked")
-            List<Object[]> statusRows = statusCountQuery.getResultList();
-            List<Map<String, Object>> statusCounts = statusRows.stream().map(r -> {
-                Map<String, Object> m = new HashMap<>();
-                m.put("status", r[0] != null ? String.valueOf(r[0]) : "UNKNOWN");
-                m.put("count", ((Number) r[1]).intValue());
-                return m;
-            }).toList();
-
-            // 4) Inventory: total stock + low stock list (if warehouse available)
-            int threshold = 5;
-            int totalStockQty = 0;
-            List<Map<String, Object>> lowStockProducts = new ArrayList<>();
-
-            if (warehouseId != null) {
-                List<Inventory> invs = inventoryDAO.findByWarehouseId(warehouseId);
-
-                // sum available
-                for (Inventory inv : invs) {
-                    try {
-                        totalStockQty += inv.getAvailableQuantity();
-                    } catch (Exception ignored) {
-                    }
-                }
-
-                // low stock rows - need product name; safest is to resolve via Variant->Product relation when available
-                // If Variant or Product is missing (data inconsistency), ignore row.
-                for (Inventory inv : invs) {
-                    try {
-                        if (inv.getAvailableQuantity() <= threshold) {
-                            String name = null;
-                            try {
-                                if (inv.getVariant() != null && inv.getVariant().getProduct() != null) {
-                                    name = inv.getVariant().getProduct().getName();
-                                }
-                            } catch (Exception ignored2) {
-                            }
-                            Map<String, Object> row = new HashMap<>();
-                            row.put("productName", name != null ? name : ("Variant #" + (inv.getVariant() != null ? inv.getVariant().getVariantId() : "N/A")));
-                            row.put("availableQuantity", inv.getAvailableQuantity());
-                            row.put("threshold", threshold);
-                            lowStockProducts.add(row);
-                        }
-                    } catch (Exception ignored) {
-                    }
-                }
-            }
-
-            Map<String, Object> out = new HashMap<>();
-            out.put("period", period);
-            out.put("warehouseId", warehouseId);
-            out.put("totalSoldQuantity", totalSold != null ? totalSold.intValue() : 0);
-            out.put("topSoldProducts", topSoldProducts);
-            out.put("statusCounts", statusCounts);
-            out.put("totalStockQuantity", totalStockQty);
-            out.put("lowStockCount", lowStockProducts.size());
-            out.put("lowStockProducts", lowStockProducts);
-            return out;
-        } finally {
-            em.close();
+    public void broadcastDeliveryRequest(int orderId, int vendorId) {
+        Order order = orderDAO.findById(orderId);
+        if (order == null) {
+            throw new RuntimeException("Order not found");
         }
+        if (order.getVendorId() != vendorId) {
+            throw new RuntimeException("Order does not belong to this vendor");
+        }
+
+        // reuse existing broadcast logic
+        broadcastReadyToShippers(orderId);
     }
 
+    // ==================== SHIPPER ACCEPT (DB handles transaction/lock/validation) ====================
+
     /**
-     * Shipper nhận đơn hàng (database đã handle transaction/lock/validation).
-     * Service chỉ gọi DB và trả kết quả.
+     * Shipper nhận đơn hàng.
+     * - Database đã xử lý transaction/lock/validation.
+     * - Service chỉ gọi DB và trả kết quả.
+     * - KHÔNG kiểm tra status đơn hàng trong Service.
      *
      * @param assignmentId delivery_assignments.assignment_id
-     * @param shipperId shipper user_id
+     * @param shipperId    shipper user_id
      * @return true nếu nhận thành công
      */
     public boolean assignOrder(int assignmentId, int shipperId) {
@@ -1177,64 +1093,69 @@ public class VendorService {
         try {
             tx.begin();
 
-            // Delegate concurrency/rules to DB (e.g., trigger/lock/SQLSTATE 45000)
-            // Minimal update: shipper accepts the assignment.
-            // NOTE: Do not check status here.
-            String sql = "UPDATE delivery_assignments SET status = 'Accepted', accepted_at = NOW() " +
-                    "WHERE assignment_id = ? AND shipper_id = ?";
-
-            int updated = em.createNativeQuery(sql)
+            // DB should validate that shipper is available, assignment is valid, etc.
+            int updated = em.createNativeQuery(
+                            "UPDATE delivery_assignments SET status = 'Accepted', accepted_at = NOW() " +
+                                    "WHERE assignment_id = ? AND shipper_id = ?")
                     .setParameter(1, assignmentId)
                     .setParameter(2, shipperId)
                     .executeUpdate();
 
-            // Get orderId for cleanup (best-effort: if not found, skip)
+            // Lookup orderId to update order status + cleanup notifications (best-effort)
             Integer orderId = null;
             try {
-                String lookup = "SELECT d.order_id FROM deliveries d " +
-                        "JOIN delivery_assignments da ON da.delivery_id = d.delivery_id " +
-                        "WHERE da.assignment_id = ?";
-                Object one = em.createNativeQuery(lookup)
+                Object one = em.createNativeQuery(
+                                "SELECT d.order_id FROM deliveries d " +
+                                        "JOIN delivery_assignments da ON da.delivery_id = d.delivery_id " +
+                                        "WHERE da.assignment_id = ?")
                         .setParameter(1, assignmentId)
                         .setMaxResults(1)
                         .getResultStream()
                         .findFirst()
                         .orElse(null);
-                if (one != null) {
-                    orderId = ((Number) one).intValue();
-                }
+                if (one != null) orderId = ((Number) one).intValue();
             } catch (Exception ignored) {
+            }
+
+            if (updated > 0 && orderId != null) {
+                // Change order status to SHIPPING when a shipper accepts (best-effort)
+                try {
+                    em.createNativeQuery("UPDATE orders SET status = 'SHIPPING' WHERE order_id = ?")
+                            .setParameter(1, orderId)
+                            .executeUpdate();
+                } catch (Exception ignored) {
+                }
             }
 
             tx.commit();
 
-            if (updated > 0) {
-                // Clean broadcast notifications (remove from all shippers once someone accepted)
-                if (orderId != null) {
-                    try {
-                        String actionUrl = "/shipper?focus=assignment&orderId=" + orderId;
-                        new NotificationDAO().deleteByTypeAndActionUrl("DELIVERY_READY", actionUrl);
-                    } catch (Exception ignored) {
-                    }
-                }
-
-                // Notify shipper that the order is ready/accepted (best-effort, outside DB rule checks)
-                try {
-                    Notification n = new Notification();
-                    n.setUserId(shipperId);
-                    n.setType("DELIVERY");
-                    n.setTitle("Nhận đơn thành công");
-                    n.setMessage("Bạn đã nhận đơn giao hàng (Assignment #" + assignmentId + ").");
-                    n.setActionUrl("/shipper");
-                    n.setCreatedAt(new Date());
-                    new NotificationService().createNotification(n);
-                } catch (Exception ignored) {
-                    // don't fail the business flow if notification fails
-                }
-                return true;
+            if (updated <= 0) {
+                return false;
             }
 
-            return false;
+            // After commit: cleanup broadcast notifications so other shippers don't see the same order (best-effort)
+            if (orderId != null) {
+                try {
+                    String actionUrl = "/shipper?focus=assignment&orderId=" + orderId;
+                    new NotificationDAO().deleteByTypeAndActionUrl("DELIVERY_READY", actionUrl);
+                } catch (Exception ignored) {
+                }
+            }
+
+            // Optional: send a confirmation notification to shipper (best-effort)
+            try {
+                Notification n = new Notification();
+                n.setUserId(shipperId);
+                n.setType("DELIVERY");
+                n.setTitle("Nhận đơn thành công");
+                n.setMessage("Bạn đã nhận đơn giao hàng (Assignment #" + assignmentId + ").");
+                n.setActionUrl("/shipper");
+                n.setCreatedAt(new Date());
+                new NotificationService().createNotification(n);
+            } catch (Exception ignored) {
+            }
+
+            return true;
         } catch (Exception ex) {
             if (tx.isActive()) tx.rollback();
             throw ex;

@@ -259,5 +259,31 @@ public class NotificationDAO {
             em.close();
         }
     }
-}
 
+    /**
+     * Bulk delete notifications by (type, actionUrl).
+     * Used for broadcasting READY-delivery notifications to many shippers and
+     * cleaning them up once one shipper accepted.
+     */
+    public int deleteByTypeAndActionUrl(String type, String actionUrl) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        EntityTransaction trans = em.getTransaction();
+        try {
+            trans.begin();
+            String jpql = "DELETE FROM Notification n WHERE n.type = :type AND n.actionUrl = :actionUrl";
+            int deleted = em.createQuery(jpql)
+                    .setParameter("type", type)
+                    .setParameter("actionUrl", actionUrl)
+                    .executeUpdate();
+            trans.commit();
+            logger.info("✓ Deleted {} notification(s) by type={} actionUrl={}", deleted, type, actionUrl);
+            return deleted;
+        } catch (Exception e) {
+            if (trans.isActive()) trans.rollback();
+            logger.error("✗ Failed to delete notifications by type/actionUrl", e);
+            throw new RuntimeException("Failed to delete notifications", e);
+        } finally {
+            em.close();
+        }
+    }
+}

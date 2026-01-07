@@ -555,7 +555,160 @@
         </div>
     </c:if>
     <c:choose>
-            <%-- ORDERS PAGE --%>
+        <%-- DASHBOARD PAGE (default) --%>
+        <c:when test="${empty param.action or param.action == 'dashboard'}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                    <p class="text-muted mb-0">Tổng quan hoạt động gian hàng</p>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-primary"><i class="fas fa-box"></i></div>
+                    <div class="stat-value">${not empty data ? data.totalProducts : 0}</div>
+                    <div class="stat-label">Sản phẩm</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-warning"><i class="fas fa-clock"></i></div>
+                    <div class="stat-value">${not empty data ? data.newOrdersCount : 0}</div>
+                    <div class="stat-label">Đơn mới (Pending)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-info"><i class="fas fa-truck"></i></div>
+                    <div class="stat-value">${not empty data && not empty data.pendingShippingOrders ? fn:length(data.pendingShippingOrders) : 0}</div>
+                    <div class="stat-label">Đơn chờ giao</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-success"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-value">${not empty data ? data.pendingApprovals : 0}</div>
+                    <div class="stat-label">Sản phẩm chờ duyệt</div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-lg-7">
+                    <div class="card mb-3">
+                        <div class="card-header"><i class="fas fa-clock"></i> Đơn hàng gần đây</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Ngày đặt</th>
+                                        <th class="text-end">Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                        <th class="text-end"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <c:choose>
+                                        <c:when test="${not empty data and not empty data.recentOrders}">
+                                            <c:forEach items="${data.recentOrders}" var="o" begin="0" end="9">
+                                                <tr>
+                                                    <td><strong>#${o.orderNumber}</strong></td>
+                                                    <td>
+                                                        <c:if test="${not empty o.orderDate}">
+                                                            <fmt:formatDate value="${o.orderDate}" pattern="dd/MM/yyyy"/>
+                                                        </c:if>
+                                                    </td>
+                                                    <td class="text-end text-success fw-bold">
+                                                        <fmt:formatNumber value="${o.totalPrice}" type="number" groupingUsed="true" maxFractionDigits="0"/>đ
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-secondary">${o.status}</span>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/vendor?action=orders">Chi tiết</a>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted p-4">Chưa có đơn hàng gần đây</td>
+                                            </tr>
+                                        </c:otherwise>
+                                    </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card mb-3">
+                        <div class="card-header"><i class="fas fa-truck"></i> Đơn chờ giao (Ready)</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Ngày đặt</th>
+                                        <th class="text-end">Tổng</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <c:choose>
+                                        <c:when test="${not empty data and not empty data.pendingShippingOrders}">
+                                            <c:forEach items="${data.pendingShippingOrders}" var="o" begin="0" end="9">
+                                                <tr>
+                                                    <td><strong>#${o.orderNumber}</strong></td>
+                                                    <td>
+                                                        <c:if test="${not empty o.orderDate}">
+                                                            <fmt:formatDate value="${o.orderDate}" pattern="dd/MM/yyyy"/>
+                                                        </c:if>
+                                                    </td>
+                                                    <td class="text-end fw-bold">
+                                                        <fmt:formatNumber value="${o.totalPrice}" type="number" groupingUsed="true" maxFractionDigits="0"/>đ
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted p-4">Không có đơn chờ giao</td>
+                                            </tr>
+                                        </c:otherwise>
+                                    </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white text-end">
+                            <a class="btn btn-sm btn-primary" href="${pageContext.request.contextPath}/vendor?action=shipping">
+                                <i class="fas fa-truck"></i> Quản lý giao hàng
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><i class="fas fa-box"></i> Sản phẩm (tóm tắt)</div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Tổng sản phẩm</span>
+                                <strong>${not empty data ? data.totalProducts : 0}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span class="text-muted">Sản phẩm chờ duyệt</span>
+                                <strong>${not empty data ? data.pendingApprovals : 0}</strong>
+                            </div>
+                            <div class="mt-3 text-end">
+                                <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/vendor?action=products">
+                                    <i class="fas fa-box"></i> Quản lý sản phẩm
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </c:when>
+
+        <%-- ORDERS PAGE --%>
         <c:when test="${param.action == 'orders'}">
             <!-- Page Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -565,27 +718,31 @@
                 </div>
             </div>
 
-            <!-- Status Filter -->
+            <!-- Status Filter (Vendor minimal statuses only) -->
             <div class="status-filter mb-4">
                 <a href="${pageContext.request.contextPath}/vendor?action=orders"
                    class="btn ${empty param.status ? 'btn-primary' : 'btn-outline-secondary'}">
                     <i class="fas fa-list"></i> Tất cả
                 </a>
-                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=Pending"
-                   class="btn ${param.status == 'Pending' ? 'btn-warning' : 'btn-outline-warning'}">
-                    <i class="fas fa-clock"></i> Chờ xử lý
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=CONFIRMED"
+                   class="btn ${(param.status == 'CONFIRMED' or param.status == 'Confirmed') ? 'btn-primary' : 'btn-outline-primary'}">
+                    <i class="fas fa-check"></i> CONFIRMED
                 </a>
-                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=Confirmed"
-                   class="btn ${param.status == 'Confirmed' ? 'btn-primary' : 'btn-outline-primary'}">
-                    <i class="fas fa-check"></i> Đã xác nhận
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=PROCESSING"
+                   class="btn ${(param.status == 'PROCESSING' or param.status == 'Processing') ? 'btn-info' : 'btn-outline-info'}">
+                    <i class="fas fa-box"></i> PROCESSING
                 </a>
-                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=Completed"
-                   class="btn ${param.status == 'Completed' ? 'btn-success' : 'btn-outline-success'}">
-                    <i class="fas fa-check-double"></i> Hoàn thành
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=READY"
+                   class="btn ${(param.status == 'READY' or param.status == 'Ready') ? 'btn-warning' : 'btn-outline-warning'}">
+                    <i class="fas fa-dolly"></i> READY
                 </a>
-                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=Cancelled"
-                   class="btn ${param.status == 'Cancelled' ? 'btn-danger' : 'btn-outline-danger'}">
-                    <i class="fas fa-times"></i> Đã hủy
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=SHIPPING"
+                   class="btn ${(param.status == 'SHIPPING' or param.status == 'Shipping') ? 'btn-warning' : 'btn-outline-warning'}">
+                    <i class="fas fa-truck"></i> SHIPPING
+                </a>
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=COMPLETED"
+                   class="btn ${(param.status == 'COMPLETED' or param.status == 'Completed') ? 'btn-success' : 'btn-outline-success'}">
+                    <i class="fas fa-check-double"></i> COMPLETED
                 </a>
             </div>
 
@@ -661,23 +818,32 @@
                                                 </td>
                                                 <td class="order-actions">
 
-                                                    <c:if test="${order.status == 'Pending'}">
+                                                    <%-- Vendor minimal flow: CONFIRMED -> PROCESSING -> READY -> SHIPPING -> COMPLETED --%>
+                                                    <c:if test="${order.status == 'CONFIRMED' || order.status == 'Confirmed'}">
                                                         <button class="btn btn-sm btn-primary"
-                                                                onclick="updateOrderStatus(${order.orderId}, 'Confirmed')">
-                                                            <i class="fas fa-play"></i> Confirmed
-                                                        </button>
-                                                    </c:if>
-                                                    <c:if test="${order.status == 'Confirmed'}">
-                                                        <button class="btn btn-sm btn-info"
-                                                                onclick="updateOrderStatus(${order.orderId}, 'Ready')">
-                                                            <i class="fas fa-box"></i> Ready
+                                                                onclick="updateOrderStatus(${order.orderId}, 'PROCESSING')">
+                                                            <i class="fas fa-play"></i> PROCESSING
                                                         </button>
                                                     </c:if>
 
-                                                    <c:if test="${order.status != 'Completed' && order.status != 'Cancelled'}">
-                                                        <button class="btn btn-sm btn-danger"
-                                                                onclick="showCancelModal(${order.orderId})">
-                                                            <i class="fas fa-times"></i> Cancel
+                                                    <c:if test="${order.status == 'PROCESSING' || order.status == 'Processing'}">
+                                                        <button class="btn btn-sm btn-info"
+                                                                onclick="updateOrderStatus(${order.orderId}, 'READY')">
+                                                            <i class="fas fa-box"></i> READY
+                                                        </button>
+                                                    </c:if>
+
+                                                    <c:if test="${order.status == 'READY' || order.status == 'Ready'}">
+                                                        <button class="btn btn-sm btn-warning"
+                                                                onclick="updateOrderStatus(${order.orderId}, 'SHIPPING')">
+                                                            <i class="fas fa-truck"></i> SHIPPING
+                                                        </button>
+                                                    </c:if>
+
+                                                    <c:if test="${order.status == 'SHIPPING' || order.status == 'Shipping'}">
+                                                        <button class="btn btn-sm btn-success"
+                                                                onclick="updateOrderStatus(${order.orderId}, 'COMPLETED')">
+                                                            <i class="fas fa-check-double"></i> COMPLETED
                                                         </button>
                                                     </c:if>
                                                 </td>
@@ -1061,14 +1227,21 @@
                                                 <button class="btn btn-outline-primary btn-sm"
                                                         onclick="viewOrderDetails(${order.orderId})">
                                                 </button>
-                                                <button class="btn btn-success btn-sm" id="btn-assign-${order.orderId}"
-                                                        onclick="showAssignShipperModal(${order.orderId}, '${order.orderNumber}')">
-                                                    <i class="fas fa-user-plus"></i> Gán Shipper
-                                                </button>
-                                                <button class="btn btn-warning btn-sm d-none" id="btn-change-${order.orderId}"
-                                                        onclick="changeShipper(${order.orderId}, '${order.orderNumber}')">
-                                                    <i class="fas fa-exchange-alt"></i> Đổi Shipper
-                                                </button>
+
+                                                <!-- READY: broadcast to all available shippers -->
+                                                <c:if test="${fn:toLowerCase(order.status) == 'ready'}">
+                                                    <button class="btn btn-success btn-sm" id="btn-broadcast-${order.orderId}"
+                                                            onclick="broadcastDelivery(${order.orderId})">
+                                                        <i class="fas fa-bullhorn"></i> Gửi cho shipper
+                                                    </button>
+                                                </c:if>
+
+                                                <!-- SHIPPING: show as assigned; allow refresh only (optional) -->
+                                                <c:if test="${fn:toLowerCase(order.status) == 'shipping'}">
+                                                    <button class="btn btn-outline-secondary btn-sm" onclick="loadShipperInfo(${order.orderId})">
+                                                        <i class="fas fa-sync"></i> Làm mới shipper
+                                                    </button>
+                                                </c:if>
                                             </div>
                                         </div>
                                     </div>
@@ -1088,72 +1261,6 @@
                     </div>
                 </c:otherwise>
             </c:choose>
-
-            <!-- Assign Shipper Modal -->
-            <div class="modal fade" id="assignShipperModal" tabindex="-1">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">
-                                <i class="fas fa-user-plus"></i> Gán Shipper cho đơn hàng
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="alert alert-info">
-                                <strong>Đơn hàng:</strong> <span id="assignOrderNumber"></span>
-                            </div>
-
-                            <!-- Order Summary -->
-                            <div class="card mb-3" id="orderSummary">
-                                <div class="card-body">
-                                    <h6>Thông tin đơn hàng</h6>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <small class="text-muted">Khách hàng:</small>
-                                            <div id="modalCustomerInfo">Đang tải...</div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <small class="text-muted">Địa chỉ:</small>
-                                            <div id="modalAddressInfo">Đang tải...</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <form id="assignShipperForm">
-                                <input type="hidden" id="assignOrderId" name="orderId">
-                                <div class="mb-3">
-                                    <label class="form-label">
-                                        <i class="fas fa-user-tie"></i> Chọn Shipper *
-                                    </label>
-                                    <select class="form-select" id="shipperSelect" name="shipperId" required>
-                                        <option value="">Chọn shipper...</option>
-                                        <!-- Shipper options will be loaded dynamically -->
-                                    </select>
-                                    <small class="text-muted">Chọn shipper để giao đơn hàng này</small>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">
-                                        <i class="fas fa-sticky-note"></i> Ghi chú (tùy chọn)
-                                    </label>
-                                    <textarea class="form-control" id="assignmentNote" name="note" rows="2"
-                                              placeholder="Ghi chú cho shipper..."></textarea>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                <i class="fas fa-times"></i> Hủy
-                            </button>
-                            <button type="button" class="btn btn-success" onclick="confirmAssignShipper()">
-                                <i class="fas fa-check"></i> Xác nhận gán
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </c:when>
 
         <%-- STATS PAGE --%>
@@ -1177,7 +1284,7 @@
             </div>
 
             <div class="row g-3 mb-4">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card border-success">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -1190,7 +1297,20 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-muted small">Tổng số lượng (Product.quantity)</div>
+                                    <div class="fs-3 fw-bold text-primary" id="statsTotalProductQty">--</div>
+                                </div>
+                                <i class="fas fa-layer-group fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="card border-info">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -1203,7 +1323,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="card border-warning">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -1219,6 +1339,31 @@
             </div>
 
             <div class="row g-3">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-box"></i> Tồn kho theo sản phẩm
+                            <span class="text-muted small">(Product.quantity)</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-end">Tồn</th>
+                                        <th class="text-end">Trạng thái</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="statsProductQtyBody">
+                                    <tr><td colspan="3" class="text-muted">Đang tải...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="col-lg-6">
                     <div class="card">
                         <div class="card-header">
@@ -1281,6 +1426,21 @@
             </div>
 
             <script>
+                // ---- Stats helpers (safe JSON parsing) ----
+                function parseJsonSafe(response) {
+                    const ct = (response.headers && response.headers.get) ? (response.headers.get('content-type') || '') : '';
+                    return response.text().then(text => {
+                        if (!text) return null;
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            // Helpful debug: server returned HTML (usually forwarded JSP or login page)
+                            const preview = text.substring(0, 200);
+                            throw new Error('Response is not JSON. HTTP ' + response.status + '. content-type=' + ct + '. Preview: ' + preview);
+                        }
+                    });
+                }
+
                 function getStatsParams() {
                     const period = document.getElementById('statsPeriod')?.value || 'month';
                     return { period };
@@ -1345,6 +1505,23 @@
                     });
                 }
 
+                function renderProductQty(items) {
+                    const body = document.getElementById('statsProductQtyBody');
+                    if (!body) return;
+                    body.innerHTML = '';
+                    if (!items || items.length === 0) {
+                        body.innerHTML = '<tr><td colspan="3" class="text-muted">Không có dữ liệu</td></tr>';
+                        return;
+                    }
+                    items.forEach(it => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + (it.name || 'N/A') + '</td>' +
+                            '<td class="text-end fw-bold">' + (it.quantity ?? 0) + '</td>' +
+                            '<td class="text-end text-muted">' + (it.status || 'UNKNOWN') + '</td>';
+                        body.appendChild(tr);
+                    });
+                }
+
                 function loadVendorStats() {
                     const p = getStatsParams();
                     const qs = new URLSearchParams({ action: 'statsData', period: p.period }).toString();
@@ -1353,898 +1530,196 @@
                         method: 'GET',
                         headers: { 'Accept': 'application/json' }
                     })
-                    .then(res => parseJsonSafe(res))
-                    .then(result => {
-                        if (!result || !result.success) {
-                            throw new Error((result && result.message) ? result.message : 'Không thể tải thống kê');
-                        }
+                        .then(res => parseJsonSafe(res))
+                        .then(result => {
+                            if (!result || !result.success) {
+                                throw new Error((result && result.message) ? result.message : 'Không thể tải thống kê');
+                            }
 
-                        const data = result.data || {};
-                        document.getElementById('statsTotalSold').textContent = (data.totalSoldQuantity ?? 0);
-                        document.getElementById('statsTotalStock').textContent = (data.totalStockQuantity ?? 0);
-                        document.getElementById('statsLowStockCount').textContent = (data.lowStockCount ?? 0);
-                        renderTopSold(data.topSoldProducts || []);
-                        renderLowStock(data.lowStockProducts || []);
-                        renderStatusCounts(data.statusCounts || []);
-                    })
-                    .catch(err => {
-                        console.error('Stats load error', err);
-                        alert('Có lỗi khi tải thống kê: ' + err.message);
-                    });
+                            const data = result.data || {};
+                            const soldEl = document.getElementById('statsTotalSold');
+                            if (soldEl) soldEl.textContent = (data.totalSoldQuantity ?? 0);
+
+                            const totalQtyEl = document.getElementById('statsTotalProductQty');
+                            if (totalQtyEl) totalQtyEl.textContent = (data.totalProductQuantity ?? 0);
+
+                            const stockEl = document.getElementById('statsTotalStock');
+                            if (stockEl) stockEl.textContent = (data.totalStockQuantity ?? 0);
+
+                            const lowEl = document.getElementById('statsLowStockCount');
+                            if (lowEl) lowEl.textContent = (data.lowStockCount ?? 0);
+
+                            renderProductQty(data.productsQuantity || []);
+                            renderTopSold(data.topSoldProducts || []);
+                            renderLowStock(data.lowStockProducts || []);
+                            renderStatusCounts(data.statusCounts || []);
+                        })
+                        .catch(err => {
+                            console.error('Stats load error', err);
+                            alert('Có lỗi khi tải thống kê: ' + err.message);
+                        });
                 }
 
-                document.addEventListener('DOMContentLoaded', function() {
+                // Auto load when on stats page
+                document.addEventListener('DOMContentLoaded', function () {
                     loadVendorStats();
                 });
             </script>
         </c:when>
-
-        <%-- DASHBOARD (default) --%>
-        <c:otherwise>
-            <!-- Dashboard Page Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="mb-1"><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
-                </div>
-            </div>
-
-            <!-- Statistics Cards -->
-            <div class="stats-row">
-                <div class="stat-card">
-                    <div class="stat-icon bg-gradient-primary">
-                        <i class="fas fa-box"></i>
-                    </div>
-                    <div class="stat-value">${data.totalProducts != null ? data.totalProducts : 0}</div>
-                    <div class="stat-label">Tổng sản phẩm</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon bg-gradient-success">
-                        <i class="fas fa-shopping-cart"></i>
-                    </div>
-                    <div class="stat-value">${data.newOrdersCount != null ? data.newOrdersCount : 0}</div>
-                    <div class="stat-label">Đơn hàng mới</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon bg-gradient-warning">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="stat-value">${data.pendingApprovals != null ? data.pendingApprovals : 0}</div>
-                    <div class="stat-label">Chờ phê duyệt</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon bg-gradient-info">
-                        <i class="fas fa-truck"></i>
-                    </div>
-                    <div class="stat-value">${not empty data.pendingShippingOrders ? fn:length(data.pendingShippingOrders) : 0}</div>
-                    <div class="stat-label">Cần giao hàng</div>
-                </div>
-            </div>
-        </c:otherwise>
     </c:choose>
 </div>
 
-<!-- Order Details Modal -->
-<div class="modal fade" id="orderDetailsModal" tabindex="-1">
-    <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-shopping-cart"></i> Chi tiết đơn hàng
-                    <span id="orderDetailsNumber" class="text-muted"></span>
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <!-- Order Information -->
-                    <div class="col-md-6">
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin đơn hàng</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm-6">
-                                        <small class="text-muted">Mã đơn hàng:</small>
-                                        <div id="orderDetailsId" class="fw-bold"></div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <small class="text-muted">Ngày đặt:</small>
-                                        <div id="orderDetailsDate"></div>
-                                    </div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-sm-6">
-                                        <small class="text-muted">Trạng thái:</small>
-                                        <div id="orderDetailsStatus"></div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <small class="text-muted">Tổng tiền:</small>
-                                        <div id="orderDetailsTotal" class="fw-bold text-success"></div>
-                                    </div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-sm-6">
-                                        <small class="text-muted">Phí ship:</small>
-                                        <div id="orderDetailsShipping"></div>
-                                    </div>
-                                    <div class="col-sm-6">
-                                        <small class="text-muted">Giảm giá:</small>
-                                        <div id="orderDetailsDiscount"></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Customer Information -->
-                    <div class="col-md-6">
-                        <div class="card mb-3">
-                            <div class="card-header bg-light">
-                                <h6 class="mb-0"><i class="fas fa-user"></i> Thông tin khách hàng</h6>
-                            </div>
-                            <div class="card-body">
-                                <div id="orderDetailsCustomer">
-                                    <div class="text-center">
-                                        <div class="spinner-border spinner-border-sm" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <small class="text-muted">Đang tải...</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Delivery Address -->
-                <div class="card mb-3">
-                    <div class="card-header bg-light">
-                        <h6 class="mb-0"><i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng</h6>
-                    </div>
-                    <div class="card-body">
-                        <div id="orderDetailsAddress">
-                            <div class="text-center">
-                                <div class="spinner-border spinner-border-sm" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <small class="text-muted">Đang tải...</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Order Items -->
-                <div class="card">
-                    <div class="card-header bg-light">
-                        <h6 class="mb-0"><i class="fas fa-box"></i> Chi tiết sản phẩm</h6>
-                    </div>
-                    <div class="card-body">
-                        <div id="orderDetailsItems">
-                            <div class="text-center">
-                                <div class="spinner-border spinner-border-sm" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <small class="text-muted">Đang tải...</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="fas fa-times"></i> Đóng
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Product Modal -->
-<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-plus"></i> Thêm sản phẩm</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="addProductForm">
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label" for="addName">Tên sản phẩm *</label>
-                            <input type="text" class="form-control" name="name" id="addName" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="addCategoryId">Danh mục *</label>
-                            <select class="form-select" name="categoryId" id="addCategoryId" required>
-                                <option value="1">Điện thoại</option>
-                                <option value="2">Phụ kiện điện thoại</option>
-                                <option value="3">Laptop</option>
-                                <option value="4">Máy tính bảng</option>
-                                <option value="5">Tai nghe</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="addBrand">Thương hiệu *</label>
-                            <input type="text" class="form-control" name="brand" id="addBrand" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="addBasePrice">Giá bán (VNĐ) *</label>
-                            <input type="number" class="form-control" name="basePrice" id="addBasePrice" min="0" step="1000" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="addStatus">Trạng thái</label>
-                            <select class="form-select" name="status" id="addStatus">
-                                <option value="AVAILABLE" selected>AVAILABLE</option>
-                                <option value="OUT_OF_STOCK">OUT_OF_STOCK</option>
-                                <option value="INACTIVE">INACTIVE</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="addDescription">Mô tả</label>
-                        <textarea class="form-control" name="description" id="addDescription" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="addSpecifications">Thông số kỹ thuật</label>
-                        <textarea class="form-control" name="specifications" id="addSpecifications" rows="2"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" onclick="submitAddProduct()">
-                    <i class="fas fa-save"></i> Lưu
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Product Modal -->
-<div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="fas fa-edit"></i> Chỉnh sửa sản phẩm</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editProductForm">
-                    <input type="hidden" name="productId" id="editProductId">
-
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label class="form-label" for="editName">Tên sản phẩm *</label>
-                            <input type="text" class="form-control" name="name" id="editName" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="editCategoryId">Danh mục *</label>
-                            <select class="form-select" name="categoryId" id="editCategoryId" required>
-                                <option value="1">Điện thoại</option>
-                                <option value="2">Phụ kiện điện thoại</option>
-                                <option value="3">Laptop</option>
-                                <option value="4">Máy tính bảng</option>
-                                <option value="5">Tai nghe</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="editBrand">Thương hiệu *</label>
-                            <input type="text" class="form-control" name="brand" id="editBrand" required>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="editBasePrice">Giá bán (VNĐ) *</label>
-                            <input type="number" class="form-control" name="basePrice" id="editBasePrice" min="0" step="1000" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label" for="editStatus">Trạng thái *</label>
-                            <select class="form-select" name="status" id="editStatus" required>
-                                <option value="AVAILABLE">AVAILABLE</option>
-                                <option value="OUT_OF_STOCK">OUT_OF_STOCK</option>
-                                <option value="INACTIVE">INACTIVE</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="editDescription">Mô tả</label>
-                        <textarea class="form-control" name="description" id="editDescription" rows="3"></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label" for="editSpecifications">Thông số kỹ thuật</label>
-                        <textarea class="form-control" name="specifications" id="editSpecifications" rows="2"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-warning" onclick="submitEditProduct()">
-                    <i class="fas fa-save"></i> Cập nhật
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
-    // Small helper: safe JSON parse for endpoints that may return HTML on error
-    function parseJsonSafe(response) {
-        return response.text().then(text => {
-            try {
-                return JSON.parse(text);
-            } catch (e) {
-                const snippet = (text || '').trim().substring(0, 300);
-                const looksLikeHtml = /^</.test(snippet) || /<html/i.test(snippet) || /<!doctype/i.test(snippet);
-                const hint = looksLikeHtml
-                    ? ' (Server returned HTML instead of JSON. Check VendorServlet action/permissions or server error page.)'
-                    : '';
-                throw new Error('Response is not JSON. HTTP ' + response.status + hint + '. ' + snippet);
-            }
+    // Sidebar toggle
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+
+        sidebarToggle.addEventListener('click', function () {
+            sidebar.classList.toggle('show');
         });
+    });
+
+    // Order details modal
+    function viewOrderDetails(orderId) {
+        // TODO: Implement order details view
+        alert('View details for order ID: ' + orderId);
     }
 
-    // Show Add Product Modal
-    function showAddProductModal() {
-        const el = document.getElementById('addProductModal');
-        if (!el) {
-            alert('Không tìm thấy modal thêm sản phẩm (addProductModal). Vui lòng reload trang.');
-            return;
-        }
-        const modal = new bootstrap.Modal(el);
+    // Update order status
+    function updateOrderStatus(orderId, status) {
+        // TODO: Implement order status update
+        alert('Update order ID ' + orderId + ' to status: ' + status);
+    }
+
+    // Show cancel order modal
+    function showCancelModal(orderId) {
+        const cancelOrderId = document.getElementById('cancelOrderId');
+        cancelOrderId.value = orderId;
+
+        const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
         modal.show();
     }
 
-    // Submit Add Product
-    function submitAddProduct() {
-        const form = document.getElementById('addProductForm');
-        if (!form) {
-            alert('Không tìm thấy form thêm sản phẩm (addProductForm).');
-            return;
-        }
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        // nếu backend yêu cầu conditions, giữ lại như code hiện tại
-        data.conditions = data.conditions || 'New';
-
-        fetch('${pageContext.request.contextPath}/vendor?action=addProduct', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(res => parseJsonSafe(res))
-        .then(result => {
-            if (result && result.success) {
-                alert('✓ ' + (result.message || 'Thêm sản phẩm thành công'));
-                location.reload();
-            } else {
-                alert('✗ Lỗi: ' + ((result && result.message) ? result.message : 'Không xác định'));
-            }
-        })
-        .catch(err => {
-            console.error('Add product error:', err);
-            alert('Có lỗi xảy ra khi thêm sản phẩm: ' + err.message);
-        });
-    }
-
-    // Update Order Status
-    function updateOrderStatus(orderId, newStatus) {
-        if (!confirm('Bạn có chắc muốn cập nhật trạng thái đơn hàng này?')) return;
-
-        fetch('${pageContext.request.contextPath}/vendor?action=updateOrderStatus&orderId=' + orderId + '&status=' + newStatus, {
-            method: 'POST'
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success) {
-                alert('✓ ' + result.message);
-                location.reload();
-            } else {
-                alert('✗ Lỗi: ' + result.message);
-            }
-        })
-        .catch(err => alert('✗ Có lỗi xảy ra: ' + err.message));
-    }
-
-    // Show Cancel Order Modal
-    function showCancelModal(orderId) {
-        document.getElementById('cancelOrderId').value = orderId;
-        document.getElementById('cancelReason').value = '';
-        new bootstrap.Modal(document.getElementById('cancelOrderModal')).show();
-    }
-
-    // Confirm Cancel Order
+    // Confirm cancel order
     function confirmCancelOrder() {
         const orderId = document.getElementById('cancelOrderId').value;
-        const reason = document.getElementById('cancelReason').value.trim();
+        const reason = document.getElementById('cancelReason').value;
 
-        if (!reason) {
-            alert('Vui lòng nhập lý do hủy đơn hàng');
-            return;
-        }
+        // TODO: Implement cancel order logic
 
-        fetch('${pageContext.request.contextPath}/vendor?action=cancelOrder&orderId=' + orderId + '&reason=' + encodeURIComponent(reason), {
-            method: 'POST'
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success) {
-                alert('✓ ' + result.message);
-                bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal')).hide();
-                location.reload();
-            } else {
-                alert('✗ Lỗi: ' + result.message);
-            }
-        })
-        .catch(err => {
-        });
+        alert('Order ID ' + orderId + ' cancelled. Reason: ' + reason);
+
+        // Hide modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal'));
+        modal.hide();
     }
 
-    // View Order Details
-    function viewOrderDetails(orderId) {
-        // Clear previous data
-        document.getElementById('orderDetailsId').innerHTML = '';
-        document.getElementById('orderDetailsDate').innerHTML = '';
-        document.getElementById('orderDetailsStatus').innerHTML = '';
-        document.getElementById('orderDetailsTotal').innerHTML = '';
-        document.getElementById('orderDetailsShipping').innerHTML = '';
-        document.getElementById('orderDetailsDiscount').innerHTML = '';
-        document.getElementById('orderDetailsCustomer').innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div><small class="text-muted">Đang tải...</small></div>';
-        document.getElementById('orderDetailsAddress').innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div><small class="text-muted">Đang tải...</small></div>';
-        document.getElementById('orderDetailsItems').innerHTML = '<div class="text-center"><div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div><small class="text-muted">Đang tải...</small></div>';
+    // Show add product modal
+    function showAddProductModal() {
+        const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+        modal.show();
+    }
 
-        // Fetch order details
-        fetch('${pageContext.request.contextPath}/vendor?action=getOrderDetails&orderId=' + orderId, {
-            method: 'GET'
+    // Show edit product modal
+    function editProduct(productId) {
+        // TODO: Implement edit product logic
+
+        alert('Edit product ID: ' + productId);
+    }
+
+    // Delete product
+    function deleteProduct(productId) {
+        // TODO: Implement delete product logic
+
+        alert('Delete product ID: ' + productId);
+    }
+
+    // Broadcast delivery request to all available shippers
+    function broadcastDelivery(orderId) {
+        if (!orderId) return;
+
+        const url = '${pageContext.request.contextPath}/vendor?action=broadcastDelivery&orderId=' + encodeURIComponent(orderId);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            }
         })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success && result.data) {
-                const order = result.data.order;
-                const customer = order.customer || {};
-                const address = order.address || {};
-                const items = result.data.orderItems || [];
-
-                // Populate order information
-                document.getElementById('orderDetailsId').innerHTML = '#' + order.orderNumber;
-                document.getElementById('orderDetailsDate').innerHTML = new Date(order.orderDate).toLocaleString('vi-VN');
-                document.getElementById('orderDetailsStatus').innerHTML = order.status;
-                document.getElementById('orderDetailsTotal').innerHTML = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.totalPrice);
-                document.getElementById('orderDetailsShipping').innerHTML = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(order.shippingFee || 0);
-                document.getElementById('orderDetailsDiscount').innerHTML = '0đ'; // DTO doesn't include discount, set to 0
-
-
-                document.getElementById('orderDetailsCustomer').innerHTML =
-                    '<strong>' + (customer.firstName || '') + ' ' + (customer.lastName || '') + '</strong><br>' +
-                    '<i class="fas fa-envelope text-muted"></i> ' + (customer.email || 'N/A') + '<br>' +
-                    '<i class="fas fa-phone text-muted"></i> ' + (customer.phone || 'N/A');
-
-                // Populate address information
-                document.getElementById('orderDetailsAddress').innerHTML =
-                    '<strong>' + (address.street || 'N/A') + '</strong><br>' +
-                    (address.district || '') + ', ' + (address.city || '') +
-                    (address.ward ? (', ' + address.ward) : '');
-
-                // Populate order items
-                const itemsContainer = document.getElementById('orderDetailsItems');
-                itemsContainer.innerHTML = ''; // Clear previous items
-                if (items.length > 0) {
-                    items.forEach(item => {
-                        const total = item.quantity * item.price;
-                        const div = document.createElement('div');
-                        div.classList.add('mb-2');
-                        div.innerHTML =
-                            '<strong>' + item.productName + '</strong> (x' + item.quantity + ')<br>' +
-                            '<small class="text-muted">' +
-                            'Giá: ' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.price) + '<br>' +
-                            'Thành tiền: ' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(total) +
-                            '</small>';
-                        itemsContainer.appendChild(div);
-                    });
-                } else {
-                    itemsContainer.innerHTML = '<small class="text-muted">Không có sản phẩm nào</small>';
+            .then(res => res.json())
+            .then(result => {
+                if (!result || !result.success) {
+                    throw new Error((result && result.message) ? result.message : 'Không thể gửi yêu cầu giao hàng');
                 }
 
-                // Show the modal
-                const modal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
-                modal.show();
-            } else {
-                alert('Không tìm thấy thông tin đơn hàng');
-            }
-        })
-        .catch(err => {
-            alert('Có lỗi xảy ra khi tải thông tin đơn hàng: ' + err.message);
-        });
+                const btn = document.getElementById('btn-broadcast-' + orderId);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                    btn.innerHTML = '<i class="fas fa-check"></i> Đã gửi';
+                }
+
+                const box = document.getElementById('shipper-info-' + orderId);
+                if (box) {
+                    box.innerHTML = '<small class="text-muted"><i class="fas fa-paper-plane"></i> Đã gửi yêu cầu tới shipper đang rảnh. Đang chờ nhận...</small>';
+                }
+
+                // Auto refresh shipper info after a short delay
+                setTimeout(() => loadShipperInfo(orderId), 1500);
+            })
+            .catch(err => {
+                console.error('Broadcast delivery error', err);
+                alert('Có lỗi: ' + err.message);
+            });
     }
 
-    // Show Assign Shipper Modal
-    function showAssignShipperModal(orderId, orderNumber) {
-        document.getElementById('assignOrderId').value = orderId;
-        document.getElementById('assignOrderNumber').textContent = '#' + orderNumber;
-        const select = document.getElementById('shipperSelect');
-        if (select) select.value = '';
-        // load shippers for this order
-        try {
-            loadAvailableShippers(orderId);
-        } catch (e) {
-            // ignore
-        }
-        new bootstrap.Modal(document.getElementById('assignShipperModal')).show();
-    }
+    // Load shipper info for an order and update UI
+    function loadShipperInfo(orderId) {
+        const url = '${pageContext.request.contextPath}/vendor?action=getShipper&orderId=' + encodeURIComponent(orderId);
 
-    // Confirm Assign Shipper
-    function confirmAssignShipper() {
-        const orderId = document.getElementById('assignOrderId').value;
-        const shipperId = document.getElementById('shipperSelect').value;
-
-        if (!shipperId) {
-            alert('Vui lòng chọn shipper');
-            return;
-        }
-
-        fetch('${pageContext.request.contextPath}/vendor?action=assignShipper&orderId=' + orderId + '&shipperId=' + shipperId, {
-            method: 'POST'
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success) {
-                alert('✓ ' + result.message);
-                bootstrap.Modal.getInstance(document.getElementById('assignShipperModal')).hide();
-                location.reload();
-            } else {
-                alert('✗ Lỗi: ' + result.message);
-            }
-        })
-        .catch(err => {
-            alert('✗ Có lỗi xảy ra: ' + err.message);
-        });
-    }
-
-    // Delete Product
-    function deleteProduct(productId) {
-        if (!confirm('Bạn có chắc muốn xóa sản phẩm này? Thao tác này không thể hoàn tác!')) return;
-
-        fetch('${pageContext.request.contextPath}/vendor?action=deleteProduct&productId=' + productId, {
-            method: 'POST'
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success) {
-                alert('✓ ' + result.message);
-                location.reload();
-            } else {
-                alert('✗ Lỗi: ' + result.message);
-            }
-        })
-        .catch(err => alert('✗ Có lỗi xảy ra: ' + err.message));
-    }
-
-    // Edit Product
-    function editProduct(productId) {
-        const modalEl = document.getElementById('editProductModal');
-        if (!modalEl) {
-            alert('Không tìm thấy modal sửa sản phẩm (editProductModal). Vui lòng reload trang.');
-            return;
-        }
-
-        // Check required inputs exist before setting .value
-        const editProductIdEl = document.getElementById('editProductId');
-        const editNameEl = document.getElementById('editName');
-        const editCategoryIdEl = document.getElementById('editCategoryId');
-        const editBrandEl = document.getElementById('editBrand');
-        const editBasePriceEl = document.getElementById('editBasePrice');
-        const editDescriptionEl = document.getElementById('editDescription');
-        const editSpecificationsEl = document.getElementById('editSpecifications');
-        const editStatusEl = document.getElementById('editStatus');
-
-        if (!editProductIdEl || !editNameEl || !editCategoryIdEl || !editBrandEl || !editBasePriceEl || !editStatusEl) {
-            alert('Thiếu các trường input của form sửa sản phẩm. Vui lòng reload trang.');
-            return;
-        }
-
-        fetch('${pageContext.request.contextPath}/vendor?action=getProduct&productId=' + productId, {
+        fetch(url, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
         })
-        .then(res => parseJsonSafe(res))
-        .then(result => {
-            if (!result || result.success !== true) {
-                throw new Error((result && result.message) ? result.message : 'Không thể tải sản phẩm');
-            }
-
-            // Support both shapes: {data:{...}} or {data:{product:{...}}}
-            const product = (result.data && result.data.product) ? result.data.product : result.data;
-            if (!product) {
-                throw new Error('Response thiếu data sản phẩm');
-            }
-
-            // Accept both productId and id
-            const pid = product.productId != null ? product.productId : product.id;
-            editProductIdEl.value = pid != null ? pid : productId;
-
-            editNameEl.value = product.name || '';
-            editCategoryIdEl.value = (product.categoryId != null ? product.categoryId : '');
-            editBrandEl.value = product.brand || '';
-            editBasePriceEl.value = (product.basePrice != null ? product.basePrice : '');
-            if (editDescriptionEl) editDescriptionEl.value = product.description || '';
-            if (editSpecificationsEl) editSpecificationsEl.value = product.specifications || '';
-
-            // Normalize status
-            const rawStatus = (product.status || '').toString().toUpperCase();
-            const normalizedStatus = rawStatus || 'AVAILABLE';
-            editStatusEl.value = normalizedStatus;
-
-            new bootstrap.Modal(modalEl).show();
-        })
-        .catch(err => {
-            console.error('Edit product load error:', err);
-            alert('Có lỗi xảy ra khi tải dữ liệu sản phẩm: ' + err.message);
-        });
-    }
-
-    // Submit Edit Product
-    function submitEditProduct() {
-        const form = document.getElementById('editProductForm');
-        if (!form) {
-            alert('Không tìm thấy form sửa sản phẩm (editProductForm).');
-            return;
-        }
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
-
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-        const productId = data.productId;
-
-        if (!productId) {
-            alert('Thiếu productId khi cập nhật.');
-            return;
-        }
-
-        fetch('${pageContext.request.contextPath}/vendor?action=updateProduct&productId=' + encodeURIComponent(productId), {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(res => parseJsonSafe(res))
-        .then(result => {
-            if (result && result.success) {
-                alert('✓ ' + (result.message || 'Cập nhật sản phẩm thành công'));
-                const modalEl = document.getElementById('editProductModal');
-                if (modalEl) {
-                    const inst = bootstrap.Modal.getInstance(modalEl);
-                    if (inst) inst.hide();
-                }
-                location.reload();
-            } else {
-                throw new Error((result && result.message) ? result.message : 'Cập nhật thất bại');
-            }
-        })
-        .catch(err => {
-            console.error('Update product error:', err);
-            alert('Có lỗi xảy ra khi cập nhật sản phẩm: ' + err.message);
-        });
-    }
-
-    // Assign Shipper
-    function assignShipper(orderId) {
-        // Fetch order details and available shippers
-        fetch('${pageContext.request.contextPath}/vendor?action=getOrderDetails&orderId=' + orderId, {
-            method: 'GET'
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.success && result.data) {
-                const orderData = result.data.order;
-                const orderItems = result.data.orderItems;
-
-                // Populate order details in the modal
-                document.getElementById('assignOrderId').value = orderData.orderId;
-                document.getElementById('assignOrderNumber').textContent = '#' + orderData.orderNumber;
-
-                // Customer and address info using DTO structure
-                document.getElementById('modalCustomerInfo').innerHTML =
-                    '<strong>' + (orderData.customer.firstName || '') + ' ' + (orderData.customer.lastName || '') + '</strong><br>' +
-                    '<i class="fas fa-envelope text-muted"></i> ' + (orderData.customer.email || '') + '<br>' +
-                    '<i class="fas fa-phone text-muted"></i> ' + (orderData.customer.phone || '');
-
-                document.getElementById('modalAddressInfo').innerHTML =
-                    '<strong>' + (orderData.address.street || '') + '</strong><br>' +
-                    (orderData.address.district || '') + ', ' + (orderData.address.city || '') +
-                    (orderData.address.ward ? (', ' + orderData.address.ward) : '');
-
-                // Load available shippers
-                loadAvailableShippers(orderData.orderId);
-
-                const modal = new bootstrap.Modal(document.getElementById('assignShipperModal'));
-                modal.show();
-            } else {
-                alert('Không tìm thấy đơn hàng: ' + (result.message || 'Unknown error'));
-            }
-        })
-        .catch(err => {
-            console.error('Error loading order details:', err);
-            alert('Có lỗi xảy ra khi tải dữ liệu đơn hàng: ' + err.message);
-        });
-    }
-
-    // Load available shippers for an order
-    function loadAvailableShippers(orderId) {
-        fetch('${pageContext.request.contextPath}/vendor?action=getAvailableShippers&orderId=' + orderId, {
-            method: 'GET'
-        })
-        .then(res => res.json())
-        .then(result => {
-            const shipperSelect = document.getElementById('shipperSelect');
-            shipperSelect.innerHTML = '<option value="">Chọn shipper...</option>';
-
-            if (!result || !result.success) {
-                shipperSelect.innerHTML = '<option value="">Không thể tải shipper</option>';
-                return;
-            }
-
-            const shippers = Array.isArray(result.data) ? result.data : [];
-            if (shippers.length === 0) {
-                shipperSelect.innerHTML = '<option value="">Không có shipper khả dụng</option>';
-                return;
-            }
-
-            shippers.forEach(shipper => {
-                const option = document.createElement('option');
-                option.value = shipper.userId;
-                const fullName = ((shipper.firstName || '') + ' ' + (shipper.lastName || '')).trim();
-                option.textContent = (fullName || ('Shipper #' + shipper.userId)) + (shipper.phone ? (' - ' + shipper.phone) : '');
-                shipperSelect.appendChild(option);
-            });
-        })
-        .catch(err => {
-            const shipperSelect = document.getElementById('shipperSelect');
-            shipperSelect.innerHTML = '<option value="">Lỗi tải shipper</option>';
-            console.error('Error loading shippers:', err);
-        });
-    }
-
-    // Change Shipper
-    function changeShipper(orderId, orderNumber) {
-        document.getElementById('assignOrderId').value = orderId;
-        document.getElementById('assignOrderNumber').textContent = '#' + orderNumber;
-        loadAvailableShippers(orderId); // Reload shippers
-        new bootstrap.Modal(document.getElementById('assignShipperModal')).show();
-    }
-
-    // Load shipper information for each order
-    function loadShipperInfo() {
-        // Find all shipper info elements
-        const shipperInfoElements = document.querySelectorAll('[id^="shipper-info-"]');
-
-        shipperInfoElements.forEach(element => {
-            const orderId = element.id.replace('shipper-info-', '');
-
-            fetch('${pageContext.request.contextPath}/vendor?action=getShipper&orderId=' + orderId, {
-                method: 'GET'
-            })
             .then(res => res.json())
             .then(result => {
-                const badge = document.getElementById('shipper-badge-' + orderId);
-                const btnAssign = document.getElementById('btn-assign-' + orderId);
-                const btnChange = document.getElementById('btn-change-' + orderId);
+                const infoBox = document.getElementById('shipper-info-' + orderId);
+                if (!infoBox) return;
 
-                const shipper = result && result.success && result.data ? result.data.shipper : null;
-                const hasShipper = !!shipper;
+                if (!result || !result.success) {
+                    infoBox.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-circle"></i> Không tải được shipper</small>';
+                    return;
+                }
 
-                if (hasShipper) {
-                    element.innerHTML =
-                        '<small class="text-success">' +
-                        '<i class="fas fa-user-tie"></i> ' +
-                        '<strong>' + (shipper.firstName || '') + ' ' + (shipper.lastName || '') + '</strong><br>' +
-                        '<i class="fas fa-phone"></i> ' + (shipper.phone || '') +
-                        '</small>';
-
-                    if (badge) {
-                        badge.classList.remove('bg-warning');
-                        badge.classList.add('bg-success');
-                        badge.textContent = 'Đã gán shipper';
-                    }
-                    if (btnAssign) btnAssign.classList.add('d-none');
-                    if (btnChange) btnChange.classList.remove('d-none');
+                const data = result.data || {};
+                if (data.hasShipper && data.shipper) {
+                    const s = data.shipper;
+                    infoBox.innerHTML = '<small class="text-success"><i class="fas fa-user-check"></i> ' +
+                        'Shipper: <strong>' + (s.firstName || '') + ' ' + (s.lastName || '') + '</strong>' +
+                        ' - ' + (s.phone || '') + '</small>';
                 } else {
-                    element.innerHTML = '<small class="text-muted">Chưa gán shipper</small>';
-
-                    if (badge) {
-                        badge.classList.remove('bg-success');
-                        badge.classList.add('bg-warning');
-                        badge.textContent = 'Chờ gán shipper';
-                    }
-                    if (btnAssign) btnAssign.classList.remove('d-none');
-                    if (btnChange) btnChange.classList.add('d-none');
+                    infoBox.innerHTML = '<small class="text-muted"><i class="fas fa-user-clock"></i> Chưa có shipper nhận đơn</small>';
                 }
             })
             .catch(err => {
-                element.innerHTML = '<small class="text-danger">Lỗi tải dữ liệu</small>';
-                const badge = document.getElementById('shipper-badge-' + orderId);
-                if (badge) {
-                    badge.classList.remove('bg-success');
-                    badge.classList.add('bg-warning');
-                    badge.textContent = 'Không tải được shipper';
-                }
+                console.error('Load shipper info error', err);
             });
-        });
     }
 
-    // Initialize when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        // Load shipper info if on shipping page
-        if (window.location.href.includes('action=shipping')) {
-            loadShipperInfo();
-        }
-        
-        // Format JSON data if present
-        formatJsonData();
+    // On shipping page, auto load shipper info for all orders rendered
+    document.addEventListener('DOMContentLoaded', function () {
+        const ids = Array.from(document.querySelectorAll('[id^="shipper-info-"]'))
+            .map(el => el.id.replace('shipper-info-', ''))
+            .map(v => parseInt(v, 10))
+            .filter(v => !isNaN(v));
+
+        ids.forEach(id => loadShipperInfo(id));
     });
-
-    // Format JSON Data for display
-    function formatJsonData() {
-        const containers = document.querySelectorAll('.json-data-container');
-        containers.forEach(container => {
-            try {
-                const jsonStr = container.getAttribute('data-json');
-                if (!jsonStr) return;
-                
-                const data = JSON.parse(jsonStr);
-                let html = '<ul class="list-unstyled mb-0 small">';
-                
-                // Fields to display nicely
-                const fieldMap = {
-                    'name': 'Tên SP',
-                    'categoryId': 'Danh mục ID',
-                    'brand': 'Thương hiệu',
-                    'basePrice': 'Giá bán',
-                    'description': 'Mô tả',
-                    'status': 'Trạng thái',
-                    'specifications': 'Thông số'
-                };
-                
-                for (const [key, value] of Object.entries(data)) {
-                    if (value && fieldMap[key]) {
-                        // Truncate long descriptions
-                        let displayValue = value;
-                        if (key === 'description' && value.length > 50) {
-                            displayValue = value.substring(0, 50) + '...';
-                        }
-                        
-                        html += '<li><strong>' + fieldMap[key] + ':</strong> ' + displayValue + '</li>';
-                    }
-                }
-                html += '</ul>';
-                container.innerHTML = html;
-            } catch (e) {
-                console.error('Error formatting JSON', e);
-                // Leave original content on error
-            }
-        });
-    }
 </script>
 </body>
 </html>
+

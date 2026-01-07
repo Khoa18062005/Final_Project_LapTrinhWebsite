@@ -284,4 +284,29 @@ public class ShipperService {
             em.close();
         }
     }
+
+    /**
+     * Find assignment_id for the given order and shipper.
+     * Used by notification accept flow: /shipper?action=acceptDelivery&orderId=...
+     */
+    public int findAssignmentIdForOrderAndShipper(int orderId, int shipperId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            String sql = "SELECT da.assignment_id " +
+                    "FROM deliveries d JOIN delivery_assignments da ON da.delivery_id = d.delivery_id " +
+                    "WHERE d.order_id = ? AND da.shipper_id = ? " +
+                    "ORDER BY da.assigned_at DESC LIMIT 1";
+
+            Object one = em.createNativeQuery(sql)
+                    .setParameter(1, orderId)
+                    .setParameter(2, shipperId)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+
+            return one == null ? 0 : ((Number) one).intValue();
+        } finally {
+            em.close();
+        }
+    }
 }
