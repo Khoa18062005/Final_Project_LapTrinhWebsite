@@ -97,11 +97,6 @@
                                             </td>
                                             <td style="width: 150px;">
                                                 <div class="input-group input-group-sm">
-                                                    <button class="btn btn-outline-secondary"
-                                                            type="button"
-                                                            onclick="cartController.decreaseQuantity(${item.productId}, ${item.variantId})">
-                                                        <i class="bi bi-dash"></i>
-                                                    </button>
                                                     <input type="number"
                                                            class="form-control text-center quantity-input"
                                                            value="${item.quantity}"
@@ -110,11 +105,6 @@
                                                            data-product-id="${item.productId}"
                                                            data-variant-id="${item.variantId}"
                                                            onchange="cartController.updateQuantityFromInput(this)">
-                                                    <button class="btn btn-outline-secondary"
-                                                            type="button"
-                                                            onclick="cartController.increaseQuantity(${item.productId}, ${item.variantId})">
-                                                        <i class="bi bi-plus"></i>
-                                                    </button>
                                                 </div>
                                             </td>
                                             <td style="width: 120px;">
