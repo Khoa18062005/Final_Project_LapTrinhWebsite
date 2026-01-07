@@ -627,6 +627,10 @@ public class ProductService {
         String temp = Normalizer.normalize(input, Normalizer.Form.NFD);
         temp = Pattern.compile("\\p{InCombiningDiacriticalMarks}+").matcher(temp).replaceAll("");
         temp = temp.replaceAll("đ", "d").replaceAll("Đ", "d");
+        temp = temp.replaceAll("ê", "e").replaceAll("Ê", "E");
+        temp = temp.replaceAll("ô", "o").replaceAll("Ô", "O");
+        temp = temp.replaceAll("ư", "u").replaceAll("Ư", "U");
+        temp = temp.replaceAll("ơ", "o").replaceAll("Ơ", "O");
         return temp.toLowerCase();
     }
 
