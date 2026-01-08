@@ -1,9 +1,11 @@
 package viettech.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import viettech.dao.*;
-import viettech.dto.CartCheckoutItemDTO;
 import viettech.dto.CartItemDTO;
 import viettech.entity.Address;
+import viettech.entity.Notification;
 import viettech.entity.order.Order;
 import viettech.entity.order.OrderDetail;
 import viettech.entity.order.OrderStatus;
@@ -12,15 +14,22 @@ import viettech.entity.user.Customer;
 import viettech.entity.user.User;
 import viettech.entity.voucher.Voucher;
 import viettech.entity.voucher.VoucherUsage;
+import viettech.service.NotificationService;
+import viettech.util.EmailUtilBrevo;
+import viettech.util.NotificationTemplateUtil;
+import viettech.dto.CartCheckoutItemDTO;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @WebServlet(name = "CODPaymentServlet", urlPatterns = {"/checkout/payment-cod-confirmed"})
 public class CODPaymentServlet extends HttpServlet {
+
+    private static final Logger logger = LoggerFactory.getLogger(CODPaymentServlet.class);
 
     private CustomerDAO customerDAO;
     private AddressDAO addressDAO;
@@ -28,6 +37,7 @@ public class CODPaymentServlet extends HttpServlet {
     private OrderStatusDAO orderStatusDAO;
     private VoucherDAO voucherDAO;
     private VoucherUsageDAO voucherUsageDAO;
+    private NotificationService notificationService;
 
     @Override
     public void init() throws ServletException {
@@ -38,6 +48,7 @@ public class CODPaymentServlet extends HttpServlet {
         orderStatusDAO = new OrderStatusDAO();
         voucherDAO = new VoucherDAO();
         voucherUsageDAO = new VoucherUsageDAO();
+        notificationService = new NotificationService();
     }
 
     @Override
@@ -47,7 +58,6 @@ public class CODPaymentServlet extends HttpServlet {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
         Customer customer = customerDAO.findById(user.getUserId());
-        List<CartItemDTO> cartItemDTOs = (List<CartItemDTO>) session.getAttribute("cartItems");
 
         if (customer == null) {
             response.sendRedirect(request.getContextPath() + "/login");
@@ -60,7 +70,7 @@ public class CODPaymentServlet extends HttpServlet {
             String shippingNote = (String) session.getAttribute("shippingNote");
             String paymentMethod = (String) session.getAttribute("paymentMethod");
             List<CartCheckoutItemDTO> selectedCartItems =
-                (List<CartCheckoutItemDTO>) session.getAttribute("selectedCartItems");
+                    (List<CartCheckoutItemDTO>) session.getAttribute("selectedCartItems");
             Voucher appliedVoucher = (Voucher) session.getAttribute("appliedVoucher");
 
             if (shippingAddress == null || selectedCartItems == null || selectedCartItems.isEmpty()) {
@@ -83,7 +93,6 @@ public class CODPaymentServlet extends HttpServlet {
             if (lpObj != null) {
                 usedLoyaltyPoints = Double.parseDouble(lpObj.toString());
             }
-
 
             // Tính discount từ voucher
             if (appliedVoucher != null) {
@@ -146,6 +155,7 @@ public class CODPaymentServlet extends HttpServlet {
                 );
                 orderStatusDAO.insert(orderStatus);
 
+                // Lưu order details
                 for(CartCheckoutItemDTO cartItemDTO : selectedCartItems) {
                     OrderDetail orderDetail = new OrderDetail();
                     orderDetail.setOrderId(order.getOrderId());
@@ -179,6 +189,7 @@ public class CODPaymentServlet extends HttpServlet {
                     voucherDAO.update(appliedVoucher);
                 }
 
+                // Lưu payment
                 Payment payment = new Payment();
                 payment.setOrderId(order.getOrderId());
                 payment.setAmount(order.getTotalPrice());
@@ -189,10 +200,17 @@ public class CODPaymentServlet extends HttpServlet {
                 payment.setProvider("Viettech");
                 PaymentDAO paymentDAO = new PaymentDAO();
                 paymentDAO.insert(payment);
-            }
 
-            fullCustomer.setLoyaltyPoints(fullCustomer.getLoyaltyPoints() + (int )totalPrice/1000000 - (int)usedLoyaltyPoints);
-            customerDAO.update(fullCustomer);
+                // Cập nhật loyalty points
+                fullCustomer.setLoyaltyPoints(fullCustomer.getLoyaltyPoints() + (int)totalPrice/1000000 - (int)usedLoyaltyPoints);
+                customerDAO.update(fullCustomer);
+
+                // ========== GỬI EMAIL XÁC NHẬN ==========
+                sendOrderConfirmationEmail(fullCustomer, createdOrder, estimatedDelivery);
+
+                // ========== TẠO NOTIFICATION ==========
+                createOrderNotification(fullCustomer, createdOrder, estimatedDelivery);
+            }
 
             // Set attributes cho JSP
             request.setAttribute("order", createdOrder);
@@ -218,9 +236,63 @@ public class CODPaymentServlet extends HttpServlet {
             dispatcher.forward(request, response);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("✗ Error creating COD order", e);
             request.setAttribute("errorMessage", "Có lỗi xảy ra khi tạo đơn hàng: " + e.getMessage());
             request.getRequestDispatcher("/WEB-INF/views/error.jsp").forward(request, response);
+        }
+    }
+
+    /**
+     * Gửi email xác nhận đơn hàng COD
+     */
+    private void sendOrderConfirmationEmail(Customer customer, Order order, Date estimatedDelivery) {
+        try {
+            String customerName = customer.getFirstName() + " " + customer.getLastName();
+            String estimatedDeliveryStr = new SimpleDateFormat("dd/MM/yyyy").format(estimatedDelivery);
+
+            boolean emailSent = EmailUtilBrevo.sendOrderConfirmationCOD(
+                    customer.getEmail(),
+                    customerName,
+                    order.getOrderNumber(),
+                    order.getTotalPrice(),
+                    estimatedDeliveryStr
+            );
+
+            if (emailSent) {
+                logger.info("✓ Order confirmation email sent successfully to: {}", customer.getEmail());
+            } else {
+                logger.warn("✗ Failed to send order confirmation email to: {}", customer.getEmail());
+            }
+        } catch (Exception e) {
+            logger.error("✗ Error sending order confirmation email", e);
+        }
+    }
+
+    /**
+     * Tạo notification cho đơn hàng COD
+     */
+    private void createOrderNotification(Customer customer, Order order, Date estimatedDelivery) {
+        try {
+            String estimatedDeliveryStr = new SimpleDateFormat("dd/MM/yyyy").format(estimatedDelivery);
+
+            Notification notification = NotificationTemplateUtil.createOrderConfirmationCODNotification(
+                    customer.getUserId(),
+                    customer.getFirstName(),
+                    customer.getLastName(),
+                    order.getOrderNumber(),
+                    order.getTotalPrice(),
+                    estimatedDeliveryStr
+            );
+
+            boolean notificationCreated = notificationService.createNotification(notification);
+
+            if (notificationCreated) {
+                logger.info("✓ Order notification created successfully for user: {}", customer.getUserId());
+            } else {
+                logger.warn("✗ Failed to create order notification for user: {}", customer.getUserId());
+            }
+        } catch (Exception e) {
+            logger.error("✗ Error creating order notification", e);
         }
     }
 
