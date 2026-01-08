@@ -185,5 +185,70 @@ public class VoucherDAO {
             em.close();
         }
     }
+
+    /**
+     * Đếm số lần user đã sử dụng voucher
+     */
+    public long countUserUsage(int voucherId, int customerId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT COUNT(vu) FROM VoucherUsage vu WHERE vu.voucherId = :voucherId AND vu.customerId = :customerId";
+            TypedQuery<Long> query = em.createQuery(jpql, Long.class);
+            query.setParameter("voucherId", voucherId);
+            query.setParameter("customerId", customerId);
+            Long count = query.getSingleResult();
+            logger.debug("✓ User {} has used voucher {} : {} times", customerId, voucherId, count);
+            return count;
+        } catch (Exception e) {
+            logger.error("✗ Error counting user usage for voucher: {} and user: {}", voucherId, customerId, e);
+            return 0;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Kiểm tra xem user còn được dùng voucher này không
+     */
+    public boolean canUserUseVoucher(int voucherId, int customerId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            // Lấy thông tin voucher
+            Voucher voucher = em.find(Voucher.class, voucherId);
+            if (voucher == null || !voucher.isActive()) {
+                logger.debug("✗ Voucher {} is not active or not found", voucherId);
+                return false;
+            }
+
+            // Kiểm tra thời gian
+            Date now = new Date();
+            if (voucher.getStartDate().after(now) || voucher.getExpiryDate().before(now)) {
+                logger.debug("✗ Voucher {} is expired or not started yet", voucherId);
+                return false;
+            }
+
+            // Kiểm tra usage limit toàn server
+            if (voucher.getUsageCount() >= voucher.getUsageLimit()) {
+                logger.debug("✗ Voucher {} has reached server-wide usage limit", voucherId);
+                return false;
+            }
+
+            // Kiểm tra usage limit per user
+            long userUsageCount = countUserUsage(voucherId, customerId);
+            if (userUsageCount >= voucher.getUsageLimitPerUser()) {
+                logger.debug("✗ User {} has reached usage limit for voucher {}", customerId, voucherId);
+                return false;
+            }
+
+            logger.debug("✓ User {} can use voucher {}", customerId, voucherId);
+            return true;
+
+        } catch (Exception e) {
+            logger.error("✗ Error checking if user can use voucher: {} for user: {}", voucherId, customerId, e);
+            return false;
+        } finally {
+            em.close();
+        }
+    }
 }
 

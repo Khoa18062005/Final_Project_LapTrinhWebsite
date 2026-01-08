@@ -121,6 +121,7 @@
                     </div>
 
                     <!-- ✅ AUTO-FILL: Số điện thoại -->
+                    <!-- Trường số điện thoại trong contact.jsp -->
                     <div class="col-md-6">
                         <label for="phone" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
                         <input type="tel"
@@ -129,6 +130,8 @@
                                name="phone"
                                value="${not empty sessionScope.user ? sessionScope.user.phone : ''}"
                                pattern="[0-9]{10}"
+                               maxlength="10"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                                required>
                     </div>
 

@@ -156,6 +156,8 @@
                                        name="phone"
                                        value="${not empty sessionScope.user ? sessionScope.user.phone : ''}"
                                        pattern="[0-9]{10}"
+                                       maxlength="10"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                                        required>
                             </div>
 
@@ -251,6 +253,8 @@
                                        name="phone"
                                        value="${not empty sessionScope.user ? sessionScope.user.phone : ''}"
                                        pattern="[0-9]{10}"
+                                       maxlength="10"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '');"
                                        required>
                             </div>
 
