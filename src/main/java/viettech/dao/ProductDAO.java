@@ -459,5 +459,81 @@ public class ProductDAO {
             em.close();
         }
     }
+    /**
+     * Tìm sản phẩm gợi ý theo từ khóa (dùng cho search suggestions)
+     */
+    public List<Product> findSimpleSuggestions(String keyword, int limit) {
+        if (keyword == null || keyword.trim().length() < 2) {
+            return new ArrayList<>();
+        }
+
+        String search = "%" + keyword.trim().toLowerCase() + "%";
+
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = """
+            SELECT DISTINCT p FROM Product p
+            LEFT JOIN FETCH p.images
+            WHERE p.status = 'ACTIVE'
+              AND (LOWER(p.name) LIKE :search 
+                   OR LOWER(p.brand) LIKE :search)
+            ORDER BY 
+                CASE 
+                    WHEN LOWER(p.name) LIKE :startWith THEN 0
+                    WHEN LOWER(p.brand) LIKE :startWith THEN 1
+                    ELSE 2
+                END,
+                p.totalSold DESC
+            """;
+
+            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
+            query.setParameter("search", search);
+            query.setParameter("startWith", keyword.trim().toLowerCase() + "%"); // ưu tiên tên bắt đầu bằng từ khóa
+            query.setMaxResults(limit);
+
+            return query.getResultList();
+
+        } catch (Exception e) {
+            logger.error("Lỗi tìm gợi ý đơn giản: {}", keyword, e);
+            return new ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
+    public List<Product> findSuggestionsSimple(String keyword, int limit) {
+        System.out.println("DAO findSuggestionsSimple: " + keyword);
+
+        String search = "%" + keyword.trim().toLowerCase() + "%";
+
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            // Query cực kỳ đơn giản, chỉ lấy thông tin cơ bản
+            String jpql = """
+            SELECT p FROM Product p
+            WHERE p.status = 'ACTIVE'
+              AND (LOWER(p.name) LIKE :search 
+                   OR LOWER(p.brand) LIKE :search)
+            ORDER BY 
+                CASE 
+                    WHEN LOWER(p.name) LIKE :startWith THEN 0
+                    WHEN LOWER(p.brand) LIKE :startWith THEN 1
+                    ELSE 2
+                END,
+                p.viewCount DESC
+            """;
+
+            return em.createQuery(jpql, Product.class)
+                    .setParameter("search", search)
+                    .setParameter("startWith", keyword.trim().toLowerCase() + "%")
+                    .setMaxResults(limit)
+                    .getResultList();
+
+        } catch (Exception e) {
+            System.out.println("DAO Error: " + e.getMessage());
+            return new ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
 }
 

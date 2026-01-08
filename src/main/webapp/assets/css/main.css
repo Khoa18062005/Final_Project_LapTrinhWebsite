@@ -1854,3 +1854,129 @@ body:has(.notification-dropdown.show) .notification-dropdown {
 .cart-oder{
     text-decoration: none!important;
 }
+
+/*// CSS suggestion product*/
+/* 1. Khung bao ngoài của gợi ý */
+.suggestion-box {
+    position: absolute;
+    top: 100%; /* Nằm ngay dưới ô input */
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid var(--color-border);
+    border-top: none; /* Bỏ viền trên cho liền mạch với input */
+    border-radius: 0 0 8px 8px; /* Bo tròn 2 góc dưới */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Đổ bóng tạo chiều sâu */
+    z-index: 1050; /* Đảm bảo nằm trên các thành phần khác */
+    max-height: 400px; /* Giới hạn chiều cao */
+    overflow-y: auto; /* Cho phép cuộn dọc */
+    margin-top: 2px;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+/* 2. Tiêu đề "Sản phẩm gợi ý" */
+.suggestion-header {
+    padding: 10px 15px;
+    background-color: #f0f2f5;
+    color: #666;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* 3. Từng dòng sản phẩm */
+.suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    text-decoration: none;
+    color: var(--text-color);
+    border-bottom: 1px solid #f1f1f1;
+    transition: all 0.2s ease;
+    background-color: #fff;
+}
+
+/* Loại bỏ gạch chân mặc định của thẻ a */
+.suggestion-item:hover,
+.suggestion-item:focus {
+    text-decoration: none;
+    background-color: var(--bg-hover);
+    padding-left: 20px; /* Hiệu ứng đẩy nhẹ sang phải khi hover */
+    border-left: 4px solid var(--primary-color); /* Viền xanh bên trái khi hover */
+}
+
+/* Bỏ viền dòng cuối cùng */
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+/* 4. Hình ảnh sản phẩm */
+.suggestion-item img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain; /* Giữ nguyên tỉ lệ ảnh không bị méo */
+    border-radius: 4px;
+    border: 1px solid #eee;
+    margin-right: 15px;
+    background: #fff;
+}
+
+/* 5. Thông tin sản phẩm (Tên & Giá) */
+.suggestion-info {
+    flex: 1; /* Chiếm hết khoảng trống còn lại */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.suggestion-info h4 {
+    margin: 0 0 4px 0;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-color);
+
+    /* Cắt bớt nếu tên quá dài (tối đa 2 dòng) */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Highlight tên sản phẩm khi hover */
+.suggestion-item:hover .suggestion-info h4 {
+    color: var(--primary-color);
+}
+
+.suggestion-info .price {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--primary-color); /* Dùng màu xanh chủ đạo cho giá */
+    /* Hoặc dùng màu đỏ nếu muốn nổi bật hơn: color: #d70018; */
+}
+
+/* 6. Tùy chỉnh thanh cuộn (Scrollbar) cho đẹp hơn trên Chrome/Edge */
+.suggestion-box::-webkit-scrollbar {
+    width: 6px;
+}
+
+.suggestion-box::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.suggestion-box::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+.suggestion-box::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
+}
+
+/* Hiệu ứng xuất hiện */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
