@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class VendorService {
 
@@ -1159,6 +1160,150 @@ public class VendorService {
         } catch (Exception ex) {
             if (tx.isActive()) tx.rollback();
             throw ex;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Status priority for vendor order management
+     * Lower number = higher priority (shown first)
+     */
+    private static final Map<String, Integer> STATUS_PRIORITY = new HashMap<>();
+    static {
+        STATUS_PRIORITY.put("CONFIRMED", 1);
+        STATUS_PRIORITY.put("PROCESSING", 2);
+        STATUS_PRIORITY.put("READY", 3);
+        STATUS_PRIORITY.put("SHIPPING", 4);
+        STATUS_PRIORITY.put("COMPLETED", 5);
+    }
+
+    /**
+     * Get status priority for sorting (COMPLETED always last)
+     */
+    private int getStatusPriority(String status) {
+        if (status == null) return 99;
+        String upper = status.trim().toUpperCase();
+        return STATUS_PRIORITY.getOrDefault(upper, 99);
+    }
+
+    /**
+     * Sort orders by status priority, then by date within same status
+     */
+    public List<Order> sortOrdersByStatusPriority(List<Order> orders) {
+        if (orders == null) return new ArrayList<>();
+
+        return orders.stream()
+            .sorted(Comparator
+                .comparingInt((Order o) -> getStatusPriority(o.getStatus()))
+                .thenComparing((Order o) -> o.getOrderDate() != null ? o.getOrderDate() : new Date(0), Comparator.reverseOrder()))
+            .toList();
+    }
+
+    /**
+     * Get all orders for vendor sorted by status priority
+     */
+    public List<Order> getAllOrdersSortedByStatus(int vendorId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            String jpql = "SELECT DISTINCT o FROM Order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "WHERE o.vendorId = :vendorId";
+
+            List<Order> orders = em.createQuery(jpql, Order.class)
+                    .setParameter("vendorId", vendorId)
+                    .getResultList();
+
+            return sortOrdersByStatusPriority(orders);
+        } catch (Exception e) {
+            logger.error("Failed to get all orders for vendor {}", vendorId, e);
+            throw new RuntimeException("Failed to get orders", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Get complete order details for modal view
+     */
+    public Map<String, Object> getCompleteOrderDetails(int orderId, int vendorId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            // Fetch order with customer and address
+            Order order = em.createQuery(
+                    "SELECT o FROM Order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "WHERE o.orderId = :orderId AND o.vendorId = :vendorId", Order.class)
+                    .setParameter("orderId", orderId)
+                    .setParameter("vendorId", vendorId)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+
+            if (order == null) {
+                return null;
+            }
+
+            // Fetch order details with products
+            List<OrderDetail> orderDetails = em.createQuery(
+                    "SELECT od FROM OrderDetail od " +
+                    "LEFT JOIN FETCH od.product p " +
+                    "WHERE od.orderId = :orderId", OrderDetail.class)
+                    .setParameter("orderId", orderId)
+                    .getResultList();
+
+            // Build response map
+            Map<String, Object> result = new HashMap<>();
+
+            // Order info
+            Map<String, Object> orderInfo = new HashMap<>();
+            orderInfo.put("orderId", order.getOrderId());
+            orderInfo.put("orderNumber", order.getOrderNumber());
+            orderInfo.put("status", order.getStatus());
+            orderInfo.put("totalPrice", order.getTotalPrice());
+            orderInfo.put("shippingFee", order.getShippingFee());
+            orderInfo.put("orderDate", order.getOrderDate());
+            orderInfo.put("notes", order.getNotes());
+            result.put("order", orderInfo);
+
+            // Customer info
+            Map<String, Object> customerInfo = new HashMap<>();
+            if (order.getCustomer() != null) {
+                customerInfo.put("firstName", order.getCustomer().getFirstName());
+                customerInfo.put("lastName", order.getCustomer().getLastName());
+                customerInfo.put("email", order.getCustomer().getEmail());
+                customerInfo.put("phone", order.getCustomer().getPhone());
+            }
+            result.put("customer", customerInfo);
+
+            // Address info
+            Map<String, Object> addressInfo = new HashMap<>();
+            if (order.getAddress() != null) {
+                addressInfo.put("street", order.getAddress().getStreet());
+                addressInfo.put("ward", order.getAddress().getWard());
+                addressInfo.put("district", order.getAddress().getDistrict());
+                addressInfo.put("city", order.getAddress().getCity());
+            }
+            result.put("address", addressInfo);
+
+            // Order items
+            List<Map<String, Object>> items = new ArrayList<>();
+            for (OrderDetail detail : orderDetails) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("productName", detail.getProductName());
+                item.put("quantity", detail.getQuantity());
+                item.put("unitPrice", detail.getUnitPrice());
+                item.put("subtotal", detail.getQuantity() * detail.getUnitPrice());
+                items.add(item);
+            }
+            result.put("orderItems", items);
+
+            return result;
+        } catch (Exception e) {
+            logger.error("Failed to get complete order details for order {} vendor {}", orderId, vendorId, e);
+            throw new RuntimeException("Failed to get order details", e);
         } finally {
             em.close();
         }

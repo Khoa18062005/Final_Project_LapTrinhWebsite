@@ -442,6 +442,119 @@
         .empty-state p {
             color: #95a5a6;
         }
+
+        /* Enhanced Status Badges */
+        .badge-confirmed {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7) !important;
+            color: white !important;
+        }
+
+        .badge-processing {
+            background: linear-gradient(135deg, #74b9ff, #0984e3) !important;
+            color: white !important;
+        }
+
+        .badge-ready {
+            background: linear-gradient(135deg, #fdcb6e, #f39c12) !important;
+            color: #2d3436 !important;
+        }
+
+        .badge-shipping {
+            background: linear-gradient(135deg, #fab1a0, #e17055) !important;
+            color: white !important;
+        }
+
+        .badge-completed {
+            background: linear-gradient(135deg, #55efc4, #00b894) !important;
+            color: white !important;
+        }
+
+        .badge-cancelled {
+            background: linear-gradient(135deg, #dfe6e9, #b2bec3) !important;
+            color: #636e72 !important;
+        }
+
+        /* Order Detail Modal Styles */
+        .order-detail-section {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .order-detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .order-detail-section h6 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .order-detail-section .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .order-detail-section .info-row .label {
+            color: #7f8c8d;
+        }
+
+        .order-detail-section .info-row .value {
+            font-weight: 500;
+        }
+
+        .product-table {
+            font-size: 0.9rem;
+        }
+
+        .product-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .order-total-row {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        /* Completed orders styling */
+        .order-row-completed {
+            opacity: 0.7;
+            background: #f9f9f9;
+        }
+
+        .order-row-completed:hover {
+            opacity: 1;
+        }
+
+        /* Action button styles */
+        .btn-action-process {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            border: none;
+            color: white;
+        }
+
+        .btn-action-ready {
+            background: linear-gradient(135deg, #fdcb6e, #f39c12);
+            border: none;
+            color: #2d3436;
+        }
+
+        .btn-action-ship {
+            background: linear-gradient(135deg, #fab1a0, #e17055);
+            border: none;
+            color: white;
+        }
+
+        .btn-action-complete {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            border: none;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -708,47 +821,47 @@
             </div>
         </c:when>
 
-        <%-- ORDERS PAGE --%>
+        <%-- ORDERS PAGE - ENHANCED --%>
         <c:when test="${param.action == 'orders'}">
             <!-- Page Header -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2><i class="fas fa-shopping-cart"></i> Quản lý đơn hàng</h2>
-                    <p class="text-muted mb-0">Xử lý và theo dõi đơn hàng</p>
+                    <p class="text-muted mb-0">Xử lý và theo dõi đơn hàng (sắp xếp theo trạng thái)</p>
                 </div>
             </div>
 
-            <!-- Status Filter (Vendor minimal statuses only) -->
+            <!-- Status Filter -->
             <div class="status-filter mb-4">
                 <a href="${pageContext.request.contextPath}/vendor?action=orders"
                    class="btn ${empty param.status ? 'btn-primary' : 'btn-outline-secondary'}">
                     <i class="fas fa-list"></i> Tất cả
                 </a>
                 <a href="${pageContext.request.contextPath}/vendor?action=orders&status=CONFIRMED"
-                   class="btn ${(param.status == 'CONFIRMED' or param.status == 'Confirmed') ? 'btn-primary' : 'btn-outline-primary'}">
-                    <i class="fas fa-check"></i> CONFIRMED
+                   class="btn ${fn:toUpperCase(param.status) == 'CONFIRMED' ? 'btn-primary' : 'btn-outline-primary'}">
+                    <i class="fas fa-check"></i> Confirmed
                 </a>
                 <a href="${pageContext.request.contextPath}/vendor?action=orders&status=PROCESSING"
-                   class="btn ${(param.status == 'PROCESSING' or param.status == 'Processing') ? 'btn-info' : 'btn-outline-info'}">
-                    <i class="fas fa-box"></i> PROCESSING
+                   class="btn ${fn:toUpperCase(param.status) == 'PROCESSING' ? 'btn-info' : 'btn-outline-info'}">
+                    <i class="fas fa-cog fa-spin"></i> Processing
                 </a>
                 <a href="${pageContext.request.contextPath}/vendor?action=orders&status=READY"
-                   class="btn ${(param.status == 'READY' or param.status == 'Ready') ? 'btn-warning' : 'btn-outline-warning'}">
-                    <i class="fas fa-dolly"></i> READY
+                   class="btn ${fn:toUpperCase(param.status) == 'READY' ? 'btn-warning' : 'btn-outline-warning'}">
+                    <i class="fas fa-dolly"></i> Ready
                 </a>
                 <a href="${pageContext.request.contextPath}/vendor?action=orders&status=SHIPPING"
-                   class="btn ${(param.status == 'SHIPPING' or param.status == 'Shipping') ? 'btn-warning' : 'btn-outline-warning'}">
-                    <i class="fas fa-truck"></i> SHIPPING
+                   class="btn ${fn:toUpperCase(param.status) == 'SHIPPING' ? 'btn-danger' : 'btn-outline-danger'}">
+                    <i class="fas fa-truck"></i> Shipping
                 </a>
                 <a href="${pageContext.request.contextPath}/vendor?action=orders&status=COMPLETED"
-                   class="btn ${(param.status == 'COMPLETED' or param.status == 'Completed') ? 'btn-success' : 'btn-outline-success'}">
-                    <i class="fas fa-check-double"></i> COMPLETED
+                   class="btn ${fn:toUpperCase(param.status) == 'COMPLETED' ? 'btn-success' : 'btn-outline-success'}">
+                    <i class="fas fa-check-double"></i> Completed
                 </a>
             </div>
 
             <!-- Orders Table -->
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="fas fa-list"></i>
                         Danh sách đơn hàng
@@ -762,7 +875,6 @@
                                 <tr>
                                     <th>Mã đơn hàng</th>
                                     <th>Khách hàng</th>
-                                    <th>Sản phẩm</th>
                                     <th>Ngày đặt</th>
                                     <th>Tổng tiền</th>
                                     <th>Trạng thái</th>
@@ -773,20 +885,27 @@
                                 <c:choose>
                                     <c:when test="${not empty orders}">
                                         <c:forEach items="${orders}" var="order">
-                                            <tr>
-                                                <td><strong>#${order.orderNumber}</strong></td>
+                                            <c:set var="statusUpper" value="${fn:toUpperCase(order.status)}"/>
+                                            <tr class="${statusUpper == 'COMPLETED' ? 'order-row-completed' : ''}">
+                                                <td>
+                                                    <strong>#${order.orderNumber}</strong>
+                                                    <br>
+                                                    <small class="text-muted">ID: ${order.orderId}</small>
+                                                </td>
                                                 <td>
                                                     <c:choose>
                                                         <c:when test="${not empty order.customer}">
                                                             <c:choose>
                                                                 <c:when test="${not empty order.customer.firstName || not empty order.customer.lastName}">
-                                                                    ${order.customer.firstName} ${order.customer.lastName}<br>
+                                                                    <strong>${order.customer.firstName} ${order.customer.lastName}</strong><br>
                                                                 </c:when>
                                                                 <c:otherwise>
-                                                                    ${order.customer.email}<br>
+                                                                    <strong>${order.customer.email}</strong><br>
                                                                 </c:otherwise>
                                                             </c:choose>
-                                                            <small class="text-muted">${order.customer.email}</small>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-phone"></i> ${order.customer.phone}
+                                                            </small>
                                                         </c:when>
                                                         <c:otherwise>
                                                             <span class="text-muted">N/A</span>
@@ -794,14 +913,9 @@
                                                     </c:choose>
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-info"
-                                                            onclick="viewOrderDetails(${order.orderId})">
-                                                        <i class="fas fa-box"></i> Xem SP
-                                                    </button>
-                                                </td>
-                                                <td>
                                                     <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy"/><br>
                                                     <small class="text-muted">
+                                                        <i class="far fa-clock"></i>
                                                         <fmt:formatDate value="${order.orderDate}" pattern="HH:mm"/>
                                                     </small>
                                                 </td>
@@ -812,47 +926,104 @@
                                                     </strong>
                                                 </td>
                                                 <td>
-                                                    <span class="badge badge-${fn:toLowerCase(order.status)}">
-                                                        ${order.status}
-                                                    </span>
+                                                    <c:choose>
+                                                        <c:when test="${statusUpper == 'CONFIRMED'}">
+                                                            <span class="badge badge-confirmed">
+                                                                <i class="fas fa-check"></i> CONFIRMED
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'PROCESSING'}">
+                                                            <span class="badge badge-processing">
+                                                                <i class="fas fa-cog fa-spin"></i> PROCESSING
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'READY'}">
+                                                            <span class="badge badge-ready">
+                                                                <i class="fas fa-dolly"></i> READY
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'SHIPPING'}">
+                                                            <span class="badge badge-shipping">
+                                                                <i class="fas fa-truck"></i> SHIPPING
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'COMPLETED'}">
+                                                            <span class="badge badge-completed">
+                                                                <i class="fas fa-check-double"></i> COMPLETED
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'CANCELLED'}">
+                                                            <span class="badge badge-cancelled">
+                                                                <i class="fas fa-times"></i> CANCELLED
+                                                            </span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="badge bg-secondary">${order.status}</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
                                                 </td>
-                                                <td class="order-actions">
-
-                                                    <%-- Vendor minimal flow: CONFIRMED -> PROCESSING -> READY -> SHIPPING -> COMPLETED --%>
-                                                    <c:if test="${order.status == 'CONFIRMED' || order.status == 'Confirmed'}">
-                                                        <button class="btn btn-sm btn-primary"
-                                                                onclick="updateOrderStatus(${order.orderId}, 'PROCESSING')">
-                                                            <i class="fas fa-play"></i> PROCESSING
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <!-- View Details Button -->
+                                                        <button class="btn btn-outline-info"
+                                                                onclick="showOrderDetailModal(${order.orderId})"
+                                                                title="Xem chi tiết">
+                                                            <i class="fas fa-eye"></i>
                                                         </button>
-                                                    </c:if>
 
-                                                    <c:if test="${order.status == 'PROCESSING' || order.status == 'Processing'}">
-                                                        <button class="btn btn-sm btn-info"
-                                                                onclick="updateOrderStatus(${order.orderId}, 'READY')">
-                                                            <i class="fas fa-box"></i> READY
-                                                        </button>
-                                                    </c:if>
+                                                        <%-- Action buttons based on current status --%>
+                                                        <c:choose>
+                                                            <c:when test="${statusUpper == 'CONFIRMED'}">
+                                                                <button class="btn btn-action-process"
+                                                                        onclick="updateOrderStatus(${order.orderId}, 'PROCESSING')"
+                                                                        title="Chuyển sang Processing">
+                                                                    <i class="fas fa-play"></i> Process
+                                                                </button>
+                                                            </c:when>
+                                                            <c:when test="${statusUpper == 'PROCESSING'}">
+                                                                <button class="btn btn-action-ready"
+                                                                        onclick="updateOrderStatus(${order.orderId}, 'READY')"
+                                                                        title="Chuyển sang Ready">
+                                                                    <i class="fas fa-box"></i> Ready
+                                                                </button>
+                                                            </c:when>
+                                                            <c:when test="${statusUpper == 'READY'}">
+                                                                <button class="btn btn-action-ship"
+                                                                        onclick="updateOrderStatus(${order.orderId}, 'SHIPPING')"
+                                                                        title="Chuyển sang Shipping">
+                                                                    <i class="fas fa-truck"></i> Ship
+                                                                </button>
+                                                            </c:when>
+                                                            <c:when test="${statusUpper == 'SHIPPING'}">
+                                                                <button class="btn btn-action-complete"
+                                                                        onclick="updateOrderStatus(${order.orderId}, 'COMPLETED')"
+                                                                        title="Hoàn thành đơn hàng">
+                                                                    <i class="fas fa-check-double"></i> Complete
+                                                                </button>
+                                                            </c:when>
+                                                            <c:when test="${statusUpper == 'COMPLETED'}">
+                                                                <span class="text-muted small">
+                                                                    <i class="fas fa-check-circle text-success"></i> Đã hoàn thành
+                                                                </span>
+                                                            </c:when>
+                                                        </c:choose>
 
-                                                    <c:if test="${order.status == 'READY' || order.status == 'Ready'}">
-                                                        <button class="btn btn-sm btn-warning"
-                                                                onclick="updateOrderStatus(${order.orderId}, 'SHIPPING')">
-                                                            <i class="fas fa-truck"></i> SHIPPING
-                                                        </button>
-                                                    </c:if>
-
-                                                    <c:if test="${order.status == 'SHIPPING' || order.status == 'Shipping'}">
-                                                        <button class="btn btn-sm btn-success"
-                                                                onclick="updateOrderStatus(${order.orderId}, 'COMPLETED')">
-                                                            <i class="fas fa-check-double"></i> COMPLETED
-                                                        </button>
-                                                    </c:if>
+                                                        <%-- Cancel button (only for non-completed/non-cancelled orders) --%>
+                                                        <c:if test="${statusUpper != 'COMPLETED' && statusUpper != 'CANCELLED'}">
+                                                            <button class="btn btn-outline-danger"
+                                                                    onclick="showCancelModal(${order.orderId})"
+                                                                    title="Hủy đơn hàng">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        </c:if>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         </c:forEach>
                                     </c:when>
                                     <c:otherwise>
                                         <tr>
-                                            <td colspan="7">
+                                            <td colspan="6">
                                                 <div class="empty-state">
                                                     <i class="fas fa-inbox"></i>
                                                     <h5>Không có đơn hàng nào</h5>
@@ -870,13 +1041,40 @@
                 </div>
             </div>
 
+            <!-- Order Detail Modal -->
+            <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="orderDetailModalLabel">
+                                <i class="fas fa-file-invoice"></i> Chi tiết đơn hàng
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="orderDetailContent">
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Đang tải...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Đang tải thông tin đơn hàng...</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times"></i> Đóng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Cancel Order Modal -->
             <div class="modal fade" id="cancelOrderModal" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
-                        <div class="modal-header">
+                        <div class="modal-header bg-danger text-white">
                             <h5 class="modal-title"><i class="fas fa-times-circle"></i> Hủy đơn hàng</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <input type="hidden" id="cancelOrderId">
@@ -887,38 +1085,13 @@
                             </div>
                             <div class="alert alert-warning">
                                 <i class="fas fa-exclamation-triangle"></i>
-                                Hành động này không thể hoàn tác!
+                                <strong>Cảnh báo:</strong> Hành động này không thể hoàn tác!
                             </div>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                             <button type="button" class="btn btn-danger" onclick="confirmCancelOrder()">
                                 <i class="fas fa-times"></i> Xác nhận hủy
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Edit Notes Modal (Order) -->
-            <div class="modal fade" id="editNotesModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title"><i class="fas fa-pen"></i> Cập nhật ghi chú đơn hàng</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <input type="hidden" id="editNotesOrderId">
-                            <div class="mb-3">
-                                <label class="form-label">Ghi chú</label>
-                                <textarea class="form-control" id="editNotesText" rows="3" placeholder="Nhập ghi chú..."></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                            <button type="button" class="btn btn-primary" onclick="submitEditNotes()">
-                                <i class="fas fa-save"></i> Lưu
                             </button>
                         </div>
                     </div>
@@ -1314,10 +1487,6 @@
                     <div class="card border-info">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="text-muted small">Tổng tồn kho (ước tính)</div>
-                                    <div class="fs-3 fw-bold text-info" id="statsTotalStock">--</div>
-                                </div>
                                 <i class="fas fa-warehouse fa-2x text-info"></i>
                             </div>
                         </div>
@@ -1577,63 +1746,255 @@
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebar = document.querySelector('.sidebar');
 
-        sidebarToggle.addEventListener('click', function () {
-            sidebar.classList.toggle('show');
-        });
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('show');
+            });
+        }
     });
 
-    // Order details modal
-    function viewOrderDetails(orderId) {
-        // TODO: Implement order details view
-        alert('View details for order ID: ' + orderId);
+    // Show Order Detail Modal
+    function showOrderDetailModal(orderId) {
+        const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+        const contentDiv = document.getElementById('orderDetailContent');
+
+        // Show loading state
+        contentDiv.innerHTML = '<div class="text-center py-5">' +
+            '<div class="spinner-border text-primary" role="status">' +
+            '<span class="visually-hidden">Đang tải...</span>' +
+            '</div>' +
+            '<p class="mt-2 text-muted">Đang tải thông tin đơn hàng...</p>' +
+            '</div>';
+
+        modal.show();
+
+        // Fetch order details
+        fetch('${pageContext.request.contextPath}/vendor?action=getCompleteOrderDetails&orderId=' + orderId, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể tải thông tin đơn hàng');
+            }
+
+            var data = result.data;
+            var order = data.order || {};
+            var customer = data.customer || {};
+            var address = data.address || {};
+            var items = data.orderItems || [];
+
+            // Format date
+            var orderDate = order.orderDate ? new Date(order.orderDate).toLocaleString('vi-VN') : 'N/A';
+
+            // Format currency
+            var formatCurrency = function(value) {
+                return new Intl.NumberFormat('vi-VN').format(value || 0) + 'đ';
+            };
+
+            // Get status badge class
+            var getStatusBadge = function(status) {
+                var statusUpper = (status || '').toUpperCase();
+                var badges = {
+                    'CONFIRMED': 'badge-confirmed',
+                    'PROCESSING': 'badge-processing',
+                    'READY': 'badge-ready',
+                    'SHIPPING': 'badge-shipping',
+                    'COMPLETED': 'badge-completed',
+                    'CANCELLED': 'badge-cancelled'
+                };
+                return badges[statusUpper] || 'bg-secondary';
+            };
+
+            // Build products table
+            var productsHtml = '';
+            var subtotal = 0;
+            items.forEach(function(item) {
+                var itemSubtotal = (item.quantity || 0) * (item.unitPrice || 0);
+                subtotal += itemSubtotal;
+                productsHtml += '<tr>' +
+                    '<td>' + (item.productName || 'N/A') + '</td>' +
+                    '<td class="text-center">' + (item.quantity || 0) + '</td>' +
+                    '<td class="text-end">' + formatCurrency(item.unitPrice) + '</td>' +
+                    '<td class="text-end fw-bold">' + formatCurrency(itemSubtotal) + '</td>' +
+                    '</tr>';
+            });
+
+            // Build full address
+            var addressParts = [address.street, address.ward, address.district, address.city].filter(Boolean);
+            var fullAddress = addressParts.length > 0 ? addressParts.join(', ') : 'N/A';
+
+            var customerName = ((customer.firstName || '') + ' ' + (customer.lastName || '')).trim() || 'N/A';
+
+            var html = '<!-- Order Header -->' +
+                '<div class="order-detail-section">' +
+                '<div class="d-flex justify-content-between align-items-center">' +
+                '<div>' +
+                '<h5 class="mb-1">Đơn hàng #' + (order.orderNumber || 'N/A') + '</h5>' +
+                '<small class="text-muted"><i class="far fa-clock"></i> ' + orderDate + '</small>' +
+                '</div>' +
+                '<span class="badge ' + getStatusBadge(order.status) + ' fs-6">' + (order.status || 'N/A') + '</span>' +
+                '</div>' +
+                '</div>' +
+
+                '<!-- Customer Information -->' +
+                '<div class="order-detail-section">' +
+                '<h6><i class="fas fa-user text-primary"></i> Thông tin khách hàng</h6>' +
+                '<div class="row">' +
+                '<div class="col-md-6">' +
+                '<div class="info-row">' +
+                '<span class="label">Họ tên:</span>' +
+                '<span class="value">' + customerName + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                '<span class="label">Email:</span>' +
+                '<span class="value">' + (customer.email || 'N/A') + '</span>' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-md-6">' +
+                '<div class="info-row">' +
+                '<span class="label">Số điện thoại:</span>' +
+                '<span class="value">' + (customer.phone || 'N/A') + '</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+
+                '<!-- Delivery Address -->' +
+                '<div class="order-detail-section">' +
+                '<h6><i class="fas fa-map-marker-alt text-danger"></i> Địa chỉ giao hàng</h6>' +
+                '<p class="mb-0">' + fullAddress + '</p>' +
+                '</div>' +
+
+                '<!-- Product List -->' +
+                '<div class="order-detail-section">' +
+                '<h6><i class="fas fa-box text-warning"></i> Danh sách sản phẩm</h6>' +
+                '<table class="table table-sm product-table">' +
+                '<thead>' +
+                '<tr>' +
+                '<th>Sản phẩm</th>' +
+                '<th class="text-center" style="width: 80px;">SL</th>' +
+                '<th class="text-end" style="width: 120px;">Đơn giá</th>' +
+                '<th class="text-end" style="width: 120px;">Thành tiền</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody>' + productsHtml + '</tbody>' +
+                '<tfoot>' +
+                '<tr>' +
+                '<td colspan="3" class="text-end">Tạm tính:</td>' +
+                '<td class="text-end">' + formatCurrency(subtotal) + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td colspan="3" class="text-end">Phí vận chuyển:</td>' +
+                '<td class="text-end">' + formatCurrency(order.shippingFee) + '</td>' +
+                '</tr>' +
+                '<tr class="order-total-row">' +
+                '<td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>' +
+                '<td class="text-end text-success"><strong>' + formatCurrency(order.totalPrice) + '</strong></td>' +
+                '</tr>' +
+                '</tfoot>' +
+                '</table>' +
+                '</div>';
+
+            if (order.notes) {
+                html += '<!-- Order Notes -->' +
+                    '<div class="order-detail-section">' +
+                    '<h6><i class="fas fa-sticky-note text-info"></i> Ghi chú</h6>' +
+                    '<p class="mb-0 text-muted">' + order.notes + '</p>' +
+                    '</div>';
+            }
+
+            contentDiv.innerHTML = html;
+        })
+        .catch(function(err) {
+            console.error('Error loading order details:', err);
+            contentDiv.innerHTML = '<div class="alert alert-danger">' +
+                '<i class="fas fa-exclamation-circle"></i> ' + (err.message || 'Không thể tải thông tin đơn hàng') +
+                '</div>';
+        });
     }
 
-    // Update order status
-    function updateOrderStatus(orderId, status) {
-        // TODO: Implement order status update
-        alert('Update order ID ' + orderId + ' to status: ' + status);
+    // Update order status with confirmation
+    function updateOrderStatus(orderId, newStatus) {
+        var statusLabels = {
+            'PROCESSING': 'Processing (Đang xử lý)',
+            'READY': 'Ready (Sẵn sàng giao)',
+            'SHIPPING': 'Shipping (Đang giao)',
+            'COMPLETED': 'Completed (Hoàn thành)'
+        };
+
+        if (!confirm('Bạn có chắc muốn chuyển đơn hàng sang trạng thái "' + (statusLabels[newStatus] || newStatus) + '"?')) {
+            return;
+        }
+
+        fetch('${pageContext.request.contextPath}/vendor?action=updateOrderStatus&orderId=' + orderId + '&status=' + newStatus, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể cập nhật trạng thái');
+            }
+            alert('Cập nhật trạng thái thành công!');
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Error updating order status:', err);
+            alert('Lỗi: ' + err.message);
+        });
     }
 
     // Show cancel order modal
     function showCancelModal(orderId) {
-        const cancelOrderId = document.getElementById('cancelOrderId');
-        cancelOrderId.value = orderId;
-
-        const modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+        document.getElementById('cancelOrderId').value = orderId;
+        document.getElementById('cancelReason').value = '';
+        var modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
         modal.show();
     }
 
     // Confirm cancel order
     function confirmCancelOrder() {
-        const orderId = document.getElementById('cancelOrderId').value;
-        const reason = document.getElementById('cancelReason').value;
+        var orderId = document.getElementById('cancelOrderId').value;
+        var reason = document.getElementById('cancelReason').value.trim();
 
-        // TODO: Implement cancel order logic
+        if (!reason) {
+            alert('Vui lòng nhập lý do hủy đơn hàng');
+            return;
+        }
 
-        alert('Order ID ' + orderId + ' cancelled. Reason: ' + reason);
-
-        // Hide modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('cancelOrderModal'));
-        modal.hide();
+        fetch('${pageContext.request.contextPath}/vendor?action=cancelOrder&orderId=' + orderId + '&reason=' + encodeURIComponent(reason), {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể hủy đơn hàng');
+            }
+            alert('Đã hủy đơn hàng thành công!');
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Error cancelling order:', err);
+            alert('Lỗi: ' + err.message);
+        });
     }
 
     // Show add product modal
     function showAddProductModal() {
-        const modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+        var modal = new bootstrap.Modal(document.getElementById('addProductModal'));
         modal.show();
     }
 
     // Show edit product modal
     function editProduct(productId) {
-        // TODO: Implement edit product logic
-
         alert('Edit product ID: ' + productId);
     }
 
     // Delete product
     function deleteProduct(productId) {
-        // TODO: Implement delete product logic
-
         alert('Delete product ID: ' + productId);
     }
 
@@ -1641,7 +2002,7 @@
     function broadcastDelivery(orderId) {
         if (!orderId) return;
 
-        const url = '${pageContext.request.contextPath}/vendor?action=broadcastDelivery&orderId=' + encodeURIComponent(orderId);
+        var url = '${pageContext.request.contextPath}/vendor?action=broadcastDelivery&orderId=' + encodeURIComponent(orderId);
 
         fetch(url, {
             method: 'POST',
@@ -1649,75 +2010,79 @@
                 'Accept': 'application/json'
             }
         })
-            .then(res => res.json())
-            .then(result => {
-                if (!result || !result.success) {
-                    throw new Error((result && result.message) ? result.message : 'Không thể gửi yêu cầu giao hàng');
-                }
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result || !result.success) {
+                throw new Error((result && result.message) ? result.message : 'Không thể gửi yêu cầu giao hàng');
+            }
 
-                const btn = document.getElementById('btn-broadcast-' + orderId);
-                if (btn) {
-                    btn.disabled = true;
-                    btn.classList.remove('btn-success');
-                    btn.classList.add('btn-outline-success');
-                    btn.innerHTML = '<i class="fas fa-check"></i> Đã gửi';
-                }
+            var btn = document.getElementById('btn-broadcast-' + orderId);
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-outline-success');
+                btn.innerHTML = '<i class="fas fa-check"></i> Đã gửi';
+            }
 
-                const box = document.getElementById('shipper-info-' + orderId);
-                if (box) {
-                    box.innerHTML = '<small class="text-muted"><i class="fas fa-paper-plane"></i> Đã gửi yêu cầu tới shipper đang rảnh. Đang chờ nhận...</small>';
-                }
+            var box = document.getElementById('shipper-info-' + orderId);
+            if (box) {
+                box.innerHTML = '<small class="text-muted"><i class="fas fa-paper-plane"></i> Đã gửi yêu cầu tới shipper đang rảnh. Đang chờ nhận...</small>';
+            }
 
-                // Auto refresh shipper info after a short delay
-                setTimeout(() => loadShipperInfo(orderId), 1500);
-            })
-            .catch(err => {
-                console.error('Broadcast delivery error', err);
-                alert('Có lỗi: ' + err.message);
-            });
+            // Auto refresh shipper info after a short delay
+            setTimeout(function() { loadShipperInfo(orderId); }, 1500);
+        })
+        .catch(function(err) {
+            console.error('Broadcast delivery error', err);
+            alert('Có lỗi: ' + err.message);
+        });
     }
 
     // Load shipper info for an order and update UI
     function loadShipperInfo(orderId) {
-        const url = '${pageContext.request.contextPath}/vendor?action=getShipper&orderId=' + encodeURIComponent(orderId);
+        var url = '${pageContext.request.contextPath}/vendor?action=getShipper&orderId=' + encodeURIComponent(orderId);
 
         fetch(url, {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
         })
-            .then(res => res.json())
-            .then(result => {
-                const infoBox = document.getElementById('shipper-info-' + orderId);
-                if (!infoBox) return;
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            var infoBox = document.getElementById('shipper-info-' + orderId);
+            if (!infoBox) return;
 
-                if (!result || !result.success) {
-                    infoBox.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-circle"></i> Không tải được shipper</small>';
-                    return;
-                }
+            if (!result || !result.success) {
+                infoBox.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-circle"></i> Không tải được shipper</small>';
+                return;
+            }
 
-                const data = result.data || {};
-                if (data.hasShipper && data.shipper) {
-                    const s = data.shipper;
-                    infoBox.innerHTML = '<small class="text-success"><i class="fas fa-user-check"></i> ' +
-                        'Shipper: <strong>' + (s.firstName || '') + ' ' + (s.lastName || '') + '</strong>' +
-                        ' - ' + (s.phone || '') + '</small>';
-                } else {
-                    infoBox.innerHTML = '<small class="text-muted"><i class="fas fa-user-clock"></i> Chưa có shipper nhận đơn</small>';
-                }
-            })
-            .catch(err => {
-                console.error('Load shipper info error', err);
-            });
+            var data = result.data || {};
+            if (data.hasShipper && data.shipper) {
+                var s = data.shipper;
+                infoBox.innerHTML = '<small class="text-success"><i class="fas fa-user-check"></i> ' +
+                    'Shipper: <strong>' + (s.firstName || '') + ' ' + (s.lastName || '') + '</strong>' +
+                    ' - ' + (s.phone || '') + '</small>';
+            } else {
+                infoBox.innerHTML = '<small class="text-muted"><i class="fas fa-user-clock"></i> Chưa có shipper nhận đơn</small>';
+            }
+        })
+        .catch(function(err) {
+            console.error('Load shipper info error', err);
+        });
     }
 
     // On shipping page, auto load shipper info for all orders rendered
     document.addEventListener('DOMContentLoaded', function () {
-        const ids = Array.from(document.querySelectorAll('[id^="shipper-info-"]'))
-            .map(el => el.id.replace('shipper-info-', ''))
-            .map(v => parseInt(v, 10))
-            .filter(v => !isNaN(v));
-
-        ids.forEach(id => loadShipperInfo(id));
+        var elements = document.querySelectorAll('[id^="shipper-info-"]');
+        var ids = [];
+        for (var i = 0; i < elements.length; i++) {
+            var id = elements[i].id.replace('shipper-info-', '');
+            var numId = parseInt(id, 10);
+            if (!isNaN(numId)) {
+                ids.push(numId);
+            }
+        }
+        ids.forEach(function(id) { loadShipperInfo(id); });
     });
 </script>
 </body>

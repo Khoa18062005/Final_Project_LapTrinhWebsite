@@ -110,16 +110,42 @@ public class VendorServlet extends HttpServlet {
                 List<ProductApproval> approvals = vendorService.getApprovalRequests(vendorId);
                 request.setAttribute("approvals", approvals);
             } else if (action.equals("orders")) {
-                // Lấy đơn hàng theo status
+                // Lấy đơn hàng theo status hoặc tất cả (sorted by status priority)
                 String status = request.getParameter("status");
                 List<Order> orders;
                 if (status != null && !status.isEmpty()) {
                     orders = vendorService.getOrdersByStatus(vendorId, status);
                 } else {
-                    orders = data.getRecentOrders();
+                    // Get all orders sorted by status priority
+                    orders = vendorService.getAllOrdersSortedByStatus(vendorId);
                 }
                 request.setAttribute("orders", orders);
                 request.setAttribute("status", status);
+            } else if (action.equals("getCompleteOrderDetails")) {
+                // Get complete order details for modal
+                String orderIdStr = request.getParameter("orderId");
+                if (orderIdStr != null) {
+                    try {
+                        int orderId = Integer.parseInt(orderIdStr);
+                        Map<String, Object> orderDetails = vendorService.getCompleteOrderDetails(orderId, vendorId);
+                        if (orderDetails != null) {
+                            sendJsonResponse(response, true, "Order details retrieved successfully", orderDetails);
+                            return;
+                        }
+                    } catch (NumberFormatException e) {
+                        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                        sendJsonResponse(response, false, "Invalid order ID format", null);
+                        return;
+                    } catch (Exception e) {
+                        logger.error("Error getting complete order details for order {}", orderIdStr, e);
+                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                        sendJsonResponse(response, false, "Error retrieving order details", null);
+                        return;
+                    }
+                }
+                response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                sendJsonResponse(response, false, "Order not found or access denied", null);
+                return;
             } else if (action.equals("shipping")) {
                 // Lấy đơn hàng cần giao
                 List<Order> orders = vendorService.getOrdersReadyForShipping(vendorId);
