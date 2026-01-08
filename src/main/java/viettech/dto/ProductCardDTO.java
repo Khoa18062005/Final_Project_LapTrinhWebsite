@@ -12,7 +12,8 @@ public class ProductCardDTO implements Serializable {
     private double rating;
     private int memberDiscount;
 
-    // === THÊM MỚI: Trường brand ===
+    // === ĐÃ THÊM THÀNH CÔNG: Trường brand để hỗ trợ lọc theo hãng ===
+    // Trường này sẽ được sử dụng trong SearchServlet và JSP để hiển thị nút lọc hãng
     private String brand;
 
     public ProductCardDTO() {
@@ -24,7 +25,7 @@ public class ProductCardDTO implements Serializable {
         this.oldPrice = 0;
         this.discountPercent = 0;
         this.memberDiscount = 0;
-        this.brand = ""; // khởi tạo mặc định
+        this.brand = ""; // khởi tạo mặc định là chuỗi rỗng
     }
 
     public ProductCardDTO(int id, double rating, String primaryImage, double price, String name, double oldPrice, int discountPercent, int memberDiscount) {
@@ -36,19 +37,21 @@ public class ProductCardDTO implements Serializable {
         this.oldPrice = oldPrice;
         this.discountPercent = discountPercent;
         this.memberDiscount = memberDiscount;
-        this.brand = ""; // mặc định khi dùng constructor cũ
+        this.brand = ""; // mặc định khi dùng constructor cũ (không có brand)
     }
 
-    // === GETTER & SETTER CHO BRAND ===
+    // === GETTER & SETTER CHO BRAND - ĐÃ HOÀN CHỈNH ===
+    // Getter trả về brand (an toàn nếu null)
     public String getBrand() {
         return brand;
     }
 
+    // Setter tự động trim và xử lý null → trả về chuỗi rỗng nếu brand = null
     public void setBrand(String brand) {
         this.brand = brand != null ? brand.trim() : "";
     }
 
-    // Các getter/setter cũ giữ nguyên
+    // Các getter/setter cũ giữ nguyên (không thay đổi)
     public int getId() {
         return id;
     }

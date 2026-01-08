@@ -387,7 +387,7 @@ public class ProductService {
 
                     dto.setPrimaryImage(primaryImageUrl);
                     // ==========================================
-
+                    dto.setBrand(p.getBrand());
                     return dto;
                 })
                 .toList();
@@ -658,6 +658,11 @@ public class ProductService {
         dto.setOldPrice(p.getBasePrice());
         dto.setDiscountPercent(0);
         dto.setPrimaryImage(getPrimaryImageUrl(p));
+
+        // === THÊM MỚI: Set brand để hỗ trợ lọc theo hãng ===
+        // RẤT QUAN TRỌNG - Nếu thiếu dòng này thì danh sách hãng sẽ trống!
+        dto.setBrand(p.getBrand());
+
         return dto;
     }
 
@@ -668,6 +673,8 @@ public class ProductService {
         }
         return products.stream()
                 .limit(limit)
+                // === ĐÃ ĐƯỢC CẬP NHẬT BRAND TỰ ĐỘNG ===
+                // Vì convertProductToCardDTO đã set brand ở trên
                 .map(this::convertProductToCardDTO)
                 .toList();
     }

@@ -164,7 +164,7 @@
                     <h4>Chọn phiên bản:</h4>
                     <div class="variant-options">
                         <c:forEach items="${variants}" var="variant">
-                            <button type="button"
+                            <button type="button" id = "variant-btn"
                                     class="btn btn-outline-primary variant-option"
                                     data-variant-id="${variant.variantId}"
                                     onclick="window.selectVariant(${variant.variantId})">
