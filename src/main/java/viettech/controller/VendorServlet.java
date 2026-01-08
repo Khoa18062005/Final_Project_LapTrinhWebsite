@@ -61,16 +61,7 @@ public class VendorServlet extends HttpServlet {
             int vendorId = user.getUserId();
             try {
                 String period = request.getParameter("period");
-                Map<String, Object> stats;
-                try {
-                    @SuppressWarnings("unchecked")
-                    Map<String, Object> s = (Map<String, Object>) vendorService.getClass()
-                            .getMethod("getVendorStats", int.class, String.class)
-                            .invoke(vendorService, vendorId, period);
-                    stats = s;
-                } catch (Exception reflectEx) {
-                    throw new RuntimeException("Stats API method not available: getVendorStats", reflectEx);
-                }
+                Map<String, Object> stats = vendorService.getVendorStats(vendorId, period);
                 sendJsonResponse(response, true, "OK", stats);
             } catch (Exception e) {
                 logger.error("Error getting vendor stats", e);
@@ -147,10 +138,23 @@ public class VendorServlet extends HttpServlet {
                 sendJsonResponse(response, false, "Order not found or access denied", null);
                 return;
             } else if (action.equals("shipping")) {
-                // Lấy đơn hàng cần giao
+                // Lấy đơn hàng trong shipping flow (PROCESSING, READY, SHIPPING)
                 List<Order> orders = vendorService.getOrdersReadyForShipping(vendorId);
                 logger.info("Setting {} orders for shipping page", orders != null ? orders.size() : 0);
                 request.setAttribute("orders", orders);
+
+                // Get shipping summary statistics from database
+                Map<String, Long> shippingSummary = vendorService.getShippingSummary(vendorId);
+                request.setAttribute("processingOrders", shippingSummary.get("processingOrders"));
+                request.setAttribute("ordersToDeliver", shippingSummary.get("ordersToDeliver"));
+                request.setAttribute("shippingOrders", shippingSummary.get("shippingOrders"));
+                // Backward compatibility
+                request.setAttribute("assignedShipper", shippingSummary.get("assignedShipper"));
+                request.setAttribute("unassignedShipper", shippingSummary.get("unassignedShipper"));
+                logger.info("Shipping summary: processingOrders={}, ordersToDeliver={}, shippingOrders={}",
+                    shippingSummary.get("processingOrders"),
+                    shippingSummary.get("ordersToDeliver"),
+                    shippingSummary.get("shippingOrders"));
             } else if (action.equals("products")) {
                 // Lấy tất cả sản phẩm của vendor
                 List<Product> products = vendorService.getAllProductsByVendor(vendorId);
@@ -220,6 +224,8 @@ public class VendorServlet extends HttpServlet {
                     try {
                         int orderId = Integer.parseInt(orderIdStr);
                         Shipper shipper = vendorService.getShipperForOrder(orderId, vendorId);
+                        String assignmentStatus = vendorService.getShipperAssignmentStatus(orderId);
+
                         Map<String, Object> responseData = new HashMap<>();
                         if (shipper != null) {
                             // Use a simple map instead of the entity to avoid serialization issues
@@ -232,6 +238,10 @@ public class VendorServlet extends HttpServlet {
                             responseData.put("shipper", shipperData);
                         }
                         responseData.put("hasShipper", shipper != null);
+                        responseData.put("assignmentStatus", assignmentStatus);
+                        responseData.put("isAssigned", "ASSIGNED".equals(assignmentStatus) || shipper != null);
+                        responseData.put("isPending", "PENDING".equals(assignmentStatus));
+
                         sendJsonResponse(response, true,
                                 shipper != null ? "Shipper information retrieved" : "No shipper assigned",
                                 responseData);
@@ -352,6 +362,9 @@ public class VendorServlet extends HttpServlet {
         int vendorId = user.getUserId();
         String action = request.getParameter("action");
 
+        // Log incoming request for debugging
+        logger.info("VendorServlet POST: action={}, vendorId={}", action, vendorId);
+
         try {
             if (action == null) {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -385,11 +398,12 @@ public class VendorServlet extends HttpServlet {
                     GetAvailableShippers(request, response, vendorId);
                     break;
                 default:
+                    logger.warn("Unknown POST action: {}", action);
                     response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                     sendJsonResponse(response, false, "Unknown action: " + action, null);
             }
         } catch (Exception e) {
-            logger.error("Error in VendorServlet POST", e);
+            logger.error("Error in VendorServlet POST action={}", action, e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             sendJsonResponse(response, false, "Có lỗi xảy ra: " + e.getMessage(), null);
         }
@@ -555,9 +569,9 @@ public class VendorServlet extends HttpServlet {
                 return;
             }
 
-            // call service
+            // Call service - this will update status to READY and broadcast to shippers
             vendorService.broadcastDeliveryRequest(orderId, vendorId);
-            sendJsonResponse(response, true, "Đã gửi yêu cầu giao hàng tới các shipper đang rảnh", null);
+            sendJsonResponse(response, true, "Đã gửi yêu cầu giao hàng tới các shipper đang rảnh. Đơn hàng đã chuyển sang trạng thái READY.", null);
         } catch (Exception e) {
             logger.error("Error broadcasting delivery request", e);
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -572,45 +586,49 @@ public class VendorServlet extends HttpServlet {
             sendJsonResponse(response, true, "Available shippers retrieved successfully", shippers);
         } catch (Exception e) {
             logger.error("Error getting available shippers", e);
-            sendJsonResponse(response, false, "Không thể tải danh sách shipper: " + e.getMessage(), null);
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            sendJsonResponse(response, false, "Không thể lấy danh sách shipper: " + e.getMessage(), null);
         }
     }
 
-    /**
-     * Đọc JSON data từ request body
-     */
-    private Map<String, Object> readJsonFromRequest(HttpServletRequest request) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader reader = request.getReader()) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-        }
-
-        if (sb.length() == 0) {
-            return new HashMap<>();
-        }
-
-        return gson.fromJson(sb.toString(), Map.class);
-    }
+    // ==================== HELPER METHODS ====================
 
     /**
-     * Gửi JSON response
+     * Send JSON response to client
      */
     private void sendJsonResponse(HttpServletResponse response, boolean success, String message, Object data)
             throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        Map<String, Object> jsonResponse = new HashMap<>();
-        jsonResponse.put("success", success);
-        jsonResponse.put("message", message);
-        jsonResponse.put("data", data);
-
-        try (PrintWriter out = response.getWriter()) {
-            out.print(gson.toJson(jsonResponse));
-            out.flush();
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", success);
+        result.put("message", message);
+        if (data != null) {
+            result.put("data", data);
         }
+
+        String json = new Gson().toJson(result);
+        response.getWriter().write(json);
+    }
+
+    /**
+     * Read JSON data from request body
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> readJsonFromRequest(HttpServletRequest request) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        String line;
+        try (java.io.BufferedReader reader = request.getReader()) {
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+        }
+        String jsonBody = sb.toString();
+        if (jsonBody.isEmpty()) {
+            return new HashMap<>();
+        }
+        return new Gson().fromJson(jsonBody, Map.class);
     }
 }
+

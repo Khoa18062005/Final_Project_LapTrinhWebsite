@@ -555,6 +555,80 @@
             border: none;
             color: white;
         }
+
+        /* Notification Styles */
+        .notification-dropdown {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: none;
+            border-radius: 12px;
+        }
+
+        .notification-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #e3f2fd;
+        }
+
+        .notification-item.unread:hover {
+            background: #bbdefb;
+        }
+
+        .notification-icon {
+            font-size: 1.2rem;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+
+        .notification-message {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 0.75rem;
+            color: #95a5a6;
+        }
+
+        /* Modal Styles */
+        .order-detail-section {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-detail-section:last-child {
+            border-bottom: none;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .info-row .label {
+            font-weight: 500;
+            color: #666;
+            min-width: 120px;
+        }
+
+        .info-row .value {
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -570,6 +644,31 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
+                <!-- Notification Icon -->
+                <li class="nav-item dropdown me-3">
+                    <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell fa-lg"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              id="notificationBadge" style="display: none; font-size: 0.6rem;">
+                                                    </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                        <li class="dropdown-header d-flex justify-content-between align-items-center px-3">
+                            <span><i class="fas fa-bell"></i> Thông báo</span>
+                            <button class="btn btn-sm btn-link text-primary p-0" onclick="markAllNotificationsAsRead()">
+                                Đánh dấu đã đọc
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider m-0"></li>
+                        <li id="notificationEmpty" class="text-center text-muted py-3" style="display:none;">
+                            <i class="fas fa-inbox"></i> Không có thông báo mới
+                        </li>
+                        <li id="notificationList"></li>
+                    </ul>
+                </li>
+
+                <!-- User Dropdown -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -981,18 +1080,16 @@
                                                                 </button>
                                                             </c:when>
                                                             <c:when test="${statusUpper == 'PROCESSING'}">
-                                                                <button class="btn btn-action-ready"
-                                                                        onclick="updateOrderStatus(${order.orderId}, 'READY')"
-                                                                        title="Chuyển sang Ready">
-                                                                    <i class="fas fa-box"></i> Ready
-                                                                </button>
+                                                                <a href="${pageContext.request.contextPath}/vendor?action=shipping"
+                                                                   class="btn btn-action-ready"
+                                                                   title="Đi đến trang giao hàng để gửi cho shipper">
+                                                                    <i class="fas fa-truck"></i> Giao hàng
+                                                                </a>
                                                             </c:when>
                                                             <c:when test="${statusUpper == 'READY'}">
-                                                                <button class="btn btn-action-ship"
-                                                                        onclick="updateOrderStatus(${order.orderId}, 'SHIPPING')"
-                                                                        title="Chuyển sang Shipping">
-                                                                    <i class="fas fa-truck"></i> Ship
-                                                                </button>
+                                                                <span class="badge bg-info">
+                                                                    <i class="fas fa-hourglass-half"></i> Chờ shipper nhận
+                                                                </span>
                                                             </c:when>
                                                             <c:when test="${statusUpper == 'SHIPPING'}">
                                                                 <button class="btn btn-action-complete"
@@ -1041,62 +1138,7 @@
                 </div>
             </div>
 
-            <!-- Order Detail Modal -->
-            <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-lg">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="orderDetailModalLabel">
-                                <i class="fas fa-file-invoice"></i> Chi tiết đơn hàng
-                            </h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body" id="orderDetailContent">
-                            <div class="text-center py-5">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Đang tải...</span>
-                                </div>
-                                <p class="mt-2 text-muted">Đang tải thông tin đơn hàng...</p>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                <i class="fas fa-times"></i> Đóng
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Cancel Order Modal -->
-            <div class="modal fade" id="cancelOrderModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header bg-danger text-white">
-                            <h5 class="modal-title"><i class="fas fa-times-circle"></i> Hủy đơn hàng</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <input type="hidden" id="cancelOrderId">
-                            <div class="mb-3">
-                                <label class="form-label">Lý do hủy *</label>
-                                <textarea class="form-control" id="cancelReason" rows="3" required
-                                          placeholder="Nhập lý do hủy đơn hàng..."></textarea>
-                            </div>
-                            <div class="alert alert-warning">
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <strong>Cảnh báo:</strong> Hành động này không thể hoàn tác!
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                            <button type="button" class="btn btn-danger" onclick="confirmCancelOrder()">
-                                <i class="fas fa-times"></i> Xác nhận hủy
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Modals moved to outside c:choose block -->
         </c:when>
 
         <%-- PRODUCTS PAGE --%>
@@ -1232,51 +1274,39 @@
             <!-- Summary Stats -->
             <div class="row g-3 mb-4">
                 <div class="col-md-4">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning mb-0">${processingOrders}</h3>
+                            <p class="text-muted mb-0">Chờ gửi shipper</p>
+                            <small class="text-muted">(PROCESSING)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="card border-info">
                         <div class="card-body text-center">
-                            <h3 class="text-info mb-0">${not empty orders ? fn:length(orders) : 0}</h3>
-                            <p class="text-muted mb-0">Đơn cần giao</p>
+                            <h3 class="text-info mb-0">${ordersToDeliver}</h3>
+                            <p class="text-muted mb-0">Chờ shipper nhận</p>
+                            <small class="text-muted">(READY)</small>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="card border-success">
                         <div class="card-body text-center">
-                            <h3 class="text-success mb-0">
-                                <c:set var="assignedCount" value="0"/>
-                                <c:forEach items="${orders}" var="order">
-                                    <c:if test="${order.status == 'Assigned'}">
-                                        <c:set var="assignedCount" value="${assignedCount + 1}"/>
-                                    </c:if>
-                                </c:forEach>
-                                ${assignedCount}
-                            </h3>
-                            <p class="text-muted mb-0">Đã gán shipper</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card border-warning">
-                        <div class="card-body text-center">
-                            <h3 class="text-warning mb-0">
-                                <c:set var="unassignedCount" value="0"/>
-                                <c:forEach items="${orders}" var="order">
-                                    <c:if test="${order.status != 'Assigned'}">
-                                        <c:set var="unassignedCount" value="${unassignedCount + 1}"/>
-                                    </c:if>
-                                </c:forEach>
-                                ${unassignedCount}
-                            </h3>
-                            <p class="text-muted mb-0">Chưa gán shipper</p>
+                            <h3 class="text-success mb-0">${shippingOrders}</h3>
+                            <p class="text-muted mb-0">Đang giao hàng</p>
+                            <small class="text-muted">(SHIPPING)</small>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Orders Ready for Shipping -->
+            <!-- Orders in Shipping Flow -->
             <c:choose>
                 <c:when test="${not empty orders}">
                     <c:forEach items="${orders}" var="order">
+                        <c:set var="orderStatusUpper" value="${fn:toUpperCase(order.status)}"/>
                         <div class="card mb-3 border-left-primary" data-order-id="${order.orderId}">
                             <div class="card-header bg-light">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -1291,7 +1321,26 @@
                                         </small>
                                     </div>
                                     <div class="text-end">
-                                        <span class="badge bg-warning fs-6" id="shipper-badge-${order.orderId}">Chờ gán shipper</span>
+                                        <c:choose>
+                                            <c:when test="${orderStatusUpper == 'PROCESSING'}">
+                                                <span class="badge bg-warning fs-6">
+                                                    <i class="fas fa-cog"></i> Chờ gửi shipper
+                                                </span>
+                                            </c:when>
+                                            <c:when test="${orderStatusUpper == 'READY'}">
+                                                <span class="badge bg-info fs-6">
+                                                    <i class="fas fa-clock"></i> Chờ shipper nhận
+                                                </span>
+                                            </c:when>
+                                            <c:when test="${orderStatusUpper == 'SHIPPING'}">
+                                                <span class="badge bg-success fs-6">
+                                                    <i class="fas fa-truck"></i> Đang giao hàng
+                                                </span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="badge bg-secondary fs-6">${order.status}</span>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </div>
                             </div>
@@ -1386,33 +1435,62 @@
                                     </div>
                                 </div>
 
-                                <!-- Shipper Information -->
+                                <!-- Shipper Information and Actions -->
                                 <div class="row mt-3 pt-3 border-top">
                                     <div class="col-12">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div id="shipper-info-${order.orderId}">
-                                                <small class="text-muted">
-                                                    <i class="fas fa-user-tie"></i>
-                                                    Đang tải thông tin shipper...
-                                                </small>
+                                                <c:choose>
+                                                    <c:when test="${orderStatusUpper == 'PROCESSING'}">
+                                                        <small class="text-warning">
+                                                            <i class="fas fa-exclamation-circle"></i>
+                                                            Đơn hàng chưa được gửi cho shipper
+                                                        </small>
+                                                    </c:when>
+                                                    <c:when test="${orderStatusUpper == 'READY'}">
+                                                        <small class="text-info">
+                                                            <i class="fas fa-clock"></i>
+                                                            Đang chờ shipper nhận đơn...
+                                                        </small>
+                                                    </c:when>
+                                                    <c:when test="${orderStatusUpper == 'SHIPPING'}">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user-tie"></i>
+                                                            Đang tải thông tin shipper...
+                                                        </small>
+                                                    </c:when>
+                                                </c:choose>
                                             </div>
                                             <div class="d-flex gap-2" id="shipper-actions-${order.orderId}">
                                                 <button class="btn btn-outline-primary btn-sm"
                                                         onclick="viewOrderDetails(${order.orderId})">
+                                                    <i class="fas fa-eye"></i> Chi tiết
                                                 </button>
 
-                                                <!-- READY: broadcast to all available shippers -->
-                                                <c:if test="${fn:toLowerCase(order.status) == 'ready'}">
+                                                <!-- PROCESSING: Allow vendor to send notification to shippers -->
+                                                <c:if test="${orderStatusUpper == 'PROCESSING'}">
                                                     <button class="btn btn-success btn-sm" id="btn-broadcast-${order.orderId}"
                                                             onclick="broadcastDelivery(${order.orderId})">
                                                         <i class="fas fa-bullhorn"></i> Gửi cho shipper
                                                     </button>
                                                 </c:if>
 
-                                                <!-- SHIPPING: show as assigned; allow refresh only (optional) -->
-                                                <c:if test="${fn:toLowerCase(order.status) == 'shipping'}">
+                                                <!-- READY: Already sent to shipper, waiting for acceptance -->
+                                                <c:if test="${orderStatusUpper == 'READY'}">
+                                                    <button class="btn btn-outline-info btn-sm" disabled>
+                                                        <i class="fas fa-hourglass-half"></i> Đang chờ shipper
+                                                    </button>
+                                                    <button class="btn btn-outline-warning btn-sm"
+                                                            onclick="broadcastDelivery(${order.orderId})"
+                                                            title="Gửi lại thông báo cho shipper">
+                                                        <i class="fas fa-redo"></i> Gửi lại
+                                                    </button>
+                                                </c:if>
+
+                                                <!-- SHIPPING: Shipper has accepted, show refresh button -->
+                                                <c:if test="${orderStatusUpper == 'SHIPPING'}">
                                                     <button class="btn btn-outline-secondary btn-sm" onclick="loadShipperInfo(${order.orderId})">
-                                                        <i class="fas fa-sync"></i> Làm mới shipper
+                                                        <i class="fas fa-sync"></i> Làm mới
                                                     </button>
                                                 </c:if>
                                             </div>
@@ -1738,6 +1816,127 @@
     </c:choose>
 </div>
 
+<!-- ==================== ALL MODALS (Always Rendered) ==================== -->
+
+<!-- Order Detail Modal -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="orderDetailModalLabel">
+                    <i class="fas fa-receipt"></i> Chi tiết đơn hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="orderDetailContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-times-circle"></i> Hủy đơn hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cancelOrderId">
+                <div class="mb-3">
+                    <label for="cancelReason" class="form-label">Lý do hủy đơn hàng:</label>
+                    <textarea id="cancelReason" class="form-control" rows="3" placeholder="Nhập lý do hủy..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancelOrder()">Xác nhận hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Thêm sản phẩm mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProductForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productName" class="form-label">Tên sản phẩm *</label>
+                            <input type="text" class="form-control" id="productName" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="productCategory" class="form-label">Danh mục *</label>
+                            <select class="form-select" id="productCategory" name="categoryId" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                <option value="1">Điện thoại</option>
+                                <option value="3">Laptop</option>
+                                <option value="4">Máy tính bảng</option>
+                                <option value="5">Tai nghe</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productBrand" class="form-label">Thương hiệu</label>
+                            <input type="text" class="form-control" id="productBrand" name="brand">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="productPrice" class="form-label">Giá bán *</label>
+                            <input type="number" class="form-control" id="productPrice" name="basePrice" required min="0">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="productDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productStatus" class="form-label">Trạng thái</label>
+                            <select class="form-select" id="productStatus" name="status">
+                                <option value="AVAILABLE" selected>Còn hàng</option>
+                                <option value="OUT_OF_STOCK">Hết hàng</option>
+                                <option value="INACTIVE">Ngừng kinh doanh</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="productCondition" class="form-label">Tình trạng</label>
+                            <select class="form-select" id="productCondition" name="conditions">
+                                <option value="New" selected>Mới</option>
+                                <option value="Used">Đã sử dụng</option>
+                                <option value="Refurbished">Tân trang</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="submitAddProduct()">
+                    <i class="fas fa-save"></i> Thêm sản phẩm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== END MODALS ==================== -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
@@ -1988,19 +2187,194 @@
         modal.show();
     }
 
+    // Submit add product form
+    function submitAddProduct() {
+        var form = document.getElementById('addProductForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        var formData = new FormData(form);
+        var productData = {};
+        formData.forEach(function(value, key) {
+            productData[key] = value;
+        });
+
+        fetch('${pageContext.request.contextPath}/vendor?action=addProduct', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(productData)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể thêm sản phẩm');
+            }
+            alert('Thêm sản phẩm thành công!');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+            if (modal) modal.hide();
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Error adding product:', err);
+            alert('Lỗi: ' + err.message);
+        });
+    }
+
     // Show edit product modal
     function editProduct(productId) {
-        alert('Edit product ID: ' + productId);
+        if (!productId) {
+            alert('ID sản phẩm không hợp lệ');
+            return;
+        }
+
+        // Fetch product data
+        fetch('${pageContext.request.contextPath}/vendor?action=getProduct&productId=' + productId, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) {
+            if (!res.ok) {
+                throw new Error('Không thể tải thông tin sản phẩm');
+            }
+            return res.json();
+        })
+        .then(function(result) {
+            if (!result.success || !result.data) {
+                throw new Error(result.message || 'Không tìm thấy sản phẩm');
+            }
+
+            var product = result.data;
+
+            // Simple prompt-based edit (can be enhanced with a modal later)
+            var newName = prompt('Tên sản phẩm mới:', product.name);
+            if (newName && newName.trim()) {
+                // Send update request
+                var formData = new FormData();
+                formData.append('productId', productId);
+                formData.append('name', newName.trim());
+
+                fetch('${pageContext.request.contextPath}/vendor?action=updateProduct', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(updateResult) {
+                    if (!updateResult.success) {
+                        throw new Error(updateResult.message || 'Không thể cập nhật sản phẩm');
+                    }
+                    alert('Cập nhật sản phẩm thành công!');
+                    location.reload();
+                })
+                .catch(function(err) {
+                    console.error('Error updating product:', err);
+                    alert('Lỗi: ' + err.message);
+                });
+            }
+        })
+        .catch(function(err) {
+            console.error('Error loading product:', err);
+            alert('Có lỗi xảy ra khi tải dữ liệu sản phẩm: ' + err.message);
+        });
     }
 
     // Delete product
     function deleteProduct(productId) {
-        alert('Delete product ID: ' + productId);
+        if (!productId) {
+            alert('ID sản phẩm không hợp lệ');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+            return;
+        }
+
+        fetch('${pageContext.request.contextPath}/vendor?action=deleteProduct&productId=' + productId, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) {
+            if (!res.ok) {
+                throw new Error('Không thể xóa sản phẩm');
+            }
+            return res.json();
+        })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể xóa sản phẩm');
+            }
+            alert('Đã xóa sản phẩm thành công!');
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Error deleting product:', err);
+            alert('Có lỗi xảy ra khi xóa sản phẩm: ' + err.message);
+        });
+    }
+
+    // Load shipper info for an order
+    function loadShipperInfo(orderId) {
+        var infoBox = document.getElementById('shipper-info-' + orderId);
+
+        fetch('${pageContext.request.contextPath}/vendor?action=getShipper&orderId=' + orderId, {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result || !result.success) {
+                if (infoBox) {
+                    infoBox.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-circle"></i> Không tải được thông tin shipper</small>';
+                }
+                return;
+            }
+
+            var data = result.data || {};
+            var hasShipper = data.hasShipper || false;
+
+            if (infoBox) {
+                if (hasShipper && data.shipper) {
+                    var s = data.shipper;
+                    infoBox.innerHTML = '<small class="text-success">' +
+                        '<i class="fas fa-user-check"></i> ' +
+                        '<strong>Shipper:</strong> ' + (s.firstName || '') + ' ' + (s.lastName || '') +
+                        ' - <i class="fas fa-phone"></i> ' + (s.phone || 'N/A') +
+                        '</small>';
+                } else {
+                    infoBox.innerHTML = '<small class="text-muted">' +
+                        '<i class="fas fa-user-clock"></i> Chưa có shipper nhận đơn' +
+                        '</small>';
+                }
+            }
+        })
+        .catch(function(err) {
+            console.error('Error loading shipper info:', err);
+            if (infoBox) {
+                infoBox.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-circle"></i> Lỗi tải thông tin</small>';
+            }
+        });
     }
 
     // Broadcast delivery request to all available shippers
+    // This function sends notification to shippers and updates order status from PROCESSING to READY
     function broadcastDelivery(orderId) {
         if (!orderId) return;
+
+        var broadcastBtn = document.getElementById('btn-broadcast-' + orderId);
+
+        // Prevent double-click
+        if (broadcastBtn && broadcastBtn.disabled) {
+            return;
+        }
+
+        // Disable button immediately
+        if (broadcastBtn) {
+            broadcastBtn.disabled = true;
+            broadcastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
+        }
 
         var url = '${pageContext.request.contextPath}/vendor?action=broadcastDelivery&orderId=' + encodeURIComponent(orderId);
 
@@ -2016,75 +2390,217 @@
                 throw new Error((result && result.message) ? result.message : 'Không thể gửi yêu cầu giao hàng');
             }
 
-            var btn = document.getElementById('btn-broadcast-' + orderId);
-            if (btn) {
-                btn.disabled = true;
-                btn.classList.remove('btn-success');
-                btn.classList.add('btn-outline-success');
-                btn.innerHTML = '<i class="fas fa-check"></i> Đã gửi';
-            }
-
-            var box = document.getElementById('shipper-info-' + orderId);
-            if (box) {
-                box.innerHTML = '<small class="text-muted"><i class="fas fa-paper-plane"></i> Đã gửi yêu cầu tới shipper đang rảnh. Đang chờ nhận...</small>';
-            }
-
-            // Auto refresh shipper info after a short delay
-            setTimeout(function() { loadShipperInfo(orderId); }, 1500);
+            // Success - reload page to reflect status change from PROCESSING to READY
+            alert('Đã gửi thông báo cho shipper và chuyển trạng thái sang READY!');
+            location.reload();
         })
         .catch(function(err) {
             console.error('Broadcast delivery error', err);
             alert('Có lỗi: ' + err.message);
+
+            // Re-enable button on error
+            if (broadcastBtn) {
+                broadcastBtn.disabled = false;
+                broadcastBtn.innerHTML = '<i class="fas fa-bullhorn"></i> Gửi cho shipper';
+            }
         });
     }
 
-    // Load shipper info for an order and update UI
-    function loadShipperInfo(orderId) {
-        var url = '${pageContext.request.contextPath}/vendor?action=getShipper&orderId=' + encodeURIComponent(orderId);
+    // On shipping page, auto load shipper info for SHIPPING orders
+    document.addEventListener('DOMContentLoaded', function () {
+        var elements = document.querySelectorAll('[id^="shipper-info-"]');
+        elements.forEach(function(el) {
+            var idStr = el.id.replace('shipper-info-', '');
+            var orderId = parseInt(idStr, 10);
+            if (!isNaN(orderId)) {
+                // Check if order is in SHIPPING status (has the success badge)
+                var card = el.closest('.card');
+                if (card && card.querySelector('.badge.bg-success')) {
+                    loadShipperInfo(orderId);
+                }
+            }
+        });
+    });
 
-        fetch(url, {
+    // View order details (reuse the modal from orders page)
+    function viewOrderDetails(orderId) {
+        showOrderDetailModal(orderId);
+    }
+
+    // ==================== NOTIFICATION SYSTEM ====================
+
+    // Load vendor notifications
+    function loadVendorNotifications() {
+        fetch('${pageContext.request.contextPath}/notification?action=getUnread', {
             method: 'GET',
             headers: { 'Accept': 'application/json' }
         })
         .then(function(res) { return res.json(); })
         .then(function(result) {
-            var infoBox = document.getElementById('shipper-info-' + orderId);
-            if (!infoBox) return;
-
             if (!result || !result.success) {
-                infoBox.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-circle"></i> Không tải được shipper</small>';
                 return;
             }
 
             var data = result.data || {};
-            if (data.hasShipper && data.shipper) {
-                var s = data.shipper;
-                infoBox.innerHTML = '<small class="text-success"><i class="fas fa-user-check"></i> ' +
-                    'Shipper: <strong>' + (s.firstName || '') + ' ' + (s.lastName || '') + '</strong>' +
-                    ' - ' + (s.phone || '') + '</small>';
-            } else {
-                infoBox.innerHTML = '<small class="text-muted"><i class="fas fa-user-clock"></i> Chưa có shipper nhận đơn</small>';
+            var notifications = data.notifications || [];
+            var unreadCount = result.unreadCount || 0;
+
+            // Update badge
+            var badge = document.getElementById('notificationBadge');
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
             }
+
+            // Update notification list
+            var notificationList = document.getElementById('notificationList');
+            if (!notificationList) return;
+
+            if (notifications.length === 0) {
+                notificationList.innerHTML = '<li class="text-center text-muted py-3">' +
+                    '<i class="fas fa-inbox"></i> Không có thông báo mới' +
+                    '</li>';
+                return;
+            }
+
+            var html = '';
+            notifications.forEach(function(notif) {
+                var time = notif.createdAt ? formatTimeAgo(new Date(notif.createdAt)) : '';
+                var iconClass = getNotificationIcon(notif.type);
+                var isUnread = !notif.read;
+
+                html += '<li>' +
+                    '<a class="dropdown-item notification-item ' + (isUnread ? 'unread' : '') + '" ' +
+                    'href="#" onclick="handleNotificationClick(' + notif.notificationId + ', \'' +
+                    (notif.actionUrl || '#') + '\'); return false;">' +
+                    '<div class="d-flex">' +
+                    '<div class="notification-icon me-2">' +
+                    '<i class="' + iconClass + '"></i>' +
+                    '</div>' +
+                    '<div class="flex-grow-1">' +
+                    '<div class="notification-title">' + (notif.title || 'Thông báo') + '</div>' +
+                    '<div class="notification-message">' + (notif.message || '') + '</div>' +
+                    '<div class="notification-time">' + time + '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</a>' +
+                    '</li>';
+            });
+
+            notificationList.innerHTML = html;
         })
         .catch(function(err) {
-            console.error('Load shipper info error', err);
+            console.error('Error loading notifications:', err);
         });
     }
 
-    // On shipping page, auto load shipper info for all orders rendered
-    document.addEventListener('DOMContentLoaded', function () {
-        var elements = document.querySelectorAll('[id^="shipper-info-"]');
-        var ids = [];
-        for (var i = 0; i < elements.length; i++) {
-            var id = elements[i].id.replace('shipper-info-', '');
-            var numId = parseInt(id, 10);
-            if (!isNaN(numId)) {
-                ids.push(numId);
+    // Handle notification click
+    function handleNotificationClick(notificationId, actionUrl) {
+        // Mark as read
+        fetch('${pageContext.request.contextPath}/notification?action=markRead&notificationId=' + notificationId, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function() {
+            // Reload notifications
+            loadVendorNotifications();
+
+            // Navigate to action URL
+            if (actionUrl && actionUrl !== '#') {
+                window.location.href = '${pageContext.request.contextPath}' + actionUrl;
             }
-        }
-        ids.forEach(function(id) { loadShipperInfo(id); });
+        })
+        .catch(function(err) {
+            console.error('Error marking notification as read:', err);
+        });
+    }
+
+    // Mark all notifications as read
+    function markAllNotificationsAsRead() {
+        fetch('${pageContext.request.contextPath}/notification?action=markAllRead', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (result && result.success) {
+                loadVendorNotifications();
+            }
+        })
+        .catch(function(err) {
+            console.error('Error marking all notifications as read:', err);
+        });
+    }
+
+    // Get notification icon based on type
+    function getNotificationIcon(type) {
+        var icons = {
+            'NEW_ORDER': 'fas fa-shopping-cart text-primary',
+            'ORDER_SHIPPING': 'fas fa-truck text-info',
+            'ORDER_COMPLETED': 'fas fa-check-circle text-success',
+            'DELIVERY_READY': 'fas fa-box text-warning',
+            'ORDER_UPDATE': 'fas fa-info-circle text-info'
+        };
+        return icons[type] || 'fas fa-bell text-secondary';
+    }
+
+    // Format time ago
+    function formatTimeAgo(date) {
+        var seconds = Math.floor((new Date() - date) / 1000);
+
+        if (seconds < 60) return 'Vừa xong';
+
+        var minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return minutes + ' phút trước';
+
+        var hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + ' giờ trước';
+
+        var days = Math.floor(hours / 24);
+        if (days < 7) return days + ' ngày trước';
+
+        return date.toLocaleDateString('vi-VN');
+    }
+
+    // Load notifications on page load and refresh every 30 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        loadVendorNotifications();
+
+        // Auto-refresh notifications every 30 seconds
+        setInterval(loadVendorNotifications, 30000);
     });
 </script>
+
+<script>
+// Ensure inline onclick handlers can always find functions
+(function() {
+    // If functions exist in this script scope, expose them on window.
+    var expose = [
+        'editProduct',
+        'showAddProductModal',
+        'submitAddProduct',
+        'deleteProduct',
+        'showOrderDetailModal',
+        'broadcastDelivery',
+        'viewOrderDetails',
+        'markAllNotificationsAsRead'
+    ];
+
+    expose.forEach(function(fnName) {
+        try {
+            if (typeof window[fnName] !== 'function' && typeof eval(fnName) === 'function') {
+                window[fnName] = eval(fnName);
+            }
+        } catch (e) {
+            // ignore
+        }
+    });
+})();
+</script>
+
 </body>
 </html>
-
