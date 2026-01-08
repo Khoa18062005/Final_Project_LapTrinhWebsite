@@ -150,6 +150,44 @@ public class NotificationService {
     }
 
     /**
+     * Lấy danh sách thông báo theo action URL
+     * @param actionUrl URL action cần tìm
+     * @return List notification có actionUrl tương ứng
+     */
+    public List<Notification> getNotificationsByActionUrl(String actionUrl) {
+        return notificationDAO.findByActionUrl(actionUrl);
+    }
+
+    /**
+     * Lấy danh sách thông báo theo action URL với phân trang
+     * @param actionUrl URL action cần tìm
+     * @param page Số trang (bắt đầu từ 1)
+     * @param pageSize Số lượng mỗi trang
+     * @return List notification có actionUrl tương ứng
+     */
+    public List<Notification> getNotificationsByActionUrlPaginated(String actionUrl, int page, int pageSize) {
+        return notificationDAO.findByActionUrlPaginated(actionUrl, page, pageSize);
+    }
+
+    /**
+     * Đếm tổng số notification theo action URL
+     * @param actionUrl URL action cần đếm
+     * @return Số lượng notification
+     */
+    public long countNotificationsByActionUrl(String actionUrl) {
+        return notificationDAO.countByActionUrl(actionUrl);
+    }
+
+    /**
+     * Đếm số notification chưa đọc theo action URL
+     * @param actionUrl URL action cần đếm
+     * @return Số lượng notification chưa đọc
+     */
+    public long countUnreadNotificationsByActionUrl(String actionUrl) {
+        return notificationDAO.countUnreadByActionUrl(actionUrl);
+    }
+
+    /**
      * Helper method để tạo NotificationReadDTO từ request parameters
      */
     public static NotificationReadDTO createReadDTOFromRequest(int userId,

@@ -483,6 +483,7 @@
 <!-- VietTech ChatBot -->
 <script src="${pageContext.request.contextPath}/assets/js/chatbot.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/main.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/search-suggestions.js"></script>
 
 </body>
 </html>

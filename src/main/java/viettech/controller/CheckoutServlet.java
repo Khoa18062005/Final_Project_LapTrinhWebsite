@@ -256,7 +256,43 @@ public class CheckoutServlet extends HttpServlet {
                 }
             }
 
-            double totalPrice = subtotal + shippingFee + tax - voucherDiscount;
+            String usedLoyaltyPointsStr = request.getParameter("usedLoyaltyPoints");
+            int usedLoyaltyPoints = 0;
+            double loyaltyDiscount = 0.0;
+
+            if (usedLoyaltyPointsStr != null && !usedLoyaltyPointsStr.trim().isEmpty()) {
+                try {
+                    usedLoyaltyPoints = Integer.parseInt(usedLoyaltyPointsStr);
+
+                    // Kiểm tra user có đủ điểm không
+                    if (usedLoyaltyPoints > fullCustomer.getLoyaltyPoints()) {
+                        throw new Exception("Bạn không có đủ điểm tích lũy");
+                    }
+
+                    // Tính giá trị giảm giá từ loyalty points (1 điểm = 1000đ)
+                    loyaltyDiscount = usedLoyaltyPoints * 1000.0;
+
+                    // Kiểm tra không vượt quá tổng tiền còn lại
+                    double remainingAmount = subtotal - voucherDiscount;
+                    if (loyaltyDiscount > remainingAmount) {
+                        loyaltyDiscount = remainingAmount;
+                        usedLoyaltyPoints = (int) (loyaltyDiscount / 1000.0);
+                    }
+
+                    // Lưu vào session để sử dụng sau
+                    session.setAttribute("usedLoyaltyPoints", usedLoyaltyPoints);
+                    session.setAttribute("loyaltyDiscount", loyaltyDiscount);
+
+                } catch (NumberFormatException e) {
+                    throw new Exception("Số điểm tích lũy không hợp lệ");
+                }
+            }
+
+            double totalPrice = subtotal + shippingFee + tax - voucherDiscount - loyaltyDiscount;
+
+            if (totalPrice < 0) {
+                totalPrice = 0;
+            }
 
             // Xử lý theo phương thức thanh toán
             if ("VNPAY".equals(paymentMethod)) {
@@ -272,27 +308,28 @@ public class CheckoutServlet extends HttpServlet {
                         fullCustomer.getUserId(),
                         vendorId,
                         selectedAddress.getAddressId(),
-                        "Pending_Payment",
+                        "pending",
                         subtotal,
                         shippingFee,
-                        0,
+                        voucherDiscount,
                         tax,
                         voucherDiscount,
-                        0,
-                        0,
+                        (int)usedLoyaltyPoints,
+                        (int)usedLoyaltyPoints*1000,
                         totalPrice,
-                        note,
+                        note ,
                         estimatedDelivery
                 );
 
                 orderDAO.insert(order);
+                session.setAttribute("orderNumber", orderNumber);
                 Order createdOrder = orderDAO.findByOrderNumber(orderNumber);
 
                 if (createdOrder != null) {
                     // Tạo OrderStatus
                     OrderStatus orderStatus = new OrderStatus(
                             createdOrder.getOrderId(),
-                            "Pending_Payment",
+                            "pending",
                             "Đơn hàng đã được tạo, đang chờ thanh toán qua VNPay",
                             null,
                             "SYSTEM",

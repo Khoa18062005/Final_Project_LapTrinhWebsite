@@ -341,11 +341,136 @@ public class ShipperDAO {
                     "LEFT JOIN FETCH o.customer c " +
                     "LEFT JOIN FETCH o.address a " +
                     "LEFT JOIN FETCH d.warehouse w " +
-                    "WHERE da.status = 'Ready' " + // <--- CHỈ LỌC THEO STATUS
+                    "WHERE da.status = 'READY' " +
                     "ORDER BY da.assignedAt DESC";
 
             TypedQuery<DeliveryAssignment> query = em.createQuery(jpql, DeliveryAssignment.class);
             return query.getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    // ==================================================================
+    // PHƯƠNG THỨC LẤY ĐƠN HÀNG TỪ BẢNG ORDERS
+    // ==================================================================
+
+    /**
+     * Lấy danh sách đơn hàng có status = Ready (Chờ shipper nhận)
+     */
+    public List<viettech.entity.order.Order> getOrdersByStatusReady() {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT o FROM Order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "WHERE LOWER(o.status) = 'ready' " +
+                    "ORDER BY o.orderDate DESC";
+
+            TypedQuery<viettech.entity.order.Order> query = em.createQuery(jpql, viettech.entity.order.Order.class);
+            List<viettech.entity.order.Order> orders = query.getResultList();
+            logger.debug("✓ Found {} Ready orders", orders.size());
+            return orders;
+        } catch (Exception e) {
+            logger.error("✗ Error getting Ready orders", e);
+            return new java.util.ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Lấy danh sách đơn hàng có status = Shipping (Đang giao - của shipper cụ thể)
+     * Lưu ý: Cần thêm trường shipper_id vào bảng orders hoặc dùng bảng deliveries
+     */
+    public List<viettech.entity.order.Order> getOrdersByStatusShipping(int shipperId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            // Lấy từ bảng orders với status = Shipping
+            // Nếu có trường shipper_id trong orders thì WHERE o.shipperId = :shipperId
+            // Nếu không có, lấy qua delivery_assignments
+            String jpql = "SELECT DISTINCT o FROM Order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "LEFT JOIN o.delivery d " +
+                    "LEFT JOIN DeliveryAssignment da ON da.delivery.deliveryId = d.deliveryId " +
+                    "WHERE LOWER(o.status) = 'shipping' AND da.shipperId = :shipperId " +
+                    "ORDER BY o.orderDate DESC";
+
+            TypedQuery<viettech.entity.order.Order> query = em.createQuery(jpql, viettech.entity.order.Order.class);
+            query.setParameter("shipperId", shipperId);
+            List<viettech.entity.order.Order> orders = query.getResultList();
+            logger.debug("✓ Found {} Shipping orders for shipper {}", orders.size(), shipperId);
+            return orders;
+        } catch (Exception e) {
+            logger.error("✗ Error getting Shipping orders for shipper {}", shipperId, e);
+            return new java.util.ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Lấy danh sách đơn hàng có status = Completed (Đã giao - của shipper cụ thể)
+     * Bao gồm cả thông tin đánh giá từ delivery_assignments
+     */
+    public List<viettech.entity.order.Order> getOrdersByStatusCompleted(int shipperId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT DISTINCT o FROM Order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "LEFT JOIN FETCH o.delivery d " +
+                    "LEFT JOIN FETCH d.assignments da " +
+                    "WHERE LOWER(o.status) = 'completed' AND da.shipperId = :shipperId " +
+                    "ORDER BY o.completedAt DESC";
+
+            TypedQuery<viettech.entity.order.Order> query = em.createQuery(jpql, viettech.entity.order.Order.class);
+            query.setParameter("shipperId", shipperId);
+            List<viettech.entity.order.Order> orders = query.getResultList();
+            logger.debug("✓ Found {} Completed orders for shipper {}", orders.size(), shipperId);
+            return orders;
+        } catch (Exception e) {
+            logger.error("✗ Error getting Completed orders for shipper {}", shipperId, e);
+            return new java.util.ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Cập nhật status của Order
+     */
+    public void updateOrderStatus(int orderId, String newStatus) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        EntityTransaction trans = em.getTransaction();
+        try {
+            trans.begin();
+            viettech.entity.order.Order order = em.find(viettech.entity.order.Order.class, orderId);
+            if (order != null) {
+                order.setStatus(newStatus);
+                if ("Completed".equalsIgnoreCase(newStatus)) {
+                    order.setCompletedAt(new java.util.Date());
+                }
+                em.merge(order);
+                logger.info("✓ Updated order {} status to {}", orderId, newStatus);
+            }
+            trans.commit();
+        } catch (Exception e) {
+            if (trans.isActive()) trans.rollback();
+            logger.error("✗ Error updating order status", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Tìm Order theo ID
+     */
+    public viettech.entity.order.Order findOrderById(int orderId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            return em.find(viettech.entity.order.Order.class, orderId);
         } finally {
             em.close();
         }
