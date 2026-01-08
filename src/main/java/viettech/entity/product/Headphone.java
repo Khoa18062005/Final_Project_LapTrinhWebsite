@@ -17,10 +17,10 @@ public class Headphone extends Product {
     private String formFactor;        // true wireless, neckband, wired
 
     @Column(name = "battery_life")
-    private int batteryLife;          // hours
+    private Integer batteryLife;          // hours
 
     @Column(name = "charging_time")
-    private int chargingTime;         // minutes
+    private Integer chargingTime;         // minutes
 
     @Column(name = "charging_port")
     private String chargingPort;      // USB-C, Lightning
@@ -35,7 +35,7 @@ public class Headphone extends Product {
     private boolean ambientMode;
 
     @Column(name = "driver_size")
-    private int driverSize;           // mm
+    private Integer driverSize;           // mm
 
     @Column(name = "driver_type")
     private String driverType;        // dynamic, planar, balanced armature
@@ -43,8 +43,8 @@ public class Headphone extends Product {
     @Column(name = "frequency_response")
     private String frequencyResponse;
 
-    private int impedance;            // ohm
-    private int sensitivity;          // dB
+    private Integer impedance;            // ohm
+    private Integer sensitivity;          // dB
 
     @Column(nullable = false)
     private boolean microphone;
@@ -95,17 +95,17 @@ public class Headphone extends Product {
 
         this.type = "";
         this.formFactor = "";
-        this.batteryLife = 0;
-        this.chargingTime = 0;
+        this.batteryLife = null;
+        this.chargingTime = null;
         this.chargingPort = "";
         this.noiseCancellation = false;
         this.noiseCancellationType = "";
         this.ambientMode = false;
-        this.driverSize = 0;
+        this.driverSize = null;
         this.driverType = "";
         this.frequencyResponse = "";
-        this.impedance = 0;
-        this.sensitivity = 0;
+        this.impedance = null;
+        this.sensitivity = null;
         this.microphone = false;
         this.micType = "";
         this.waterproofRating = "";
@@ -135,20 +135,20 @@ public class Headphone extends Product {
                      double weight,
                      String dimensions,
                      boolean isFeatured,
-
+                     int quantity,
                      String type,
                      String formFactor,
-                     int batteryLife,
-                     int chargingTime,
+                     Integer batteryLife,
+                     Integer chargingTime,
                      String chargingPort,
                      boolean noiseCancellation,
                      String noiseCancellationType,
                      boolean ambientMode,
-                     int driverSize,
+                     Integer driverSize,
                      String driverType,
                      String frequencyResponse,
-                     int impedance,
-                     int sensitivity,
+                     Integer impedance,
+                     Integer sensitivity,
                      boolean microphone,
                      String micType,
                      String waterproofRating,
@@ -165,7 +165,7 @@ public class Headphone extends Product {
 
         super(vendorId, categoryId, name, slug, basePrice,
               description, brand, specifications, status,
-              condition, weight, dimensions, isFeatured);
+              condition, weight, dimensions, isFeatured, quantity);
 
         this.type = type != null ? type : "";
         this.formFactor = formFactor != null ? formFactor : "";

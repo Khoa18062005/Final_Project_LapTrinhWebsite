@@ -48,15 +48,15 @@ public class OrderDetail {
        MAPPING
        ========================= */
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "order_id", insertable = false, updatable = false)
     private Order order;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "variant_id", insertable = false, updatable = false)
     private Variant variant;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "product_id", insertable = false, updatable = false)
     private Product product;
 
