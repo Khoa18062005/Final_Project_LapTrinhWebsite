@@ -459,5 +459,37 @@ public class ProductDAO {
             em.close();
         }
     }
+
+    public Product findByIdWithImages(int productId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT p FROM Product p " +
+                    "LEFT JOIN FETCH p.images " +
+                    "WHERE p.productId = :productId";
+
+            TypedQuery<Product> query = em.createQuery(jpql, Product.class);
+            query.setParameter("productId", productId);
+
+            List<Product> results = query.getResultList();
+
+            if (!results.isEmpty()) {
+                Product product = results.get(0);
+                logger.debug("✓ Found product with {} image(s)",
+                        product.getImages() != null ? product.getImages().size() : 0);
+                return product;
+            }
+
+            logger.warn("✗ Product not found with ID: {}", productId);
+            return null;
+
+        } catch (Exception e) {
+            logger.error("✗ Error finding product with images: {}", productId, e);
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
+
 }
 

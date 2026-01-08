@@ -9,6 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -253,6 +254,46 @@ public class OrderDAO {
         } catch (Exception e) {
             logger.error("✗ Error counting orders by status: {}", status, e);
             throw new RuntimeException("Failed to count orders by status", e);
+        } finally {
+            em.close();
+        }
+    }
+    public List<Order> findByCustomerIdAndStatus(int customerId, String status) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT o FROM Order o WHERE o.customerId = :customerId AND o.status = :status ORDER BY o.orderDate DESC";
+            TypedQuery<Order> query = em.createQuery(jpql, Order.class);
+            query.setParameter("customerId", customerId);
+            query.setParameter("status", status);
+
+            List<Order> orders = query.getResultList();
+            logger.debug("✓ Found {} order(s) with status '{}' for customer {}", orders.size(), status, customerId);
+            return orders;
+
+        } catch (Exception e) {
+            logger.error("✗ Error finding orders", e);
+            return new ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * ✅ ĐẾM SỐ ĐơN THEO STATUS
+     */
+    public long countByCustomerIdAndStatus(int customerId, String status) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT COUNT(o) FROM Order o WHERE o.customerId = :customerId AND o.status = :status";
+            TypedQuery<Long> query = em.createQuery(jpql, Long.class);
+            query.setParameter("customerId", customerId);
+            query.setParameter("status", status);
+
+            return query.getSingleResult();
+
+        } catch (Exception e) {
+            logger.error("✗ Error counting orders", e);
+            return 0;
         } finally {
             em.close();
         }
