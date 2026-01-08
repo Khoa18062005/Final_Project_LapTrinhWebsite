@@ -24,6 +24,33 @@ public class ShipperNotificationApiService {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
 
         try {
+            // 0. Thông báo từ bảng notifications (từ vendor broadcast)
+            String sqlNotifications =
+                "SELECT n.notification_id, n.type, n.title, n.message, n.action_url, " +
+                "       n.is_read, n.created_at " +
+                "FROM notifications n " +
+                "WHERE n.user_id = :shipperId " +
+                "AND n.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY) " +
+                "ORDER BY n.created_at DESC " +
+                "LIMIT 20";
+
+            Query queryNotif = em.createNativeQuery(sqlNotifications);
+            queryNotif.setParameter("shipperId", shipperId);
+            List<Object[]> dbNotifications = queryNotif.getResultList();
+
+            for (Object[] row : dbNotifications) {
+                Map<String, Object> notif = new HashMap<>();
+                notif.put("id", "notif_" + row[0]);
+                notif.put("type", row[1] != null ? row[1].toString() : "INFO");
+                notif.put("title", row[2] != null ? row[2].toString() : "Thông báo");
+                notif.put("message", row[3] != null ? row[3].toString() : "");
+                notif.put("actionUrl", row[4] != null ? row[4].toString() : "");
+                notif.put("read", row[5] != null && ((Number) row[5]).intValue() == 1);
+                notif.put("createdAt", row[6]);
+                notif.put("status", "notification");
+                notifications.add(notif);
+            }
+
             // 1. Đơn hàng mới trên sàn (status = Ready, chưa có shipper nhận)
             String sqlNewOrders =
                 "SELECT da.assignment_id, da.status, da.assigned_at, da.earnings, " +
@@ -164,15 +191,34 @@ public class ShipperNotificationApiService {
     }
 
     /**
-     * Đếm số đơn hàng mới (Ready) - dùng làm badge
+     * Đếm số đơn hàng mới (Ready) + thông báo chưa đọc - dùng làm badge
      */
     public int countNewOrders() {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            String sql = "SELECT COUNT(*) FROM delivery_assignments WHERE status = 'Ready'";
+            // Đếm delivery_assignments với status = Ready
+            String sql1 = "SELECT COUNT(*) FROM delivery_assignments WHERE status = 'Ready'";
+            Query query1 = em.createNativeQuery(sql1);
+            int readyCount = ((Number) query1.getSingleResult()).intValue();
+
+            return readyCount;
+        } catch (Exception e) {
+            return 0;
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Đếm số thông báo chưa đọc cho shipper cụ thể
+     */
+    public int countUnreadNotifications(int shipperId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String sql = "SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0";
             Query query = em.createNativeQuery(sql);
-            Object result = query.getSingleResult();
-            return ((Number) result).intValue();
+            query.setParameter(1, shipperId);
+            return ((Number) query.getSingleResult()).intValue();
         } catch (Exception e) {
             return 0;
         } finally {

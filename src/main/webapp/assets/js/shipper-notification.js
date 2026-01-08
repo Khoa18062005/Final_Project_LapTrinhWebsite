@@ -156,19 +156,34 @@
             // Xử lý icon và màu sắc theo loại thông báo
             let iconClass = 'fas fa-bell';
             let bgClass = 'icon-system';
+            let actionButton = '';
 
-            if (notif.type === 'NEW_ORDER') {
-                // Đơn hàng mới trên sàn
+            if (notif.type === 'NEW_ORDER' || notif.type === 'DELIVERY_READY') {
+                // Đơn hàng mới trên sàn / từ vendor broadcast
                 iconClass = 'fas fa-box-open';
                 bgClass = 'icon-new-order';
-            } else if (notif.type === 'ACCEPTED') {
+                // Thêm nút nhận đơn cho đơn mới
+                if (!notif.read) {
+                    const orderId = extractOrderIdFromUrl(notif.actionUrl);
+                    if (orderId) {
+                        actionButton = `
+                            <button class="btn-accept-order" onclick="event.stopPropagation(); acceptOrderFromNotification('${notif.id}', ${orderId})">
+                                <i class="fas fa-check"></i> Nhận đơn
+                            </button>
+                        `;
+                    }
+                }
+            } else if (notif.type === 'ACCEPTED' || notif.type === 'DELIVERY_ACCEPTED') {
                 // Đã nhận đơn hàng
                 iconClass = 'fas fa-shipping-fast';
                 bgClass = 'icon-accepted';
-            } else if (notif.type === 'COMPLETED') {
+            } else if (notif.type === 'COMPLETED' || notif.type === 'ORDER_COMPLETED') {
                 // Đã giao thành công
                 iconClass = 'fas fa-check-circle';
                 bgClass = 'icon-completed';
+            } else if (notif.type === 'ORDER_SHIPPING') {
+                iconClass = 'fas fa-truck';
+                bgClass = 'icon-accepted';
             }
 
             const timeAgo = formatTimeAgo(notif.createdAt);
@@ -176,7 +191,7 @@
 
             // Tạo HTML cho từng item
             html += `
-                <div class="notification-item ${unreadClass}" data-id="${notif.id}" data-type="${notif.type}">
+                <div class="notification-item ${unreadClass}" data-id="${notif.id}" data-type="${notif.type}" data-action-url="${notif.actionUrl || ''}">
                     <div class="notification-item-icon ${bgClass}">
                         <i class="${iconClass}"></i>
                     </div>
@@ -184,6 +199,7 @@
                         <div class="notification-item-title">${escapeHtml(notif.title)}</div>
                         <div class="notification-item-message">${escapeHtml(notif.message)}</div>
                         <div class="notification-item-time">${timeAgo}</div>
+                        ${actionButton}
                     </div>
                     ${!notif.read ? '<div class="notification-item-dot"></div>' : ''}
                 </div>
@@ -196,20 +212,74 @@
         body.querySelectorAll('.notification-item').forEach(item => {
             item.addEventListener('click', function() {
                 const type = this.dataset.type;
+                const actionUrl = this.dataset.actionUrl;
+
                 // Đóng dropdown
                 document.getElementById('shipperNotificationDropdown').classList.remove('show');
 
+                // Nếu có actionUrl, chuyển đến đó
+                if (actionUrl && actionUrl !== '' && actionUrl !== 'undefined') {
+                    window.location.href = contextPath + actionUrl;
+                    return;
+                }
+
                 // Chuyển đến section phù hợp
-                if (type === 'NEW_ORDER') {
+                if (type === 'NEW_ORDER' || type === 'DELIVERY_READY') {
                     showSection('orders'); // Sàn đơn hàng
-                } else if (type === 'ACCEPTED') {
+                } else if (type === 'ACCEPTED' || type === 'DELIVERY_ACCEPTED' || type === 'ORDER_SHIPPING') {
                     showSection('overview'); // Tổng quan - đơn đang giao
-                } else if (type === 'COMPLETED') {
+                } else if (type === 'COMPLETED' || type === 'ORDER_COMPLETED') {
                     showSection('history'); // Lịch sử
                 }
             });
         });
     }
+
+    // Extract orderId from actionUrl like /shipper?focus=assignment&orderId=123
+    function extractOrderIdFromUrl(actionUrl) {
+        if (!actionUrl) return null;
+        const match = actionUrl.match(/orderId=(\d+)/);
+        return match ? match[1] : null;
+    }
+
+    // Accept order from notification
+    window.acceptOrderFromNotification = function(notifId, orderId) {
+        if (!orderId) return;
+
+        // Show loading
+        showToast('Đang xử lý...', 'info');
+
+        // Call API to accept order
+        fetch(`${contextPath}/shipper`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `action=accept&orderId=${orderId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Đã nhận đơn hàng thành công!', 'success');
+                // Mark notification as read
+                if (notifId && notifId.startsWith('notif_')) {
+                    const realNotifId = notifId.replace('notif_', '');
+                    markAsRead(realNotifId);
+                }
+                // Reload page to show order in ongoing section
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showToast(data.message || 'Không thể nhận đơn hàng', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error accepting order:', error);
+            showToast('Có lỗi xảy ra khi nhận đơn hàng', 'error');
+        });
+    };
 
     // Lấy icon theo loại thông báo
     function getNotificationIcon(type) {

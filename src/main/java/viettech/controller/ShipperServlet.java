@@ -70,16 +70,45 @@ public class ShipperServlet extends HttpServlet {
         }
 
         String action = request.getParameter("action");
+        boolean isAjax = "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
 
         // --- CASE 1: XỬ LÝ ĐƠN HÀNG (Nhận / Hoàn thành) ---
         if ("accept".equals(action) || "complete".equals(action)) {
             String idStr = request.getParameter("id");
-            if (idStr != null) {
-                try {
+            String orderIdStr = request.getParameter("orderId");
+
+            try {
+                if (orderIdStr != null && !orderIdStr.isEmpty()) {
+                    // Accept by orderId - from notification
+                    int orderId = Integer.parseInt(orderIdStr);
+                    boolean success = acceptOrderByOrderId(orderId, user.getUserId());
+
+                    if (isAjax) {
+                        sendJsonResponse(response, success,
+                            success ? "Đã nhận đơn hàng thành công" : "Không thể nhận đơn hàng", null);
+                        return;
+                    }
+                } else if (idStr != null && !idStr.isEmpty()) {
+                    // Accept by assignmentId - from order list
                     int assignmentId = Integer.parseInt(idStr);
                     service.updateStatus(assignmentId, action);
-                } catch (NumberFormatException e) {
-                    e.printStackTrace();
+
+                    if (isAjax) {
+                        sendJsonResponse(response, true, "Thành công", null);
+                        return;
+                    }
+                }
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+                if (isAjax) {
+                    sendJsonResponse(response, false, "ID không hợp lệ", null);
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (isAjax) {
+                    sendJsonResponse(response, false, "Có lỗi xảy ra: " + e.getMessage(), null);
+                    return;
                 }
             }
         }
@@ -142,5 +171,128 @@ public class ShipperServlet extends HttpServlet {
 
         // Redirect để tránh lỗi resubmission khi F5
         response.sendRedirect(request.getContextPath() + "/shipper");
+    }
+
+    /**
+     * Accept order by orderId - creates delivery assignment and updates order status
+     */
+    private boolean acceptOrderByOrderId(int orderId, int shipperId) {
+        try {
+            // Use VendorService's assignOrder logic or create a new one in ShipperService
+            viettech.config.JPAConfig.getEntityManager();
+            javax.persistence.EntityManager em = viettech.config.JPAConfig.getEntityManager();
+            javax.persistence.EntityTransaction tx = em.getTransaction();
+
+            try {
+                tx.begin();
+
+                // Check if order exists and is in READY status
+                viettech.entity.order.Order order = em.find(viettech.entity.order.Order.class, orderId);
+                if (order == null) {
+                    return false;
+                }
+
+                String status = order.getStatus() != null ? order.getStatus().trim().toUpperCase() : "";
+                if (!"READY".equals(status)) {
+                    System.out.println("Order " + orderId + " is not in READY status, current: " + status);
+                    return false;
+                }
+
+                // Update order status to SHIPPING
+                order.setStatus("SHIPPING");
+                em.merge(order);
+
+                // Create or update delivery assignment
+                // First check if delivery exists
+                String checkDelivery = "SELECT d FROM viettech.entity.delivery.Delivery d WHERE d.orderId = :orderId";
+                java.util.List<viettech.entity.delivery.Delivery> deliveries = em.createQuery(checkDelivery, viettech.entity.delivery.Delivery.class)
+                        .setParameter("orderId", orderId)
+                        .getResultList();
+
+                viettech.entity.delivery.Delivery delivery;
+                if (deliveries.isEmpty()) {
+                    // Create new delivery
+                    delivery = new viettech.entity.delivery.Delivery();
+                    delivery.setOrderId(orderId);
+                    delivery.setStatus("In Transit");
+                    em.persist(delivery);
+                    em.flush(); // Get ID
+                } else {
+                    delivery = deliveries.get(0);
+                    delivery.setStatus("In Transit");
+                    em.merge(delivery);
+                }
+
+                // Check if assignment exists
+                String checkAssignment = "SELECT da FROM viettech.entity.delivery.DeliveryAssignment da WHERE da.deliveryId = :deliveryId";
+                java.util.List<viettech.entity.delivery.DeliveryAssignment> assignments = em.createQuery(checkAssignment, viettech.entity.delivery.DeliveryAssignment.class)
+                        .setParameter("deliveryId", delivery.getDeliveryId())
+                        .getResultList();
+
+                if (assignments.isEmpty()) {
+                    // Create new assignment
+                    viettech.entity.delivery.DeliveryAssignment assignment = new viettech.entity.delivery.DeliveryAssignment();
+                    assignment.setDeliveryId(delivery.getDeliveryId());
+                    assignment.setShipperId(shipperId);
+                    assignment.setStatus("Accepted");
+                    assignment.setAssignedAt(new java.util.Date());
+                    assignment.setAcceptedAt(new java.util.Date());
+                    em.persist(assignment);
+                } else {
+                    // Update existing assignment
+                    viettech.entity.delivery.DeliveryAssignment assignment = assignments.get(0);
+                    assignment.setShipperId(shipperId);
+                    assignment.setStatus("Accepted");
+                    assignment.setAcceptedAt(new java.util.Date());
+                    em.merge(assignment);
+                }
+
+                tx.commit();
+
+                // Send notification to vendor
+                try {
+                    viettech.service.NotificationService notificationService = new viettech.service.NotificationService();
+                    viettech.entity.Notification vendorNotif = new viettech.entity.Notification();
+                    vendorNotif.setUserId(order.getVendorId());
+                    vendorNotif.setType("ORDER_SHIPPING");
+                    vendorNotif.setTitle("Shipper đã nhận đơn hàng");
+                    vendorNotif.setMessage("Đơn hàng #" + order.getOrderNumber() + " đã được shipper nhận. Đang giao hàng.");
+                    vendorNotif.setActionUrl("/vendor?action=shipping");
+                    vendorNotif.setCreatedAt(new java.util.Date());
+                    notificationService.createNotification(vendorNotif);
+                } catch (Exception e) {
+                    System.err.println("Failed to notify vendor: " + e.getMessage());
+                }
+
+                return true;
+            } catch (Exception e) {
+                if (tx.isActive()) tx.rollback();
+                throw e;
+            } finally {
+                em.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Send JSON response for AJAX calls
+     */
+    private void sendJsonResponse(HttpServletResponse response, boolean success, String message, Object data) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        StringBuilder json = new StringBuilder();
+        json.append("{");
+        json.append("\"success\":").append(success).append(",");
+        json.append("\"message\":\"").append(message != null ? message.replace("\"", "\\\"") : "").append("\"");
+        if (data != null) {
+            json.append(",\"data\":").append(new com.google.gson.Gson().toJson(data));
+        }
+        json.append("}");
+
+        response.getWriter().write(json.toString());
     }
 }

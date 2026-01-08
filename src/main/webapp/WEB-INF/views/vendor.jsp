@@ -1553,10 +1553,10 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <div class="text-muted small">Tổng số lượng (Product.quantity)</div>
-                                    <div class="fs-3 fw-bold text-primary" id="statsTotalProductQty">--</div>
+                                    <div class="text-muted small">Tổng doanh thu</div>
+                                    <div class="fs-4 fw-bold text-primary" id="statsTotalRevenue">--</div>
                                 </div>
-                                <i class="fas fa-layer-group fa-2x text-primary"></i>
+                                <i class="fas fa-money-bill-wave fa-2x text-primary"></i>
                             </div>
                         </div>
                     </div>
@@ -1565,7 +1565,11 @@
                     <div class="card border-info">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
-                                <i class="fas fa-warehouse fa-2x text-info"></i>
+                                <div>
+                                    <div class="text-muted small">Tổng số lượng sản phẩm</div>
+                                    <div class="fs-3 fw-bold text-info" id="statsTotalProductQty">--</div>
+                                </div>
+                                <i class="fas fa-layer-group fa-2x text-info"></i>
                             </div>
                         </div>
                     </div>
@@ -1796,6 +1800,13 @@
                             const lowEl = document.getElementById('statsLowStockCount');
                             if (lowEl) lowEl.textContent = (data.lowStockCount ?? 0);
 
+                            // Display total revenue with currency format
+                            const revenueEl = document.getElementById('statsTotalRevenue');
+                            if (revenueEl) {
+                                const revenue = data.totalRevenue ?? 0;
+                                revenueEl.textContent = new Intl.NumberFormat('vi-VN').format(revenue) + 'đ';
+                            }
+
                             renderProductQty(data.productsQuantity || []);
                             renderTopSold(data.topSoldProducts || []);
                             renderLowStock(data.lowStockProducts || []);
@@ -1929,6 +1940,81 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <button type="button" class="btn btn-success" onclick="submitAddProduct()">
                     <i class="fas fa-save"></i> Thêm sản phẩm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Chỉnh sửa sản phẩm</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProductForm">
+                    <input type="hidden" id="editProductId" name="productId">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editProductName" class="form-label">Tên sản phẩm *</label>
+                            <input type="text" class="form-control" id="editProductName" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editProductCategory" class="form-label">Danh mục *</label>
+                            <select class="form-select" id="editProductCategory" name="categoryId" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                <option value="1">Điện thoại</option>
+                                <option value="3">Laptop</option>
+                                <option value="4">Máy tính bảng</option>
+                                <option value="5">Tai nghe</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editProductBrand" class="form-label">Thương hiệu</label>
+                            <input type="text" class="form-control" id="editProductBrand" name="brand">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editProductPrice" class="form-label">Giá bán *</label>
+                            <input type="number" class="form-control" id="editProductPrice" name="basePrice" required min="0">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProductDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="editProductDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProductSpecifications" class="form-label">Thông số kỹ thuật</label>
+                        <textarea class="form-control" id="editProductSpecifications" name="specifications" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editProductStatus" class="form-label">Trạng thái</label>
+                            <select class="form-select" id="editProductStatus" name="status">
+                                <option value="AVAILABLE">Còn hàng</option>
+                                <option value="OUT_OF_STOCK">Hết hàng</option>
+                                <option value="INACTIVE">Ngừng kinh doanh</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editProductCondition" class="form-label">Tình trạng</label>
+                            <select class="form-select" id="editProductCondition" name="conditions">
+                                <option value="New">Mới</option>
+                                <option value="Used">Đã sử dụng</option>
+                                <option value="Refurbished">Tân trang</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="submitEditProduct()">
+                    <i class="fas fa-save"></i> Cập nhật sản phẩm
                 </button>
             </div>
         </div>
@@ -2250,35 +2336,65 @@
 
             var product = result.data;
 
-            // Simple prompt-based edit (can be enhanced with a modal later)
-            var newName = prompt('Tên sản phẩm mới:', product.name);
-            if (newName && newName.trim()) {
-                // Send update request
-                var formData = new FormData();
-                formData.append('productId', productId);
-                formData.append('name', newName.trim());
+            // Fill form fields with product data
+            document.getElementById('editProductId').value = product.productId || '';
+            document.getElementById('editProductName').value = product.name || '';
+            document.getElementById('editProductCategory').value = product.categoryId || '';
+            document.getElementById('editProductBrand').value = product.brand || '';
+            document.getElementById('editProductPrice').value = product.basePrice || 0;
+            document.getElementById('editProductDescription').value = product.description || '';
+            document.getElementById('editProductSpecifications').value = product.specifications || '';
+            document.getElementById('editProductStatus').value = product.status || 'AVAILABLE';
+            document.getElementById('editProductCondition').value = product.conditions || 'New';
 
-                fetch('${pageContext.request.contextPath}/vendor?action=updateProduct', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(function(res) { return res.json(); })
-                .then(function(updateResult) {
-                    if (!updateResult.success) {
-                        throw new Error(updateResult.message || 'Không thể cập nhật sản phẩm');
-                    }
-                    alert('Cập nhật sản phẩm thành công!');
-                    location.reload();
-                })
-                .catch(function(err) {
-                    console.error('Error updating product:', err);
-                    alert('Lỗi: ' + err.message);
-                });
-            }
+            // Show modal
+            var modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+            modal.show();
         })
         .catch(function(err) {
             console.error('Error loading product:', err);
             alert('Có lỗi xảy ra khi tải dữ liệu sản phẩm: ' + err.message);
+        });
+    }
+
+    // Submit edit product form
+    function submitEditProduct() {
+        var form = document.getElementById('editProductForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        var productId = document.getElementById('editProductId').value;
+        var formData = new FormData(form);
+        var productData = {};
+        formData.forEach(function(value, key) {
+            if (key !== 'productId') {
+                productData[key] = value;
+            }
+        });
+
+        fetch('${pageContext.request.contextPath}/vendor?action=updateProduct&productId=' + productId, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(productData)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể cập nhật sản phẩm');
+            }
+            alert('Cập nhật sản phẩm thành công!');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('editProductModal'));
+            if (modal) modal.hide();
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Error updating product:', err);
+            alert('Lỗi: ' + err.message);
         });
     }
 
@@ -2390,13 +2506,20 @@
                 throw new Error((result && result.message) ? result.message : 'Không thể gửi yêu cầu giao hàng');
             }
 
-            // Success - reload page to reflect status change from PROCESSING to READY
-            alert('Đã gửi thông báo cho shipper và chuyển trạng thái sang READY!');
-            location.reload();
+            // Success - show toast notification instead of alert
+            showToastNotification('success', 'Thành công!', 'Đã gửi thông báo cho shipper và chuyển trạng thái sang READY!');
+
+            // Reload notifications to show the success
+            loadVendorNotifications();
+
+            // Reload page after a short delay to reflect status change
+            setTimeout(function() {
+                location.reload();
+            }, 1500);
         })
         .catch(function(err) {
             console.error('Broadcast delivery error', err);
-            alert('Có lỗi: ' + err.message);
+            showToastNotification('error', 'Lỗi!', err.message);
 
             // Re-enable button on error
             if (broadcastBtn) {
@@ -2404,6 +2527,44 @@
                 broadcastBtn.innerHTML = '<i class="fas fa-bullhorn"></i> Gửi cho shipper';
             }
         });
+    }
+
+    // Toast notification helper function
+    function showToastNotification(type, title, message) {
+        // Create toast container if not exists
+        var toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toastContainer';
+            toastContainer.className = 'position-fixed top-0 end-0 p-3';
+            toastContainer.style.zIndex = '9999';
+            document.body.appendChild(toastContainer);
+        }
+
+        var toastId = 'toast-' + Date.now();
+        var bgClass = type === 'success' ? 'bg-success' : (type === 'error' ? 'bg-danger' : 'bg-info');
+        var iconClass = type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle');
+
+        var toastHtml =
+            '<div id="' + toastId + '" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">' +
+            '  <div class="toast-header ' + bgClass + ' text-white">' +
+            '    <i class="fas ' + iconClass + ' me-2"></i>' +
+            '    <strong class="me-auto">' + title + '</strong>' +
+            '    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>' +
+            '  </div>' +
+            '  <div class="toast-body">' + message + '</div>' +
+            '</div>';
+
+        toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+        // Auto remove after 5 seconds
+        setTimeout(function() {
+            var toast = document.getElementById(toastId);
+            if (toast) {
+                toast.classList.remove('show');
+                setTimeout(function() { toast.remove(); }, 300);
+            }
+        }, 5000);
     }
 
     // On shipping page, auto load shipper info for SHIPPING orders
@@ -2583,11 +2744,14 @@
         'editProduct',
         'showAddProductModal',
         'submitAddProduct',
+        'submitEditProduct',
         'deleteProduct',
         'showOrderDetailModal',
         'broadcastDelivery',
         'viewOrderDetails',
-        'markAllNotificationsAsRead'
+        'markAllNotificationsAsRead',
+        'loadVendorNotifications',
+        'showToastNotification'
     ];
 
     expose.forEach(function(fnName) {

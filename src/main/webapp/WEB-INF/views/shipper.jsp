@@ -175,6 +175,58 @@
 
         .notification-empty, .notification-error, .notification-loading {
             text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+
+        /* Accept order button in notification */
+        .btn-accept-order {
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-accept-order:hover {
+            background: linear-gradient(135deg, #219a52, #27ae60);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-accept-order i {
+            font-size: 0.75rem;
+        }
+
+        /* Icon colors for notification types */
+        .notification-item-icon.icon-new-order {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .notification-item-icon.icon-accepted {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .notification-item-icon.icon-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .notification-item-icon.icon-system {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+            text-align: center;
             padding: 40px 20px;
             color: #7f8c8d;
         }

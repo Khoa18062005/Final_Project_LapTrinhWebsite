@@ -184,6 +184,7 @@ public class VendorServlet extends HttpServlet {
                             productData.put("status", product.getStatus());
                             productData.put("description", product.getDescription());
                             productData.put("specifications", product.getSpecifications());
+                            productData.put("conditions", product.getConditions());
 
                             sendJsonResponse(response, true, "Product retrieved successfully", productData);
                             return;
@@ -631,4 +632,5 @@ public class VendorServlet extends HttpServlet {
         return new Gson().fromJson(jsonBody, Map.class);
     }
 }
+
 

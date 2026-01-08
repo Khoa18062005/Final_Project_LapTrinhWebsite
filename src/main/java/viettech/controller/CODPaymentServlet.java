@@ -10,7 +10,6 @@ import viettech.entity.user.User;
 import viettech.entity.voucher.Voucher;
 import viettech.entity.voucher.VoucherUsage;
 import viettech.service.VendorService;
-
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
@@ -41,7 +40,7 @@ public class CODPaymentServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         HttpSession session = request.getSession();
@@ -158,7 +157,6 @@ public class CODPaymentServlet extends HttpServlet {
                     );
                     voucherUsageDAO.insert(voucherUsage);
 
-                    // Cập nhật usage count của voucher
                     appliedVoucher.setUsageCount(appliedVoucher.getUsageCount() + 1);
                     voucherDAO.update(appliedVoucher);
                 }
@@ -197,3 +195,4 @@ public class CODPaymentServlet extends HttpServlet {
         return "ORD" + System.currentTimeMillis();
     }
 }
+

@@ -4,10 +4,10 @@ import org.mindrot.jbcrypt.BCrypt;
 import viettech.config.JPAConfig;
 import viettech.dto.Shipper_dto;
 import viettech.entity.delivery.DeliveryAssignment;
+import viettech.entity.Notification;
 import viettech.entity.user.Shipper;
 import viettech.entity.user.User;
 import viettech.entity.order.Order;
-
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Query;
@@ -62,35 +62,27 @@ public class ShipperService {
                     continue;
                 }
 
-                Order order = da.getDelivery().getOrder();
                 String status = (da.getStatus() != null) ? da.getStatus().trim() : "";
+                Order order = da.getDelivery().getOrder();
                 String orderStatus = (order.getStatus() != null) ? order.getStatus().trim() : "";
 
                 System.out.println("-> Đơn #" + order.getOrderNumber() +
-                        " | AssignStatus: " + status +
-                        " | OrderStatus: " + orderStatus);
+                        " | Assignment Status: " + status +
+                        " | Order Status: " + orderStatus);
 
-                // --- NHÓM 1: CHỜ NHẬN (Pending) ---
                 if (containsIgnoreCase(status, "Assigned", "Pending", "Processing", "Ready", "Created")) {
                     pending.add(order);
-                }
-                // --- NHÓM 2: ĐANG THỰC HIỆN (Ongoing) ---
-                else if (containsIgnoreCase(status, "Accepted", "Picking Up", "In Transit", "Shipping", "On Delivery")) {
+                } else if (containsIgnoreCase(status, "Accepted", "Picking Up", "In Transit", "Shipping", "On Delivery")) {
                     ongoing.add(order);
-                }
-                // --- NHÓM 3: LỊCH SỬ (History) ---
-                else if (containsIgnoreCase(status, "Completed", "Delivered", "Cancelled", "Returned", "Fail", "Success")) {
+                } else if (containsIgnoreCase(status, "Completed", "Delivered", "Cancelled", "Returned", "Fail", "Success")) {
                     history.add(order);
-                }
-                // --- TRƯỜNG HỢP LẠ (Fallback) ---
-                else {
-                    // Nếu trạng thái Shipper lạ, thử check theo trạng thái Order
+                } else {
+                    // Fallback - check order status
                     if (containsIgnoreCase(orderStatus, "Shipping", "In Transit")) {
                         ongoing.add(order);
                     } else if (containsIgnoreCase(orderStatus, "Completed", "Delivered")) {
                         history.add(order);
                     } else {
-                        // Mặc định ném vào pending để Shipper thấy
                         System.out.println("   (Trạng thái lạ -> Chuyển vào Pending)");
                         pending.add(order);
                     }
@@ -213,6 +205,8 @@ public class ShipperService {
     public void updateStatus(int assignmentId, String action) {
         EntityManager em = JPAConfig.getEntityManager();
         EntityTransaction trans = em.getTransaction();
+        int vendorId = 0;
+        String orderNumber = "";
         try {
             trans.begin();
             DeliveryAssignment da = em.find(DeliveryAssignment.class, assignmentId);
@@ -221,7 +215,14 @@ public class ShipperService {
                     da.setStatus("In Transit"); // Đổi thành In Transit cho khớp logic
                     da.setAcceptedAt(new Date());
                     da.setStartedAt(new Date()); // Ghi nhận bắt đầu luôn
-                    if (da.getDelivery() != null) da.getDelivery().setStatus("In Transit");
+                    if (da.getDelivery() != null) {
+                        da.getDelivery().setStatus("In Transit");
+                        if (da.getDelivery().getOrder() != null) {
+                            da.getDelivery().getOrder().setStatus("SHIPPING");
+                            vendorId = da.getDelivery().getOrder().getVendorId();
+                            orderNumber = da.getDelivery().getOrder().getOrderNumber();
+                        }
+                    }
                 } else if ("complete".equals(action)) {
                     da.setStatus("Completed");
                     da.setCompletedAt(new Date());
@@ -229,14 +230,42 @@ public class ShipperService {
                         da.getDelivery().setStatus("Delivered");
                         da.getDelivery().setActualDelivery(new Date());
                         if (da.getDelivery().getOrder() != null) {
-                            da.getDelivery().getOrder().setStatus("Completed");
+                            da.getDelivery().getOrder().setStatus("COMPLETED");
                             da.getDelivery().getOrder().setCompletedAt(new Date());
+                            vendorId = da.getDelivery().getOrder().getVendorId();
+                            orderNumber = da.getDelivery().getOrder().getOrderNumber();
                         }
                     }
                 }
                 em.merge(da);
             }
             trans.commit();
+
+            // Send notification to vendor after successful transaction
+            if (vendorId > 0 && orderNumber != null && !orderNumber.isEmpty()) {
+                try {
+                    NotificationService notificationService = new NotificationService();
+                    Notification vendorNotif = new Notification();
+                    vendorNotif.setUserId(vendorId);
+
+                    if ("accept".equals(action)) {
+                        vendorNotif.setType("ORDER_SHIPPING");
+                        vendorNotif.setTitle("Shipper đã nhận đơn hàng");
+                        vendorNotif.setMessage("Đơn hàng #" + orderNumber + " đã được shipper nhận và đang giao.");
+                        vendorNotif.setActionUrl("/vendor?action=shipping");
+                    } else if ("complete".equals(action)) {
+                        vendorNotif.setType("ORDER_COMPLETED");
+                        vendorNotif.setTitle("Đơn hàng đã giao thành công");
+                        vendorNotif.setMessage("Đơn hàng #" + orderNumber + " đã được giao thành công đến khách hàng.");
+                        vendorNotif.setActionUrl("/vendor?action=orders");
+                    }
+
+                    vendorNotif.setCreatedAt(new Date());
+                    notificationService.createNotification(vendorNotif);
+                } catch (Exception e) {
+                    System.err.println("Failed to notify vendor: " + e.getMessage());
+                }
+            }
         } catch (Exception e) {
             if (trans.isActive()) trans.rollback();
             e.printStackTrace();
@@ -304,3 +333,4 @@ public class ShipperService {
         }
     }
 }
+

@@ -867,23 +867,26 @@ public class VendorService {
     private void broadcastReadyToShippers(int orderId) {
         EntityManager em = JPAConfig.getEntityManager();
         try {
-            // Fetch order with address eagerly
-            Order order = em.createQuery(
-                    "SELECT o FROM Order o LEFT JOIN FETCH o.address WHERE o.orderId = :orderId",
-                    Order.class)
+            // Fetch order with address eagerly to avoid LazyInitializationException
+            String jpql = "SELECT o FROM Order o LEFT JOIN FETCH o.address WHERE o.orderId = :orderId";
+            Order order = em.createQuery(jpql, Order.class)
                     .setParameter("orderId", orderId)
                     .getResultStream()
                     .findFirst()
                     .orElse(null);
 
             String orderNumber = (order != null && order.getOrderNumber() != null)
-                                 ? order.getOrderNumber()
-                                 : String.valueOf(orderId);
+                    ? order.getOrderNumber()
+                    : String.valueOf(orderId);
 
             // Get delivery address for context
             String addressInfo = "";
             if (order != null && order.getAddress() != null) {
-                addressInfo = " - Giao đến: " + order.getAddress().getDistrict() + ", " + order.getAddress().getCity();
+                String district = order.getAddress().getDistrict() != null ? order.getAddress().getDistrict() : "";
+                String city = order.getAddress().getCity() != null ? order.getAddress().getCity() : "";
+                if (!district.isEmpty() || !city.isEmpty()) {
+                    addressInfo = " - Giao đến: " + district + ", " + city;
+                }
             }
 
             String actionUrl = "/shipper?focus=assignment&orderId=" + orderId;
@@ -910,9 +913,6 @@ public class VendorService {
             }
 
             logger.info("✓ Broadcasted READY notification for order {} to {}/{} shippers", orderId, sentCount, shippers.size());
-        } catch (Exception e) {
-            logger.error("✗ Failed to broadcast READY notifications for order {}", orderId, e);
-            throw new RuntimeException("Failed to broadcast notifications: " + e.getMessage(), e);
         } finally {
             em.close();
         }
@@ -1590,54 +1590,48 @@ public class VendorService {
 
     /**
      * Vendor bấm nút "Gửi cho shipper" ở trang giao hàng.
-     * - ONLY allowed when order status = PROCESSING or READY
-     * - Updates order status to READY (if PROCESSING)
+     * - ONLY allowed when order status = PROCESSING
+     * - Updates order status to READY
      * - Broadcasts notification to all available shippers
      */
     public void broadcastDeliveryRequest(int orderId, int vendorId) {
         EntityManager em = JPAConfig.getEntityManager();
-        EntityTransaction tx = null;
         try {
-            Order order = orderDAO.findById(orderId);
+            // Fetch order with address eagerly to avoid LazyInitializationException
+            String jpql = "SELECT o FROM Order o LEFT JOIN FETCH o.address WHERE o.orderId = :orderId";
+            Order order = em.createQuery(jpql, Order.class)
+                    .setParameter("orderId", orderId)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+
             if (order == null) {
-                throw new RuntimeException("Đơn hàng không tồn tại");
+                throw new RuntimeException("Order not found");
             }
             if (order.getVendorId() != vendorId) {
-                throw new RuntimeException("Đơn hàng không thuộc về vendor này");
+                throw new RuntimeException("Order does not belong to this vendor");
             }
 
+            // Enforce: can only broadcast when status = PROCESSING
             String currentStatus = order.getStatus() != null ? order.getStatus().trim().toUpperCase() : "";
-            logger.info("BroadcastDeliveryRequest: Order {} current status: {}", orderId, currentStatus);
-
-            // Allow broadcasting if status is PROCESSING or READY
-            if ("PROCESSING".equals(currentStatus)) {
-                // Update order status to READY
-                tx = em.getTransaction();
-                tx.begin();
-                order.setStatus("READY");
-                em.merge(order);
-                tx.commit();
-                tx = null; // Reset to avoid double rollback
-                logger.info("✓ Order {} status updated from PROCESSING to READY", orderId);
-            } else if ("READY".equals(currentStatus)) {
-                // Already READY, just broadcast again
-                logger.info("✓ Order {} already READY, broadcasting again", orderId);
-            } else {
-                throw new RuntimeException("Chỉ có thể gửi thông báo cho shipper khi đơn hàng đang ở trạng thái PROCESSING hoặc READY. Trạng thái hiện tại: " + order.getStatus());
+            if (!"PROCESSING".equals(currentStatus)) {
+                throw new RuntimeException("Chỉ có thể gửi thông báo cho shipper khi đơn hàng đang ở trạng thái PROCESSING. Trạng thái hiện tại: " + order.getStatus());
             }
 
-            // Broadcast to all available shippers
-            broadcastReadyToShippers(orderId);
-            logger.info("✓ Broadcasted delivery request for order {} to all available shippers", orderId);
-        } catch (Exception e) {
-            logger.error("✗ Failed to broadcast delivery request for order {}", orderId, e);
-            throw new RuntimeException("Không thể gửi yêu cầu giao hàng: " + e.getMessage(), e);
+            // Update order status to READY within the same transaction
+            em.getTransaction().begin();
+            order.setStatus("READY");
+            em.merge(order);
+            em.getTransaction().commit();
+            logger.info("✓ Order {} status updated from PROCESSING to READY", orderId);
+
         } finally {
-            if (tx != null && tx.isActive()) {
-                tx.rollback();
-            }
-            if (em.isOpen()) em.close();
+            em.close();
         }
+
+        // Broadcast to all available shippers (outside the transaction)
+        broadcastReadyToShippers(orderId);
+        logger.info("✓ Broadcasted delivery request for order {} to all available shippers", orderId);
     }
 
     // ==================== SHIPPER ACCEPT (DB handles transaction/lock/validation) ====================

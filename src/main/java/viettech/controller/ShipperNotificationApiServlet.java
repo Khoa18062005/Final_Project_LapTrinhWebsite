@@ -52,8 +52,8 @@ public class ShipperNotificationApiServlet extends HttpServlet {
                 // Lấy danh sách thông báo
                 List<Map<String, Object>> notifications = notificationService.getShipperNotifications(shipperId);
 
-                // Đếm số thông báo chưa đọc (đơn mới = Ready)
-                int unreadCount = notificationService.countNewOrders();
+                // Đếm số thông báo chưa đọc (từ bảng notifications + đơn mới Ready)
+                int unreadCount = notificationService.countNewOrders() + notificationService.countUnreadNotifications(shipperId);
 
                 result.put("success", true);
                 result.put("notifications", notifications);
