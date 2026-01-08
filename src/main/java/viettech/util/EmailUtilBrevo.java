@@ -735,7 +735,7 @@ public class EmailUtilBrevo {
                                 </div>
                                 
                                 <div style="text-align: center; margin: 30px 0;">
-                                    <a href="https://viettechstore.online/profile/orders" 
+                                    <a href="https://viettech.fit/profile/orders" 
                                        style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #0d6efd, #1e40af); 
                                               color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                                         Xem chi tiết đơn hàng
@@ -863,7 +863,7 @@ public class EmailUtilBrevo {
                                 </div>
                                 
                                 <div style="text-align: center; margin: 30px 0;">
-                                    <a href="https://viettechstore.online/profile/orders" 
+                                    <a href="https://viettech.fit/profile/orders" 
                                        style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #0d6efd, #1e40af); 
                                               color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                                         Xem chi tiết đơn hàng

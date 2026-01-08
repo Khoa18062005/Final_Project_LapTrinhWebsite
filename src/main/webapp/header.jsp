@@ -185,7 +185,7 @@
                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
                   <i class="bi bi-person"></i> Tài khoản cá nhân
                 </a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">
+                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile/orders">
                   <i class="bi bi-box"></i> Đơn hàng của tôi
                 </a></li>
                 <li><hr class="dropdown-divider"></li>
