@@ -75,18 +75,19 @@ public class CartItemDAO {
     }
 
     // READ - Tìm theo Cart ID và Variant ID
-    public CartItem findByCartIdAndVariantId(int cartId, int variantId) {
+    public CartItem findByCartIdAndVariantIdandProductId(int cartId, int variantId, int productId) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            String jpql = "SELECT ci FROM CartItem ci WHERE ci.cartId = :cartId AND ci.variantId = :variantId";
+            String jpql = "SELECT ci FROM CartItem ci WHERE ci.cartId = :cartId AND ci.variantId = :variantId AND ci.productId = :productId";
             TypedQuery<CartItem> query = em.createQuery(jpql, CartItem.class);
             query.setParameter("cartId", cartId);
             query.setParameter("variantId", variantId);
+            query.setParameter("productId", productId);
             CartItem item = query.getSingleResult();
-            logger.debug("✓ Found cart item for cart {} variant {}", cartId, variantId);
+            logger.debug("✓ Found cart item for cart {} variant {} productId {}", cartId, variantId, productId);
             return item;
         } catch (NoResultException e) {
-            logger.debug("✗ Cart item not found for cart {} variant {}", cartId, variantId);
+            logger.debug("✗ Cart item not found for cart {} variant {} productid {}", cartId, variantId, productId);
             return null;
         } catch (Exception e) {
             logger.error("✗ Error finding cart item", e);

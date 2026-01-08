@@ -4,7 +4,6 @@ import viettech.entity.order.OrderDetail;
 import viettech.entity.product.Product;
 import viettech.entity.product.Variant;
 import viettech.entity.user.Customer;
-import viettech.entity.user.User;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -22,14 +21,14 @@ public class Review {
     @Column(name = "product_id", nullable = false)
     private int productId;
 
-    @Column(name = "variant_id")
-    private int variantId;
+    @Column(name = "variant_id", nullable = true)
+    private Integer variantId;
 
     @Column(name = "customer_id", nullable = false)
     private int customerId;
 
-    @Column(name = "order_detail_id", nullable = false)
-    private int orderDetailId;
+    @Column(name = "order_detail_id", nullable = true)
+    private Integer orderDetailId;
 
     /* =========================
        RELATIONSHIP MAPPINGS
@@ -116,6 +115,22 @@ public class Review {
         return reviewId;
     }
 
+    public int getProductId() {
+        return productId;
+    }
+
+    public Integer getVariantId() {
+        return variantId;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public Integer getOrderDetailId() {
+        return orderDetailId;
+    }
+
     public Product getProduct() {
         return product;
     }
@@ -124,11 +139,115 @@ public class Review {
         return variant;
     }
 
+    public Customer getCustomer() {
+        return customer;
+    }
+
     public ReviewResponse getResponse() {
         return response;
     }
 
     public List<ReviewVote> getVotes() {
         return votes;
+    }
+
+    public int getRating() {
+        return rating;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public Date getReviewDate() {
+        return reviewDate;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public int getLikes() {
+        return likes;
+    }
+
+    public int getDislikes() {
+        return dislikes;
+    }
+
+    public int getHelpfulCount() {
+        return helpfulCount;
+    }
+
+    public boolean isVerifiedPurchase() {
+        return isVerifiedPurchase;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    /* =========================
+       SETTERS
+       ========================= */
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public void setVariantId(Integer variantId) {
+        this.variantId = variantId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
+    }
+
+    public void setOrderDetailId(Integer orderDetailId) {
+        this.orderDetailId = orderDetailId;
+    }
+
+    public void setRating(int rating) {
+        this.rating = rating;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public void setReviewDate(Date reviewDate) {
+        this.reviewDate = reviewDate;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public void setLikes(int likes) {
+        this.likes = likes;
+    }
+
+    public void setDislikes(int dislikes) {
+        this.dislikes = dislikes;
+    }
+
+    public void setHelpfulCount(int helpfulCount) {
+        this.helpfulCount = helpfulCount;
+    }
+
+    public void setVerifiedPurchase(boolean verifiedPurchase) {
+        isVerifiedPurchase = verifiedPurchase;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

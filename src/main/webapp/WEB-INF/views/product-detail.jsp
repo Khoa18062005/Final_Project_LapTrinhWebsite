@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -18,12 +19,13 @@
     <!-- CSS riêng -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/product-detail.css?v=2">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/variant-selector.css">
-
 
     <!-- JavaScript cho chọn variant -->
     <script src="${pageContext.request.contextPath}/assets/js/variant-selector.js" defer></script>
+    <script src="${pageContext.request.contextPath}/assets/js/cart-ajax.js" defer></script>
+    <script src="${pageContext.request.contextPath}/assets/js/product-detail.js" defer></script>
     <script>
         // Khởi tạo biến toàn cục từ dữ liệu JSP
         <c:if test="${not empty variants}">
@@ -50,15 +52,26 @@
             ]
         };
         </c:if>
-
     </script>
 </head>
 
 <body>
-<%--<jsp:include page="/WEB-INF/views/layout/header.jsp" />--%>
-<%--<jsp:include page="${pageContext.request.contextPath}/header.jsp" />--%>
-
 <jsp:include page="/header.jsp" />
+
+<!-- Toast Container -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 11">
+    <div id="cartToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong class="me-auto">Thành công</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <span id="toast-message">Đã thêm sản phẩm vào giỏ hàng!</span>
+        </div>
+    </div>
+</div>
+
 <div class="container">
     <!-- Breadcrumb -->
     <div class="breadcrumb">
@@ -87,7 +100,18 @@
         <!-- Product Images -->
         <div class="product-images">
             <div class="main-image">
-                <img src="${product.primaryImageUrl}">
+                <img id="product-img" src="${product.primaryImageUrl}" alt="${product.name}">
+                <div class="zoom-controls">
+                    <button type="button" onclick="zoomIn()" class="btn-zoom" title="Phóng to">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                    <button type="button" onclick="zoomOut()" class="btn-zoom" title="Thu nhỏ">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                    <button type="button" onclick="resetZoom()" class="btn-zoom" title="Đặt lại">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -112,18 +136,18 @@
             <p class="product-brand">Thương hiệu: <strong>${product.brand}</strong></p>
 
             <div class="product-rating">
-                    <span class="stars">
-                        <c:forEach begin="1" end="5" var="i">
-                            <c:choose>
-                                <c:when test="${i <= product.averageRating}">★</c:when>
-                                <c:otherwise>☆</c:otherwise>
-                            </c:choose>
-                        </c:forEach>
-                    </span>
+                <span class="stars">
+                    <c:forEach begin="1" end="5" var="i">
+                        <c:choose>
+                            <c:when test="${i <= product.averageRating}">★</c:when>
+                            <c:otherwise>☆</c:otherwise>
+                        </c:choose>
+                    </c:forEach>
+                </span>
                 <span class="rating-text">
-                        <fmt:formatNumber value="${product.averageRating}" pattern="#.#" /> / 5.0
-                        (${product.totalReviews} đánh giá)
-                    </span>
+                    <fmt:formatNumber value="${product.averageRating}" pattern="#.#" /> / 5.0
+                    (${product.totalReviews} đánh giá)
+                </span>
             </div>
 
             <div class="product-price">
@@ -140,7 +164,7 @@
                     <h4>Chọn phiên bản:</h4>
                     <div class="variant-options">
                         <c:forEach items="${variants}" var="variant">
-                            <button type="button"
+                            <button type="button" id = "variant-btn"
                                     class="btn btn-outline-primary variant-option"
                                     data-variant-id="${variant.variantId}"
                                     onclick="window.selectVariant(${variant.variantId})">
@@ -162,7 +186,7 @@
                 <div class="status-item">
                     <span class="status-label">Trạng thái:</span>
                     <c:choose>
-                        <c:when test="${product.status == 'active'}">
+                        <c:when test="${product.status == 'Available'}">
                             <span class="status-badge status-active">Đang bán</span>
                         </c:when>
                         <c:otherwise>
@@ -182,21 +206,34 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <form action="${pageContext.request.contextPath}/cart/add" method="POST"
-                      class="d-inline" id="add-to-cart-form">
-                    <input type="hidden" name="productId" value="${product.productId}">
-                    <input type="hidden" name="quantity" value="1">
-                    <input type="hidden" name="action" value="add">
-                    <input type="hidden" name="variantId" id="selected-variant-id" value="">
-                    <button type="submit" class="btn btn-primary" id="add-to-cart-btn">
-                        <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
-                    </button>
-                </form>
+                <!-- Kiểm tra đăng nhập cho nút Thêm vào giỏ hàng -->
+                <c:choose>
+                    <c:when test="${not empty sessionScope.user}">
+                        <form action="${pageContext.request.contextPath}/cart" method="POST"
+                              class="d-inline" id="add-to-cart-form">
+                            <input type="hidden" name="productId" value="${product.productId}">
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="action" value="add">
+                            <input type="hidden" name="variantId" id="selected-variant-id" value="">
+                            <button type="submit" class="btn btn-primary" id="add-to-cart-btn">
+                                <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                            </button>
+                        </form>
+                    </c:when>
+                    <c:otherwise>
+                        <button type="button"
+                                class="btn btn-primary"
+                                id="add-to-cart-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#smemberModal">
+                            <i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng
+                        </button>
+                    </c:otherwise>
+                </c:choose>
 
                 <!-- Kiểm tra đăng nhập cho nút Mua ngay -->
                 <c:choose>
                     <c:when test="${not empty sessionScope.user}">
-                        <!-- Đã đăng nhập: Hiển thị form mua ngay bình thường -->
                         <form action="${pageContext.request.contextPath}/checkout/buy-now" method="post" id="buy-now-form">
                             <input type="hidden" name="productId" value="${product.productId}">
                             <input type="hidden" name="quantity" value="1">
@@ -207,7 +244,6 @@
                         </form>
                     </c:when>
                     <c:otherwise>
-                        <!-- Chưa đăng nhập: Hiển thị nút mở modal Smember -->
                         <button type="button"
                                 class="btn btn-secondary"
                                 id="buy-now-btn"
@@ -225,7 +261,7 @@
     <div class="specs-section">
         <h2 class="section-title">Thông số kỹ thuật</h2>
 
-        <!-- Variant Attributes Section (sẽ được cập nhật bằng JavaScript) -->
+        <!-- Variant Attributes Section -->
         <div id="variant-specs-container" class="variant-specs-container">
             <!-- Thông tin variant sẽ được thêm vào đây -->
         </div>
@@ -343,10 +379,10 @@
                         <div class="spec-item">
                             <span class="spec-label">Jack tai nghe 3.5mm:</span>
                             <span class="spec-value">
-                                    <span class="spec-boolean ${product.audioJack ? 'spec-yes' : 'spec-no'}">
-                                            ${product.audioJack ? 'Có' : 'Không'}
-                                    </span>
+                                <span class="spec-boolean ${product.audioJack ? 'spec-yes' : 'spec-no'}">
+                                        ${product.audioJack ? 'Có' : 'Không'}
                                 </span>
+                            </span>
                         </div>
                     </div>
                 </c:when>
@@ -473,10 +509,10 @@
                         <div class="spec-item">
                             <span class="spec-label">Thunderbolt:</span>
                             <span class="spec-value">
-                                    <span class="spec-boolean ${product.thunderbolt ? 'spec-yes' : 'spec-no'}">
-                                            ${product.thunderbolt ? 'Có' : 'Không'}
-                                    </span>
+                                <span class="spec-boolean ${product.thunderbolt ? 'spec-yes' : 'spec-no'}">
+                                        ${product.thunderbolt ? 'Có' : 'Không'}
                                 </span>
+                            </span>
                         </div>
                     </div>
                 </c:when>
@@ -500,34 +536,9 @@
                             <span class="spec-label">Dung lượng pin:</span>
                             <span class="spec-value">${product.batteryCapacity}mAh</span>
                         </div>
-                        <!-- THÊM CÁC TRƯỜNG SAU ĐÂY -->
                         <div class="spec-item">
                             <span class="spec-label">Chip xử lý:</span>
                             <span class="spec-value">${product.processor}</span>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label">RAM:</span>
-                            <!-- THÊM TRƯỜNG RAM CHO TABLET -->
-                            <c:choose>
-                                <c:when test="${not empty product.ram}">
-                                    <span class="spec-value">${product.ram}GB ${product.ramType}</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <span class="spec-value">Không có thông tin</span>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
-                        <div class="spec-item">
-                            <span class="spec-label">Bộ nhớ trong:</span>
-                            <!-- THÊM TRƯỜNG STORAGE CHO TABLET -->
-                            <c:choose>
-                                <c:when test="${not empty product.storage}">
-                                    <span class="spec-value">${product.storage}GB</span>
-                                </c:when>
-                                <c:otherwise>
-                                    <span class="spec-value">Không có thông tin</span>
-                                </c:otherwise>
-                            </c:choose>
                         </div>
                         <div class="spec-item">
                             <span class="spec-label">GPU:</span>
@@ -616,10 +627,10 @@
                         <div class="spec-item">
                             <span class="spec-label">Vân tay:</span>
                             <span class="spec-value">
-                                    <span class="spec-boolean ${product.fingerprintSensor ? 'spec-yes' : 'spec-no'}">
-                                            ${product.fingerprintSensor ? 'Có' : 'Không'}
-                                    </span>
+                                <span class="spec-boolean ${product.fingerprintSensor ? 'spec-yes' : 'spec-no'}">
+                                        ${product.fingerprintSensor ? 'Có' : 'Không'}
                                 </span>
+                            </span>
                         </div>
                     </div>
                 </c:when>
@@ -725,28 +736,47 @@
                         </div>
                         <div class="spec-item">
                             <span class="spec-label">Multipoint:</span>
-                            <span class="specvalue"> <span
-                                    class="spec-boolean ${product.multipoint ? 'spec-yes' : 'spec-no'}">
-                                    ${product.multipoint ? 'Có' : 'Không'} </span> </span> </div>
-                        <div class="spec-item"> <span class="spec-label">Chất âm:</span> <span
-                                class="spec-value">${product.soundProfile}</span> </div>
-                        <div class="spec-item"> <span class="spec-label">Điều khiển qua app:</span> <span
-                                class="spec-value"> <span
-                                class="spec-boolean ${product.appControl ? 'spec-yes' : 'spec-no'}">
-                                ${product.appControl ? 'Có' : 'Không'} </span> </span> </div>
-                        <div class="spec-item"> <span class="spec-label">EQ tùy chỉnh:</span> <span class="spec-value">
+                            <span class="spec-value">
+                                <span class="spec-boolean ${product.multipoint ? 'spec-yes' : 'spec-no'}">
+                                        ${product.multipoint ? 'Có' : 'Không'}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Chất âm:</span>
+                            <span class="spec-value">${product.soundProfile}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Điều khiển qua app:</span>
+                            <span class="spec-value">
+                                <span class="spec-boolean ${product.appControl ? 'spec-yes' : 'spec-no'}">
+                                        ${product.appControl ? 'Có' : 'Không'}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">EQ tùy chỉnh:</span>
+                            <span class="spec-value">
                                 <span class="spec-boolean ${product.customEQ ? 'spec-yes' : 'spec-no'}">
-                                        ${product.customEQ ? 'Có' : 'Không'} </span> </span> </div>
-                        <div class="spec-item"> <span class="spec-label">Âm thanh vòm:</span> <span class="spec-value">
+                                        ${product.customEQ ? 'Có' : 'Không'}
+                                </span>
+                            </span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="spec-label">Âm thanh vòm:</span>
+                            <span class="spec-value">
                                 <span class="spec-boolean ${product.surroundSound ? 'spec-yes' : 'spec-no'}">
-                                        ${product.surroundSound ? 'Có' : 'Không'} </span> </span> </div>
+                                        ${product.surroundSound ? 'Có' : 'Không'}
+                                </span>
+                            </span>
+                        </div>
                         <div class="spec-item">
                             <span class="spec-label">Gấp gọn:</span>
                             <span class="spec-value">
-                                    <span class="spec-boolean ${product.foldable ? 'spec-yes' : 'spec-no'}">
-                                            ${product.foldable ? 'Có' : 'Không'}
-                                    </span>
+                                <span class="spec-boolean ${product.foldable ? 'spec-yes' : 'spec-no'}">
+                                        ${product.foldable ? 'Có' : 'Không'}
                                 </span>
+                            </span>
                         </div>
                     </div>
                 </c:when>
@@ -788,34 +818,223 @@
             <div class="spec-item">
                 <span class="spec-label">Ngày thêm:</span>
                 <span class="spec-value">
-                        <fmt:formatDate value="${product.createdAt}" pattern="dd/MM/yyyy HH:mm" />
-                    </span>
+                    <fmt:formatDate value="${product.createdAt}" pattern="dd/MM/yyyy HH:mm" />
+                </span>
             </div>
             <c:if test="${not empty product.updatedAt}">
                 <div class="spec-item">
                     <span class="spec-label">Cập nhật lần cuối:</span>
                     <span class="spec-value">
-                            <fmt:formatDate value="${product.updatedAt}" pattern="dd/MM/yyyy HH:mm" />
-                        </span>
+                        <fmt:formatDate value="${product.updatedAt}" pattern="dd/MM/yyyy HH:mm" />
+                    </span>
                 </div>
             </c:if>
             <c:if test="${product.featured}">
                 <div class="spec-item">
                     <span class="spec-label">Sản phẩm nổi bật:</span>
                     <span class="spec-value">
-                            <span class="spec-boolean spec-yes">Có</span>
-                        </span>
+                        <span class="spec-boolean spec-yes">Có</span>
+                    </span>
                 </div>
             </c:if>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section" style="background: white; border-radius: 12px; padding: 2rem; margin-top: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <h2 class="section-title" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e0e0e0;">
+            <i class="bi bi-star-fill" style="color: #ffc107;"></i> Đánh giá sản phẩm
+            <span class="review-count" style="font-size: 0.9rem; font-weight: 400; color: #6c757d;">(${fn:length(reviews)} đánh giá)</span>
+        </h2>
+
+        <!-- Review Summary -->
+        <div class="review-summary">
+            <div class="rating-overview">
+                <div class="average-rating">
+                    <span class="rating-number">
+                        <fmt:formatNumber value="${product.averageRating}" pattern="#.#"/>
+                    </span>
+                    <span class="rating-max">/5</span>
+                </div>
+                <div class="rating-stars">
+                    <c:forEach begin="1" end="5" var="i">
+                        <c:choose>
+                            <c:when test="${i <= product.averageRating}">
+                                <i class="bi bi-star-fill text-warning"></i>
+                            </c:when>
+                            <c:when test="${i - 0.5 <= product.averageRating}">
+                                <i class="bi bi-star-half text-warning"></i>
+                            </c:when>
+                            <c:otherwise>
+                                <i class="bi bi-star text-warning"></i>
+                            </c:otherwise>
+                        </c:choose>
+                    </c:forEach>
+                </div>
+                <div class="total-reviews">${product.totalReviews} đánh giá</div>
+            </div>
+        </div>
+
+        <!-- Add Review Form -->
+        <div class="add-review-section">
+            <c:choose>
+                <c:when test="${not empty sessionScope.user}">
+                    <c:choose>
+                        <c:when test="${hasUserReviewed}">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Bạn đã đánh giá sản phẩm này rồi.
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="review-form-container" style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 12px; padding: 1.75rem; border: 1px solid #e0e0e0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                <h4 style="margin-bottom: 1.25rem; color: #212529; display: flex; align-items: center; gap: 0.5rem; font-size: 1.15rem; font-weight: 700; padding-bottom: 0.75rem; border-bottom: 2px solid #0d6efd;"><i class="bi bi-pencil-square" style="color: #0d6efd;"></i> Viết đánh giá của bạn</h4>
+                                <form id="reviewForm" class="review-form">
+                                    <input type="hidden" name="productId" value="${product.productId}">
+
+                                    <div class="form-group rating-input">
+                                        <label>Đánh giá của bạn <span class="text-danger">*</span></label>
+                                        <div class="star-rating-input">
+                                            <input type="radio" id="star5" name="rating" value="5">
+                                            <label for="star5" title="5 sao"><i class="bi bi-star-fill"></i></label>
+                                            <input type="radio" id="star4" name="rating" value="4">
+                                            <label for="star4" title="4 sao"><i class="bi bi-star-fill"></i></label>
+                                            <input type="radio" id="star3" name="rating" value="3">
+                                            <label for="star3" title="3 sao"><i class="bi bi-star-fill"></i></label>
+                                            <input type="radio" id="star2" name="rating" value="2">
+                                            <label for="star2" title="2 sao"><i class="bi bi-star-fill"></i></label>
+                                            <input type="radio" id="star1" name="rating" value="1">
+                                            <label for="star1" title="1 sao"><i class="bi bi-star-fill"></i></label>
+                                        </div>
+                                        <span id="ratingText" class="rating-text-display"></span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="reviewTitle">Tiêu đề</label>
+                                        <input type="text" id="reviewTitle" name="title" class="form-control"
+                                               placeholder="Nhập tiêu đề đánh giá (tùy chọn)" maxlength="200">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="reviewComment">Nội dung đánh giá <span class="text-danger">*</span></label>
+                                        <textarea id="reviewComment" name="comment" class="form-control" rows="4"
+                                                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm..." required></textarea>
+                                    </div>
+
+                                    <div class="form-group text-end">
+                                        <button type="submit" class="btn btn-submit-review" style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.85rem 2rem; font-weight: 600; font-size: 1rem; background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%); color: white; border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 15px rgba(13, 110, 253, 0.3);">
+                                            <i class="bi bi-send-fill"></i> Gửi đánh giá
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </c:when>
+                <c:otherwise>
+                    <div class="login-to-review">
+                        <p><i class="bi bi-person-circle"></i> Vui lòng
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#smemberModal">đăng nhập</a>
+                            để viết đánh giá
+                        </p>
+                    </div>
+                </c:otherwise>
+            </c:choose>
+        </div>
+
+        <!-- Reviews List -->
+        <div class="reviews-list">
+            <c:choose>
+                <c:when test="${not empty reviews}">
+                    <c:forEach items="${reviews}" var="review">
+                        <div class="review-item" data-review-id="${review.reviewId}">
+                            <div class="review-header">
+                                <div class="reviewer-info">
+                                    <div class="reviewer-avatar">
+                                        <c:choose>
+                                            <c:when test="${not empty review.customerAvatar}">
+                                                <img src="${review.customerAvatar}" alt="Avatar">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <i class="bi bi-person-circle"></i>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div class="reviewer-details">
+                                        <span class="reviewer-name">${review.customerName}</span>
+                                        <c:if test="${review.verifiedPurchase}">
+                                            <span class="verified-badge">
+                                                <i class="bi bi-patch-check-fill"></i> Đã mua hàng
+                                            </span>
+                                        </c:if>
+                                    </div>
+                                </div>
+                                <div class="review-date">
+                                    <fmt:formatDate value="${review.reviewDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                </div>
+                            </div>
+
+                            <div class="review-rating">
+                                <c:forEach begin="1" end="5" var="i">
+                                    <c:choose>
+                                        <c:when test="${i <= review.rating}">
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <i class="bi bi-star text-warning"></i>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </c:forEach>
+                            </div>
+
+                            <c:if test="${not empty review.title}">
+                                <h5 class="review-title">${review.title}</h5>
+                            </c:if>
+
+                            <div class="review-content">
+                                <p>${review.comment}</p>
+                            </div>
+
+                            <div class="review-actions">
+                                <button class="btn btn-sm btn-outline-secondary btn-helpful"
+                                        data-review-id="${review.reviewId}">
+                                    <i class="bi bi-hand-thumbs-up"></i>
+                                    Hữu ích <span class="helpful-count">(${review.helpfulCount})</span>
+                                </button>
+                            </div>
+
+                            <c:if test="${not empty review.responseContent}">
+                                <div class="vendor-response">
+                                    <div class="response-header">
+                                        <i class="bi bi-reply-fill"></i>
+                                        <strong>Phản hồi từ người bán</strong>
+                                        <span class="response-date">
+                                            - <fmt:formatDate value="${review.responseDate}" pattern="dd/MM/yyyy"/>
+                                        </span>
+                                    </div>
+                                    <div class="response-content">
+                                        ${review.responseContent}
+                                    </div>
+                                </div>
+                            </c:if>
+                        </div>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <div class="no-reviews">
+                        <i class="bi bi-chat-square-text"></i>
+                        <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                        <p>Hãy là người đầu tiên đánh giá!</p>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
 </div>
 
 <jsp:include page="/footer.jsp" />
 
-<!-- Biến JavaScript để kiểm tra trạng thái đăng nhập (truyền từ server) -->
+<!-- Biến JavaScript để kiểm tra trạng thái đăng nhập -->
 <script>
-    // Biến toàn cục cho JavaScript - QUAN TRỌNG: PHẢI CÓ
     const contextPath = "${pageContext.request.contextPath}";
     const isLoggedIn = ${not empty sessionScope.user};
 </script>
@@ -823,5 +1042,6 @@
 <!-- Script riêng cho popup login -->
 <script src="${pageContext.request.contextPath}/assets/js/popup-login.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/notification.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/product-review.js"></script>
 </body>
 </html>

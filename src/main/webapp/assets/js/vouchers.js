@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
 /**
  * Hiển thị modal chi tiết voucher
  */
-function showVoucherDetail(voucherId) {
-    // Get voucher data from window (được set từ JSP)
+async function showVoucherDetail(voucherId) {
+    // Get voucher data from window
     if (!window.voucherData || !Array.isArray(window.voucherData)) {
         console.error('Voucher data not found');
         return;
@@ -18,6 +18,20 @@ function showVoucherDetail(voucherId) {
     if (!voucher) {
         console.error('Voucher not found with ID:', voucherId);
         return;
+    }
+
+    // ✅ Fetch user usage count từ server
+    let userUsageCount = 0;
+    let userUsagePercent = 0;
+    try {
+        const response = await fetch(`${contextPath}/api/voucher/user-usage?voucherId=${voucherId}`);
+        if (response.ok) {
+            const data = await response.json();
+            userUsageCount = data.userUsageCount || 0;
+            userUsagePercent = (userUsageCount / voucher.usageLimitPerUser) * 100;
+        }
+    } catch (error) {
+        console.warn('Could not fetch user usage, using 0 as default');
     }
 
     // Build discount text
@@ -84,8 +98,27 @@ function showVoucherDetail(voucherId) {
                 </div>
             </div>
 
+            <!-- ✅ HIỂN THỊ USER USAGE -->
             <div class="mb-3">
-                <label class="fw-bold text-muted d-block mb-1">Số Lượt Sử Dụng</label>
+                <label class="fw-bold text-muted d-block mb-1">Số Lượt Bạn Đã Sử Dụng</label>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar ${getProgressBarColor(userUsageCount, voucher.usageLimitPerUser)}" 
+                         role="progressbar"
+                         style="width: ${userUsagePercent}%"
+                         aria-valuenow="${userUsageCount}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="${voucher.usageLimitPerUser}">
+                        ${userUsageCount} / ${voucher.usageLimitPerUser}
+                    </div>
+                </div>
+                <small class="text-muted mt-1 d-block">
+                    Còn lại: <strong>${voucher.usageLimitPerUser - userUsageCount}</strong> lượt cho bạn
+                </small>
+            </div>
+
+            <!-- Server-wide usage -->
+            <div class="mb-3">
+                <label class="fw-bold text-muted d-block mb-1">Số Lượt Đã Dùng (Toàn Server)</label>
                 <div class="progress" style="height: 25px;">
                     <div class="progress-bar ${getProgressBarColor(voucher.usageCount, voucher.usageLimit)}" 
                          role="progressbar"
@@ -97,7 +130,7 @@ function showVoucherDetail(voucherId) {
                     </div>
                 </div>
                 <small class="text-muted mt-1 d-block">
-                    Còn lại: <strong>${voucher.usageLimit - voucher.usageCount}</strong> lượt
+                    Còn lại: <strong>${voucher.usageLimit - voucher.usageCount}</strong> lượt (tất cả người dùng)
                 </small>
             </div>
 

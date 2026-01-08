@@ -99,11 +99,17 @@ public class VendorDAO {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
             List<Vendor> vendors = em.createQuery("SELECT v FROM Vendor v", Vendor.class).getResultList();
+            // Ensure roleID is set correctly
+            for (Vendor v : vendors) {
+                if (v.getRoleID() != 2) {
+                    v.setRoleID(2);
+                }
+            }
             logger.debug("✓ Retrieved {} vendor(s)", vendors.size());
             return vendors;
         } catch (Exception e) {
             logger.error("✗ Error retrieving all vendors", e);
-            throw new RuntimeException("Failed to retrieve vendors", e);
+            return new java.util.ArrayList<>();
         } finally {
             em.close();
         }

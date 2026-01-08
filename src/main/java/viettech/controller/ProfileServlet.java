@@ -15,9 +15,8 @@ import java.io.IOException;
 
 @WebServlet("/profile")
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024 * 2, // 2MB
-        maxFileSize = 1024 * 1024 * 10,      // 10MB
-        maxRequestSize = 1024 * 1024 * 50    // 50MB
+        maxFileSize = 5 * 1024 * 1024,      // 5MB
+        maxRequestSize = 10 * 1024 * 1024   // 10MB
 )
 public class ProfileServlet extends HttpServlet {
 
@@ -31,13 +30,12 @@ public class ProfileServlet extends HttpServlet {
 
         if (user == null) {
             SessionUtil.setErrorMessage(request, "Vui lòng đăng nhập để xem thông tin cá nhân!");
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(request.getContextPath() + "/");
             return;
         }
 
         request.setAttribute("user", user);
-        // Chuyển hướng đến servlet hiển thị hoặc JSP
-        request.getRequestDispatcher("/WEB-INF/views/profile-info.jsp").forward(request, response);
+        response.sendRedirect(request.getContextPath() + "/profile/info");
     }
 
     @Override
@@ -50,11 +48,11 @@ public class ProfileServlet extends HttpServlet {
         User user = (User) SessionUtil.getAttribute(request, "user");
 
         if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.sendRedirect(request.getContextPath() + "/");
             return;
         }
 
-        // 1. ĐỌC DỮ LIỆU TỪ FORM
+        // 1. ĐỌC DỮ LIỆU TỪ FORM → DTO
         Profile_dto dto = new Profile_dto();
         dto.setFirstName(request.getParameter("firstName"));
         dto.setLastName(request.getParameter("lastName"));
@@ -67,123 +65,95 @@ public class ProfileServlet extends HttpServlet {
         dto.setEmailOtp(request.getParameter("emailOtp"));
 
         try {
-            // 2. XỬ LÝ ĐỔI EMAIL (NẾU CÓ)
-            if (dto.getEmail() != null && !dto.getEmail().equals(user.getEmail())) {
+            // 2. XỬ LÝ EMAIL NẾU THAY ĐỔI
+            if (!dto.getEmail().equals(user.getEmail())) {
                 if (!handleEmailChange(request, dto, user)) {
-                    // Nếu lỗi OTP/Email thì quay lại ngay
-                    response.sendRedirect(request.getContextPath() + "/profile");
+                    response.sendRedirect(request.getContextPath() + "/profile/info");
                     return;
                 }
             }
 
-            // 3. XỬ LÝ AVATAR (UPLOAD HOẶC XÓA)
-            // Logic này cập nhật trực tiếp vào object 'user'
-            handleAvatarUpdate(request, user);
+            // 3. XỬ LÝ AVATAR NẾU CÓ
+            handleAvatarUpload(request, user);
 
-            // 4. GỌI SERVICE CẬP NHẬT DATABASE
-            // Service sẽ lấy thông tin từ 'user' (avatar) và 'dto' (info) để update
+            // 4. CẬP NHẬT THÔNG TIN QUA SERVICE
             boolean success = profileService.updateProfile(user, dto);
 
             if (success) {
-                // 5. CẬP NHẬT SESSION VỚI DỮ LIỆU MỚI
-                // Cập nhật các trường thông tin vào object user trong session để hiển thị ngay
-                user.setFirstName(dto.getFirstName());
-                user.setLastName(dto.getLastName());
-                user.setPhone(dto.getPhone());
-                user.setEmail(dto.getEmail()); // Nếu đã verify thành công ở trên
-
-                // (Các trường ngày sinh/gender cần xử lý trong DTO -> User mapping nếu muốn hiện ngay)
-
+                // 5. CẬP NHẬT SESSION
                 SessionUtil.setAttribute(request, "user", user);
-                SessionUtil.setSuccessMessage(request, "Cập nhật hồ sơ thành công!");
+                SessionUtil.setSuccessMessage(request, "Cập nhật thông tin thành công!");
             } else {
                 SessionUtil.setErrorMessage(request, "Cập nhật thất bại. Vui lòng thử lại!");
             }
 
+        } catch (IllegalArgumentException e) {
+            SessionUtil.setErrorMessage(request, e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             SessionUtil.setErrorMessage(request, "Có lỗi xảy ra: " + e.getMessage());
         }
 
-        // 6. REDIRECT
-        response.sendRedirect(request.getContextPath() + "/profile");
+        // 6. REDIRECT VỀ PROFILE
+        response.sendRedirect(request.getContextPath() + "/profile/info");
     }
 
     /**
-     * Xử lý Cập nhật Avatar (Bao gồm cả Xóa và Upload mới)
-     */
-    private void handleAvatarUpdate(HttpServletRequest request, User user) throws IOException, ServletException {
-        // Kiểm tra cờ xóa ảnh
-        String deleteAvatarFlag = request.getParameter("deleteAvatar");
-
-        if ("true".equals(deleteAvatarFlag)) {
-            // --- TRƯỜNG HỢP 1: NGƯỜI DÙNG MUỐN XÓA ẢNH ---
-
-            // Xóa ảnh cũ trên Cloudinary để tiết kiệm
-            if (user.getAvatar() != null) {
-                CloudinaryUtil.deleteImage(user.getAvatar());
-            }
-
-            // Set avatar trong DB về null (hoặc chuỗi rỗng tùy logic DB của bạn)
-            user.setAvatar(null);
-
-        } else {
-            // --- TRƯỜNG HỢP 2: UPLOAD ẢNH MỚI (NẾU CÓ) ---
-            Part avatarPart = request.getPart("avatarFile");
-
-            if (avatarPart != null && avatarPart.getSize() > 0) {
-                // 1. Upload ảnh mới
-                String newAvatarUrl = CloudinaryUtil.uploadAvatar(avatarPart);
-
-                if (newAvatarUrl != null) {
-                    // 2. Nếu upload thành công, xóa ảnh cũ (nếu có)
-                    if (user.getAvatar() != null) {
-                        CloudinaryUtil.deleteImage(user.getAvatar());
-                    }
-                    // 3. Set URL mới cho user
-                    user.setAvatar(newAvatarUrl);
-                }
-            }
-        }
-    }
-
-    /**
-     * Xử lý verify OTP khi đổi email
+     * Xử lý đổi email (verify OTP)
+     * @return true nếu email hợp lệ, false nếu OTP sai
      */
     private boolean handleEmailChange(HttpServletRequest request, Profile_dto dto, User user) {
         String inputOTP = dto.getEmailOtp();
         String savedOTP = (String) SessionUtil.getAttribute(request, "emailOtp");
-        String pendingEmail = (String) SessionUtil.getAttribute(request, "newEmail");
+        String newEmail = (String) SessionUtil.getAttribute(request, "newEmail");
         Long otpTime = (Long) SessionUtil.getAttribute(request, "emailOtpTime");
 
-        // 1. Kiểm tra OTP
-        if (inputOTP == null || inputOTP.trim().isEmpty()) {
-            SessionUtil.setErrorMessage(request, "Vui lòng nhập mã OTP để xác nhận email mới!");
-            return false;
-        }
-
+        // Verify OTP
         if (!EmailUtilBrevo.verifyOTP(inputOTP, savedOTP, otpTime != null ? otpTime : 0)) {
             SessionUtil.setErrorMessage(request, "Mã OTP không đúng hoặc đã hết hạn!");
             return false;
         }
 
-        // 2. Kiểm tra email nhập vào có khớp với email đã nhận OTP không
-        if (!dto.getEmail().equals(pendingEmail)) {
-            SessionUtil.setErrorMessage(request, "Email xác nhận không khớp!");
+        // Kiểm tra email khớp
+        if (!dto.getEmail().equals(newEmail)) {
+            SessionUtil.setErrorMessage(request, "Email không khớp với email đã gửi OTP!");
             return false;
         }
 
-        // 3. Kiểm tra email đã tồn tại chưa (User khác)
+        // Kiểm tra email đã tồn tại chưa (cho user khác)
         if (profileService.isEmailExistForOtherUser(dto.getEmail(), user.getUserId())) {
             SessionUtil.setErrorMessage(request, "Email này đã được sử dụng bởi tài khoản khác!");
             return false;
         }
 
-        // Xóa session OTP sau khi thành công
+        // Xóa OTP khỏi session
         SessionUtil.removeAttribute(request, "emailOtp");
         SessionUtil.removeAttribute(request, "emailOtpTime");
         SessionUtil.removeAttribute(request, "newEmail");
 
         return true;
+    }
+
+    /**
+     * Xử lý upload avatar
+     */
+    private void handleAvatarUpload(HttpServletRequest request, User user)
+            throws IOException, ServletException {
+
+        Part avatarPart = request.getPart("avatarFile");
+
+        if (avatarPart != null && avatarPart.getSize() > 0) {
+            // Upload ảnh mới lên Cloudinary
+            String newAvatarUrl = CloudinaryUtil.uploadAvatar(avatarPart);
+
+            // Xóa ảnh cũ trên Cloudinary (nếu có)
+            String oldAvatar = user.getAvatar();
+            if (oldAvatar != null && !oldAvatar.isEmpty() && oldAvatar.contains("cloudinary.com")) {
+                CloudinaryUtil.deleteImage(oldAvatar);
+            }
+
+            // Cập nhật URL ảnh mới
+            user.setAvatar(newAvatarUrl);
+        }
     }
 }

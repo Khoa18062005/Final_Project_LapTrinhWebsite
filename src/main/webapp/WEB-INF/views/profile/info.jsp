@@ -79,7 +79,7 @@
                         <label>Số điện thoại</label>
                         <input type="tel" class="form-control-custom" name="phone" id="phone"
                                value="${user.phone}" placeholder="Nhập số điện thoại"
-                               pattern="[0-9]{10,11}" data-original="${user.phone}">
+                               pattern="[0-9]{10}" data-original="${user.phone}">
                     </div>
 
                     <!-- Giới tính -->

@@ -16,6 +16,7 @@
 
     <!-- CSS tùy chỉnh -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/login.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/firework.css">
 </head>
 <body>
 
@@ -29,7 +30,6 @@
         <!-- THÔNG BÁO LỖI (nếu có) -->
         <c:if test="${not empty errorMessage}">
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 <strong>Lỗi!</strong> ${errorMessage}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -81,7 +81,6 @@
         <!-- Các liên kết phụ -->
         <div class="text-center mt-4">
             <a href="${pageContext.request.contextPath}/forgot-password" class="text-decoration-none">
-                <i class="bi bi-question-circle me-1"></i>
                 Quên mật khẩu?
             </a>
         </div>
@@ -95,7 +94,6 @@
         <!-- Link về trang chủ -->
         <div class="text-center mt-3">
             <a href="${pageContext.request.contextPath}/" class="text-muted text-decoration-none">
-                <i class="bi bi-house-door me-1"></i>
                 Quay về trang chủ
             </a>
         </div>
@@ -104,6 +102,8 @@
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="${pageContext.request.contextPath}/assets/js/firework.js"></script>
+<%--<canvas id="fireworks-canvas"></canvas>--%>
+<div class="css-fireworks-container" id="fireworks-container"></div>
 </body>
 </html>

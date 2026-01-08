@@ -9,19 +9,35 @@
 <div class="col-lg-10 col-md-9">
   <div class="profile-content">
     <!-- Header -->
+    <!-- Header với các nút hành động -->
     <div class="profile-header d-flex justify-content-between align-items-center">
       <div>
         <h4><i class="bi bi-bell me-2"></i>Thông Báo Của Tôi</h4>
         <p class="text-muted mb-0">Quản lý và xem các thông báo từ VietTech</p>
       </div>
 
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <!-- Nút Xóa đã chọn (ẩn mặc định) -->
+        <button type="button" class="btn btn-danger btn-delete-selected d-none" id="btnDeleteSelected">
+          <i class="bi bi-trash me-2"></i>Xóa đã chọn (<span id="selectedCount">0</span>)
+        </button>
+
+        <!-- Nút Xóa tất cả -->
+        <c:if test="${totalNotifications > 0}">
+          <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAllModal">
+            <i class="bi bi-trash-fill me-2"></i>Xóa tất cả
+          </button>
+        </c:if>
+
+        <!-- Nút Đánh dấu đã đọc tất cả -->
         <c:if test="${unreadCount > 0}">
           <button type="button" class="btn btn-primary btn-mark-all-read"
                   data-bs-toggle="modal" data-bs-target="#markAllReadModal">
             <i class="bi bi-check-all me-2"></i>Đánh dấu đã đọc tất cả
           </button>
         </c:if>
+
+        <!-- Nút Refresh -->
         <a href="${pageContext.request.contextPath}/profile/notifications"
            class="btn btn-outline-secondary">
           <i class="bi bi-arrow-clockwise"></i>
@@ -64,8 +80,8 @@
             <i class="bi bi-bell-slash fs-1 text-muted mb-3 d-block"></i>
             <h5>Không có thông báo nào</h5>
             <p class="text-muted">Bạn chưa nhận được thông báo nào từ VietTech</p>
-            <a href="${pageContext.request.contextPath}/" class="btn btn-primary mt-2">
-              <i class="bi bi-arrow-left me-2"></i> Về trang chủ
+            <a href="${pageContext.request.contextPath}/" class="btn btn-primary btn-sm mt-1">
+              <i class="bi bi-arrow-left me-1"></i> Về trang chủ
             </a>
           </div>
         </c:when>
@@ -95,6 +111,15 @@
               <c:forEach var="notification" items="${notifications}">
                 <div class="notification-item ${notification.read ? 'read' : 'unread'}"
                      data-notification-id="${notification.notificationId}">
+
+                  <!-- THÊM CHECKBOX VÀO ĐÂY -->
+                  <div class="notification-checkbox">
+                    <input type="checkbox" class="form-check-input notification-select"
+                           value="${notification.notificationId}"
+                           id="notif-${notification.notificationId}">
+                    <label class="form-check-label" for="notif-${notification.notificationId}"></label>
+                  </div>
+
                   <div class="notification-header">
                     <div class="notification-type">
                       <c:choose>
@@ -160,7 +185,6 @@
                             <i class="bi bi-arrow-right"></i> Xem ngay
                           </a>
                         </c:if>
-                        <!-- SỬA NÚT XÓA: BỎ data-bs-toggle VÀ data-bs-target, THÊM class và data attributes -->
                         <button type="button" class="btn btn-sm btn-outline-danger btn-delete-notification"
                                 data-notification-id="${notification.notificationId}"
                                 data-notification-title="${notification.title}">
@@ -179,6 +203,15 @@
                 <c:if test="${!notification.read}">
                   <div class="notification-item unread"
                        data-notification-id="${notification.notificationId}">
+
+                    <!-- THÊM CHECKBOX VÀO ĐÂY -->
+                    <div class="notification-checkbox">
+                      <input type="checkbox" class="form-check-input notification-select"
+                             value="${notification.notificationId}"
+                             id="notif-unread-${notification.notificationId}">
+                      <label class="form-check-label" for="notif-unread-${notification.notificationId}"></label>
+                    </div>
+
                     <div class="notification-header">
                       <div class="notification-type">
                         <c:choose>
@@ -219,7 +252,6 @@
                               <i class="bi bi-arrow-right"></i> Xem ngay
                             </a>
                           </c:if>
-                          <!-- THÊM NÚT XÓA CHO TAB CHƯA ĐỌC -->
                           <button type="button" class="btn btn-sm btn-outline-danger btn-delete-notification"
                                   data-notification-id="${notification.notificationId}"
                                   data-notification-title="${notification.title}">
@@ -289,10 +321,36 @@
   </div>
 </div>
 
+<!-- Modal Xóa Tất Cả Thông Báo -->
+<div class="modal fade" id="deleteAllModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Xóa tất cả thông báo
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="${pageContext.request.contextPath}/profile/notifications/delete" method="post">
+        <div class="modal-body">
+          <p class="fw-bold">Bạn có chắc chắn muốn xóa <span class="text-danger">TẤT CẢ</span> thông báo không?</p>
+          <p class="text-muted small">Tổng cộng: <strong>${totalNotifications}</strong> thông báo</p>
+          <p class="text-danger small">⚠️ Hành động này không thể hoàn tác.</p>
+          <input type="hidden" name="deleteAll" value="true">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn btn-danger">Xóa tất cả</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- THÊM JAVASCRIPT Ở CUỐI FILE -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Xử lý nút xóa thông báo
+    // ===== XỬ LÝ NÚT XÓA THÔNG BÁO ĐƠN =====
     const deleteButtons = document.querySelectorAll('.btn-delete-notification');
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteNotificationModal'));
     const deleteNotificationIdInput = document.getElementById('deleteNotificationId');
@@ -303,16 +361,65 @@
         const notificationId = this.getAttribute('data-notification-id');
         const notificationTitle = this.getAttribute('data-notification-title');
 
-        // Cập nhật thông tin vào modal
         deleteNotificationIdInput.value = notificationId;
         notificationTitleText.textContent = '"' + notificationTitle + '"';
 
-        // Hiển thị modal
         deleteModal.show();
       });
     });
 
-    // Xử lý nút đánh dấu đã đọc (nếu có)
+    // ===== XỬ LÝ CHECKBOX CHỌN THÔNG BÁO =====
+    const checkboxes = document.querySelectorAll('.notification-select');
+    const btnDeleteSelected = document.getElementById('btnDeleteSelected');
+    const selectedCountSpan = document.getElementById('selectedCount');
+
+    function updateDeleteButton() {
+      const checkedBoxes = document.querySelectorAll('.notification-select:checked');
+      const count = checkedBoxes.length;
+
+      if (count > 0) {
+        btnDeleteSelected.classList.remove('d-none');
+        selectedCountSpan.textContent = count;
+      } else {
+        btnDeleteSelected.classList.add('d-none');
+      }
+    }
+
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', updateDeleteButton);
+    });
+
+    // ===== XỬ LÝ XÓA NHIỀU THÔNG BÁO =====
+    btnDeleteSelected.addEventListener('click', function() {
+      const checkedBoxes = document.querySelectorAll('.notification-select:checked');
+      const notificationIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+      if (notificationIds.length === 0) {
+        alert('Vui lòng chọn ít nhất một thông báo!');
+        return;
+      }
+
+      if (confirm(`Bạn có chắc chắn muốn xóa ${notificationIds.length} thông báo đã chọn không?`)) {
+        // Tạo form và submit
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '${pageContext.request.contextPath}/profile/notifications/delete';
+
+        // Thêm các notification IDs
+        notificationIds.forEach(id => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'notificationIds';
+          input.value = id;
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+      }
+    });
+
+    // ===== XỬ LÝ NÚT ĐÁNH DẤU ĐÃ ĐỌC =====
     const markAsReadButtons = document.querySelectorAll('.mark-as-read-btn');
     markAsReadButtons.forEach(button => {
       button.addEventListener('click', function() {

@@ -30,8 +30,16 @@ public class HikariCPConfig {
             // Tạo HikariConfig
             HikariConfig config = new HikariConfig();
 
-            // Database connection
-            config.setJdbcUrl(dbConfig.getJdbcUrl());
+            // Database connection - Add zeroDateTimeBehavior to handle zero dates
+            String jdbcUrl = dbConfig.getJdbcUrl();
+            if (jdbcUrl != null && !jdbcUrl.contains("zeroDateTimeBehavior")) {
+                if (jdbcUrl.contains("?")) {
+                    jdbcUrl += "&zeroDateTimeBehavior=convertToNull";
+                } else {
+                    jdbcUrl += "?zeroDateTimeBehavior=convertToNull";
+                }
+            }
+            config.setJdbcUrl(jdbcUrl);
             config.setUsername(dbConfig.getUsername());
             config.setPassword(dbConfig.getPassword());
             config.setDriverClassName("com.mysql.cj.jdbc.Driver");

@@ -8,8 +8,17 @@ import viettech.dto.*;
 import viettech.entity.product.*;
 
 import java.awt.*;
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Pattern;
+
+import org.apache.commons.text.similarity.LevenshteinDistance;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ProductService {
     private ProductDAO productDAO = new ProductDAO();
@@ -46,6 +55,7 @@ public class ProductService {
 
     /**
      * Lấy product detail dựa trên ID và tự động phân loại theo category
+     *
      * @param productId ID của product
      * @return ProductDetailDTO tương ứng (Phone/Laptop/Tablet/Headphone)
      */
@@ -333,8 +343,10 @@ public class ProductService {
                 return "Unknown";
         }
     }
+
     /**
      * Phương thức chung: lấy tất cả sản phẩm thuộc một category
+     *
      * @param categoryId ID của category
      * @return List<ProductCardDTO> chứa toàn bộ sản phẩm của category đó
      */
@@ -375,7 +387,7 @@ public class ProductService {
 
                     dto.setPrimaryImage(primaryImageUrl);
                     // ==========================================
-
+                    dto.setBrand(p.getBrand());
                     return dto;
                 })
                 .toList();
@@ -416,14 +428,14 @@ public class ProductService {
         VariantAttributeDAO variantAttributeDAO = new VariantAttributeDAO();
 
         List<Variant> variants = variantDAO.findByProductId(productId);
-        for(Variant variant : variants) {
+        for (Variant variant : variants) {
             VariantDTO dto = new VariantDTO();
             dto.setVariantId(variant.getVariantId());
             dto.setActive(variant.isActive());
             dto.setFinalPrice(variant.getFinalPrice());
             List<AttributeDTO> attributeDTO = new ArrayList<>();
             List<VariantAttribute> variantAttributes = variantAttributeDAO.findByVariantId(variant.getVariantId());
-            for(VariantAttribute variantAttribute : variantAttributes) {
+            for (VariantAttribute variantAttribute : variantAttributes) {
                 AttributeDTO attr = new AttributeDTO();
                 attr.setAttributeId(variantAttribute.getAttributeId());
                 attr.setAttributeName(variantAttribute.getAttributeName());
@@ -434,5 +446,331 @@ public class ProductService {
             list.add(dto);
         }
         return list;
+    }
+
+    //    Tìm kiếm sản phẩm bằng từ khoá
+    private static final String[] KEYWORDS_PHONE = {
+            "dien thoai", "điện thoại", "smartphone", "đthoai", "dienthoai",
+            "didong", "di dong", "dt", "mobile"
+    };
+
+    private static final String[] KEYWORDS_TABLET = {
+            "may tinh bang", "máy tính bảng", "tablet", "mtb", "ipad"
+    };
+
+    private static final String[] KEYWORDS_LAPTOP = {
+            "laptop", "notebook",
+            "lt", "pc", "computer"
+    };
+
+    private static final String[] KEYWORDS_HEADPHONE = {
+            "tai nghe", "tainghe", "headphone", "earphone",
+            "headset", "earbud", "tai bluetooth"
+    };
+
+    private boolean containsCategoryKeyword(String normalizedKeyword, String[] keywords) {
+        // Tách từ khóa người dùng nhập thành các từ
+        String[] userWords = normalizedKeyword.split("\\s+");
+
+        for (String userWord : userWords) {
+//            if (userWord.length() < 3) continue;
+
+            for (String kw : keywords) {
+                String normalizedKw = normalizeVietnamese(kw);
+
+                // Kiểm tra exact match trước
+                if (userWord.equals(normalizedKw)) {
+                    return true;
+                }
+
+                // Kiểm fuzzy matching
+                int distance = LEVENSHTEIN.apply(userWord, normalizedKw);
+                double similarity =
+                        1.0 - (double) distance / Math.max(userWord.length(), normalizedKw.length());
+
+                // Tăng độ chính xác cho danh mục
+                if (similarity >= 0.85) {
+                    return true;
+                }
+
+                // Kiểm tra nếu từ khóa chứa từ danh mục hoặc ngược lại
+                if (userWord.contains(normalizedKw) || normalizedKw.contains(userWord)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private List<Integer> detectCategoriesFromKeyword(String normalizedKeyword) {
+        List<Integer> categoryIds = new ArrayList<>();
+
+        if (containsCategoryKeyword(normalizedKeyword, KEYWORDS_PHONE)) {
+            categoryIds.add(CATEGORY_PHONE);
+        }
+        if (containsCategoryKeyword(normalizedKeyword, KEYWORDS_TABLET)) {
+            categoryIds.add(CATEGORY_TABLET);
+        }
+        if (containsCategoryKeyword(normalizedKeyword, KEYWORDS_LAPTOP)) {
+            categoryIds.add(CATEGORY_LAPTOP);
+        }
+        if (containsCategoryKeyword(normalizedKeyword, KEYWORDS_HEADPHONE)) {
+            categoryIds.add(CATEGORY_HEADPHONE);
+        }
+
+        return categoryIds;
+    }
+
+    // Tìm kiếm sản phẩm bằng fuzzy search
+    public List<ProductCardDTO> searchProducts(String keyword) {
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getFeaturedOrNewestAsCardDTO(20);
+        }
+
+        String trimmedKeyword = keyword.trim();
+        String normalizedKeyword = normalizeVietnamese(trimmedKeyword.toLowerCase());
+
+        // Bước 1: Phát hiện danh mục
+        List<Integer> detectedCategories = detectCategoriesFromKeyword(normalizedKeyword);
+
+        // Nếu phát hiện danh mục → trả tất cả sản phẩm thuộc danh mục
+        if (!detectedCategories.isEmpty()) {
+
+            List<ProductCardDTO> categoryResults = new ArrayList<>();
+
+            for (int catId : detectedCategories) {
+                List<ProductCardDTO> productsInCat = switch (catId) {
+                    case CATEGORY_PHONE -> getAllPhones();
+                    case CATEGORY_LAPTOP -> getAllLaptops();
+                    case CATEGORY_TABLET -> getAllTablets();
+                    case CATEGORY_HEADPHONE -> getAllHeadphones();
+                    default -> new ArrayList<>();
+                };
+
+                categoryResults.addAll(productsInCat);
+            }
+
+            return categoryResults.stream()
+                    .distinct()
+                    .limit(100)
+                    .toList();
+        }
+
+        // Bước 2: Fuzzy search theo tên
+        String logic = normalizedKeyword;
+
+        List<Product> candidates = productDAO.searchByNameWithImages(trimmedKeyword);
+
+        // Fallback nếu LIKE không ra
+        if (candidates.isEmpty()) {
+            candidates = productDAO.findAllWithImages();
+        }
+
+        List<Product> results = candidates.stream()
+                .filter(p -> {
+                    String normalizedName = normalizeVietnamese(p.getName());
+
+                    if (normalizedName.contains(logic)) return true;
+
+                    String[] nameWords = normalizedName.split("\\s+");
+
+                    for (String nameWord : nameWords) {
+                        if (nameWord.length() < 3) continue;
+
+                        if (nameWord.contains(logic) || logic.contains(nameWord)) {
+                            return true;
+                        }
+
+                        int distance = LEVENSHTEIN.apply(logic, nameWord);
+
+                        int threshold = switch (Math.min(logic.length(), nameWord.length())) {
+                            case 0, 1, 2, 3 -> 1;
+                            case 4, 5, 6, 7 -> 2;
+                            default -> 3;
+                        };
+
+                        if (distance <= threshold) return true;
+                    }
+
+                    return false;
+                })
+                .sorted(Comparator.comparingInt(p -> {
+                    String normalizedName = normalizeVietnamese(p.getName());
+                    String[] nameWords = normalizedName.split("\\s+");
+
+                    int minDistance = Integer.MAX_VALUE;
+
+                    for (String word : nameWords) {
+                        if (word.length() >= 3) {
+                            int dist = LEVENSHTEIN.apply(logic, word);
+                            if (dist < minDistance) minDistance = dist;
+                        }
+                    }
+
+                    return minDistance == Integer.MAX_VALUE ? 100 : minDistance;
+                }))
+                .limit(50)
+                .toList();
+
+        return results.stream()
+                .map(this::convertProductToCardDTO)
+                .toList();
+    }
+
+    // Thêm constant này vào đầu class ProductService
+    private static final LevenshteinDistance LEVENSHTEIN = new LevenshteinDistance();
+
+    private String normalizeVietnamese(String input) {
+        if (input == null || input.isEmpty()) return "";
+        String temp = Normalizer.normalize(input, Normalizer.Form.NFD);
+        temp = Pattern.compile("\\p{InCombiningDiacriticalMarks}+").matcher(temp).replaceAll("");
+        temp = temp.replaceAll("đ", "d").replaceAll("Đ", "d");
+        temp = temp.replaceAll("ê", "e").replaceAll("Ê", "E");
+        temp = temp.replaceAll("ô", "o").replaceAll("Ô", "O");
+        temp = temp.replaceAll("ư", "u").replaceAll("Ư", "U");
+        temp = temp.replaceAll("ơ", "o").replaceAll("Ơ", "O");
+        return temp.toLowerCase();
+    }
+
+    private String getPrimaryImageUrl(Product p) {
+        if (p.getImages() == null || p.getImages().isEmpty()) {
+            return "";
+        }
+        return p.getImages().stream()
+                .filter(ProductImage::isPrimary)
+                .map(ProductImage::getUrl)
+                .findFirst()
+                .orElse(p.getImages().stream()
+                        .min(Comparator.comparingInt(ProductImage::getSortOrder))
+                        .map(ProductImage::getUrl)
+                        .orElse(""));
+    }
+
+    private ProductCardDTO convertProductToCardDTO(Product p) {
+        ProductCardDTO dto = new ProductCardDTO();
+        dto.setId(p.getProductId());
+        dto.setName(p.getName());
+        dto.setPrice(p.getBasePrice());
+        dto.setRating(p.getAverageRating()); // ← Đã fix lỗi, đơn giản và đúng
+        dto.setMemberDiscount(0);
+        dto.setOldPrice(p.getBasePrice());
+        dto.setDiscountPercent(0);
+        dto.setPrimaryImage(getPrimaryImageUrl(p));
+
+        // === THÊM MỚI: Set brand để hỗ trợ lọc theo hãng ===
+        // RẤT QUAN TRỌNG - Nếu thiếu dòng này thì danh sách hãng sẽ trống!
+        dto.setBrand(p.getBrand());
+
+        return dto;
+    }
+
+    private List<ProductCardDTO> getFeaturedOrNewestAsCardDTO(int limit) {
+        List<Product> products = productDAO.findFeatured();
+        if (products.isEmpty()) {
+            products = productDAO.findNewest(limit);
+        }
+        return products.stream()
+                .limit(limit)
+                // === ĐÃ ĐƯỢC CẬP NHẬT BRAND TỰ ĐỘNG ===
+                // Vì convertProductToCardDTO đã set brand ở trên
+                .map(this::convertProductToCardDTO)
+                .toList();
+    }
+
+    /**
+     * Hỗ trợ lọc và sắp xếp danh sách sản phẩm (Dùng cho trang Search)
+     *
+     * @param originalList Danh sách gốc tìm được từ searchProducts
+     * @param sortType     Kiểu sắp xếp: "price_asc", "price_desc"
+     * @param minPrice     Giá thấp nhất (null hoặc -1 nếu không lọc)
+     * @param maxPrice     Giá cao nhất (null hoặc -1 nếu không lọc)
+     */
+    public List<ProductCardDTO> filterAndSort(
+            List<ProductCardDTO> originalList,
+            String sortType,
+            Double minPrice,
+            Double maxPrice,
+            Double minRating) {
+
+        System.out.println("====== START FILTER & SORT ======");
+        System.out.println("Sort: " + sortType +
+                " | MinPrice: " + minPrice +
+                " | MaxPrice: " + maxPrice +
+                " | MinRating: " + minRating);
+
+        if (originalList == null || originalList.isEmpty()) {
+            System.out.println("Danh sách gốc rỗng → trả về empty list");
+            System.out.println("====== END FILTER & SORT ======");
+            return new ArrayList<>();
+        }
+
+        List<ProductCardDTO> resultList = new ArrayList<>(originalList);
+
+        // === 1. Lọc theo giá ===
+        if ((minPrice != null && minPrice >= 0) || (maxPrice != null && maxPrice >= 0)) {
+            resultList = resultList.stream()
+                    .filter(p -> {
+                        if (minPrice != null && minPrice >= 0 && p.getPrice() < minPrice) return false;
+                        return !(maxPrice != null && maxPrice >= 0 && p.getPrice() > maxPrice);
+                    })
+                    .collect(Collectors.toList());
+            System.out.println("Sau lọc giá: " + resultList.size() + " sản phẩm");
+        }
+
+        // === 2. Lọc theo số sao (rating) ===
+        if (minRating != null && minRating > 0) {
+            resultList = resultList.stream()
+                    .filter(p -> p.getRating() >= minRating)
+                    .collect(Collectors.toList());
+            System.out.println("Sau lọc rating ≥ " + minRating + ": " + resultList.size() + " sản phẩm");
+        }
+
+        // === 3. Sắp xếp ===
+        if (sortType != null && !sortType.trim().isEmpty()) {
+            String sort = sortType.trim().toLowerCase();
+
+            switch (sort) {
+                case "price_asc":
+                    resultList.sort(Comparator.comparingDouble(ProductCardDTO::getPrice));
+                    System.out.println("Đã sắp xếp: Giá tăng dần");
+                    break;
+
+                case "price_desc":
+                    resultList.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
+                    System.out.println("Đã sắp xếp: Giá giảm dần");
+                    break;
+
+                case "rating_desc":
+                    resultList.sort((a, b) -> Double.compare(b.getRating(), a.getRating()));
+                    System.out.println("Đã sắp xếp: Rating cao → thấp");
+                    break;
+
+                default:
+                    // Mặc định sắp xếp giá tăng dần nếu sortType không hợp lệ
+                    resultList.sort(Comparator.comparingDouble(ProductCardDTO::getPrice));
+                    System.out.println("SortType không hợp lệ → mặc định giá tăng dần");
+                    break;
+            }
+        }
+
+        // Log sản phẩm đầu tiên sau khi xử lý
+        if (!resultList.isEmpty()) {
+            ProductCardDTO first = resultList.get(0);
+            System.out.println("Sản phẩm đầu: " + first.getName() +
+                    " | Giá: " + first.getPrice() +
+                    " | Rating: " + first.getRating());
+        }
+
+        System.out.println("Kết quả cuối: " + resultList.size() + " sản phẩm");
+        System.out.println("====== END FILTER & SORT ======");
+
+        return resultList;
+    }
+
+    public void increaseViewProduct(int item_id){
+        ProductDAO productDAO = new ProductDAO();
+        productDAO.incrementViewCount(item_id);
     }
 }

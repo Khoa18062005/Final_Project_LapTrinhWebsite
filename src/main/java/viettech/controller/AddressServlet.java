@@ -9,6 +9,10 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import viettech.entity.Address;
 
 /**
  * Servlet xử lý trang Address
@@ -50,20 +54,23 @@ public class AddressServlet extends HttpServlet {
 
         try {
             // Lấy danh sách địa chỉ của customer qua Service
-            var addresses = addressService.getAddressesByCustomerId(customerId);
+            List<Address> addresses = addressService.getAddressesByCustomerId(customerId);
             System.out.println("📍 Total addresses found: " + addresses.size());
 
+            // ===== SẮP XẾP: ĐỊA CHỈ MẶC ĐỊNH LÊN ĐẦU =====
+            List<Address> sortedAddresses = addresses.stream()
+                    .sorted(Comparator.comparing(Address::isDefault).reversed())
+                    .collect(Collectors.toList());
+
+            System.out.println("🔄 Addresses sorted: Default first");
+
             // Debug từng địa chỉ
-            for (var addr : addresses) {
-                System.out.println("  - Address ID: " + addr.getAddressId());
-                System.out.println("    Receiver: " + addr.getReceiverName());
-                System.out.println("    Phone: " + addr.getPhone());
-                System.out.println("    Street: " + addr.getStreet());
-                System.out.println("    Ward: " + addr.getWard());
-                System.out.println("    District: " + addr.getDistrict());
-                System.out.println("    City: " + addr.getCity());
-                System.out.println("    Is Default: " + addr.isDefault());
-                System.out.println("    ---");
+            for (int i = 0; i < sortedAddresses.size(); i++) {
+                Address addr = sortedAddresses.get(i);
+                System.out.println("  [" + (i + 1) + "] Address ID: " + addr.getAddressId());
+                System.out.println("      Receiver: " + addr.getReceiverName());
+                System.out.println("      Is Default: " + addr.isDefault());
+                System.out.println("      ---");
             }
 
             // Tìm địa chỉ mặc định qua Service
@@ -76,10 +83,10 @@ public class AddressServlet extends HttpServlet {
 
             System.out.println("📍 ===== END DEBUG =====");
 
-            // Set attributes
+            // Set attributes với danh sách đã sắp xếp
             request.setAttribute("user", customer);
             request.setAttribute("activePage", "address");
-            request.setAttribute("addresses", addresses);
+            request.setAttribute("addresses", sortedAddresses); // ← ĐÃ SẮP XẾP
             request.setAttribute("defaultAddress", defaultAddress);
 
             // Forward to JSP

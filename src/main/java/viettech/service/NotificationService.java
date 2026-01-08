@@ -17,6 +17,32 @@ public class NotificationService {
         this.notificationDAO = new NotificationDAO();
     }
 
+    // ========== METHOD MỚI: TẠO NOTIFICATION ==========
+    /**
+     * Tạo thông báo mới và lưu vào database
+     * @param notification Notification object cần lưu
+     * @return true nếu thành công, false nếu thất bại
+     */
+    public boolean createNotification(Notification notification) {
+        try {
+            if (notification == null) {
+                System.out.println("❌ Service: Notification is null");
+                return false;
+            }
+
+            System.out.println("📝 Service: Creating notification for user " + notification.getUserId());
+            notificationDAO.insert(notification);
+            System.out.println("✅ Service: Notification created successfully");
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("❌ Service Exception: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+
     public List<Notification> getNotificationsByUserId(int userId) {
         return notificationDAO.findByUserId(userId);
     }
@@ -121,6 +147,44 @@ public class NotificationService {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * Lấy danh sách thông báo theo action URL
+     * @param actionUrl URL action cần tìm
+     * @return List notification có actionUrl tương ứng
+     */
+    public List<Notification> getNotificationsByActionUrl(String actionUrl) {
+        return notificationDAO.findByActionUrl(actionUrl);
+    }
+
+    /**
+     * Lấy danh sách thông báo theo action URL với phân trang
+     * @param actionUrl URL action cần tìm
+     * @param page Số trang (bắt đầu từ 1)
+     * @param pageSize Số lượng mỗi trang
+     * @return List notification có actionUrl tương ứng
+     */
+    public List<Notification> getNotificationsByActionUrlPaginated(String actionUrl, int page, int pageSize) {
+        return notificationDAO.findByActionUrlPaginated(actionUrl, page, pageSize);
+    }
+
+    /**
+     * Đếm tổng số notification theo action URL
+     * @param actionUrl URL action cần đếm
+     * @return Số lượng notification
+     */
+    public long countNotificationsByActionUrl(String actionUrl) {
+        return notificationDAO.countByActionUrl(actionUrl);
+    }
+
+    /**
+     * Đếm số notification chưa đọc theo action URL
+     * @param actionUrl URL action cần đếm
+     * @return Số lượng notification chưa đọc
+     */
+    public long countUnreadNotificationsByActionUrl(String actionUrl) {
+        return notificationDAO.countUnreadByActionUrl(actionUrl);
     }
 
     /**

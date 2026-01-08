@@ -81,12 +81,16 @@ public class CustomerDAO {
     public List<Customer> findAll() {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            List<Customer> customers = em.createQuery("SELECT c FROM Customer c", Customer.class).getResultList();
+            String jpql = "SELECT c FROM Customer c";
+            List<Customer> customers = em.createQuery(jpql, Customer.class).getResultList();
+
+
             logger.debug("✓ Retrieved {} customer(s)", customers.size());
             return customers;
         } catch (Exception e) {
             logger.error("✗ Error retrieving all customers", e);
-            throw new RuntimeException("Failed to retrieve customers", e);
+            //throw new RuntimeException("Failed to retrieve customers", e);
+            return new java.util.ArrayList<>();
         } finally {
             em.close();
         }
@@ -135,6 +139,26 @@ public class CustomerDAO {
             if (trans.isActive()) trans.rollback();
             logger.error("✗ Failed to delete customer ID: {}", userId, e);
             throw new RuntimeException("Failed to delete customer", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    public Customer findByUsername(String username) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT c FROM Customer c WHERE c.username = :username";
+            TypedQuery<Customer> query = em.createQuery(jpql, Customer.class);
+            query.setParameter("username", username);
+            Customer customer = query.getSingleResult();
+            logger.debug("✓ Found customer by username: {}", username);
+            return customer;
+        } catch (NoResultException e) {
+            logger.debug("✗ Customer not found with username: {}", username);
+            return null;
+        } catch (Exception e) {
+            logger.error("✗ Error finding customer by username: {}", username, e);
+            return null;
         } finally {
             em.close();
         }

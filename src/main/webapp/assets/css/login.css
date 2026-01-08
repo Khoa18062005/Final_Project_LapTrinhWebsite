@@ -10,17 +10,18 @@
 body {
     font-family: 'Roboto', sans-serif;
     min-height: 100vh;
+
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px 0;
-    color: #333;
+    color: #e0e0e0;
     position: relative;
     overflow: hidden;
-    background: #d0ebff; /* Màu fallback nhẹ */
+    background-color: #1e293b;
 }
 
-/* Gradient chuyển động - TƯƠNG PHẢN CAO HƠN, CHUYỂN BIẾN RÕ RỆT */
+/* Gradient nền tối chuyển động chậm, huyền ảo */
 body::before {
     content: '';
     position: absolute;
@@ -30,149 +31,141 @@ body::before {
     height: 200%;
     background: linear-gradient(
             45deg,
-            #e3f2fd 0%,    /* Xanh rất nhạt */
-            #bbdefb 18%,   /* Xanh dương nhạt */
-            #90caf9 35%,   /* Xanh dương trung */
-            #64b5f6 50%,   /* Xanh dương sáng */
-            #42a5f5 65%,   /* Xanh dương nổi bật */
-            #2196f3 80%,   /* Xanh Bootstrap đậm */
-            #1976d2 100%   /* Xanh đậm mạnh */
+            #1e293b 0%,
+            #1e40af 15%,
+            #1e3a8a 30%,
+            #312e81 50%,
+            #4c1d95 70%,
+            #581c87 85%,
+            #6b21a8 100%
     );
-    background-size: 400% 400%; /* Tăng size để chuyển động rõ hơn */
-    animation: gradientMove 25s ease infinite;
+    background-size: 400% 400%;
+    animation: gradientMove 30s ease infinite;
     z-index: -2;
-    opacity: 0.98;
+    opacity: 0.95;
 }
 
-/* Hiệu ứng ánh sáng mờ di chuyển - tạo chiều sâu và nổi bật sự thay đổi */
+/* Hiệu ứng ánh sáng mờ nhẹ, tạo chiều sâu */
 body::after {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: radial-gradient(circle at 20% 80%, rgba(33, 150, 243, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(25, 118, 210, 0.2) 0%, transparent 50%);
-    animation: floatEffect 28s ease-in-out infinite;
+    background:
+            radial-gradient(circle at 30% 70%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+            radial-gradient(circle at 70% 30%, rgba(139, 92, 246, 0.12) 0%, transparent 60%);
+    animation: floatEffect 35s ease-in-out infinite;
     z-index: -1;
     pointer-events: none;
 }
 
-/* Animation gradient di chuyển rõ ràng, chậm mượt */
 @keyframes gradientMove {
-    0% {
-        background-position: 0% 50%;
-    }
-    50% {
-        background-position: 100% 50%;
-    }
-    100% {
-        background-position: 0% 50%;
-    }
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
-/* Animation ánh sáng di chuyển nhẹ */
 @keyframes floatEffect {
-    0%, 100% {
-        transform: translate(0, 0) scale(1);
-    }
-    50% {
-        transform: translate(8%, 8%) scale(1.1);
-    }
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(10%, 10%) scale(1.15); }
 }
 
-/* ===== CARD ĐĂNG NHẬP ===== */
+/* ===== CARD ĐĂNG NHẬP - DARK MODE ===== */
 .card {
     max-width: 480px;
     width: 100%;
-    border: none !important;
     border-radius: 24px;
     overflow: hidden;
-    box-shadow: 0 20px 50px rgba(13, 110, 253, 0.3);
-    background: #ffffff;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(59, 130, 246, 0.2);
     margin: 0 auto;
     position: relative;
     z-index: 1;
 }
 
-/* Header card - giữ nguyên đẹp */
 .card-header {
-    background: linear-gradient(135deg, #0d6efd, #0b5ed7) !important;
-    padding: 2.5rem 0;
-    border-bottom: none;
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+    padding: 2.8rem 0;
     text-align: center;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
 }
 
 .card-header h3 {
     font-weight: 700;
-    font-size: 2rem;
+    font-size: 2.1rem;
     margin: 0;
-    letter-spacing: 1px;
+    letter-spacing: 1.2px;
     color: white;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    text-shadow: 0 3px 8px rgba(0,0,0,0.3);
 }
 
-/* Body card */
 .card-body {
     padding: 3rem 2.5rem;
+    background-color: white;
 }
 
-/* Label */
 .form-label {
     font-weight: 500;
-    color: #444;
+    color: #60a5fa;
     margin-bottom: 0.8rem;
     font-size: 1rem;
 }
 
-/* Input chung */
 .form-control {
     border-radius: 16px;
     padding: 0.9rem 1.2rem;
-    border: 1px solid #bbd7ff;
+    border: 1px solid #334155;
     font-size: 1rem;
-    background-color: #f8fbff;
+    background-color: white;
+    color: black !important;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(13, 110, 253, 0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    /*Xanh dam: #1e293b*/
 }
 
 .form-control:focus {
-    border-color: #0d6efd;
-    background-color: #ffffff;
-    box-shadow: 0 0 0 0.3rem rgba(13, 110, 253, 0.2);
+    border-color: #3b82f6;
+    /*background-color: #1e293b;*/
+    color: #ffffff;
+    box-shadow: 0 0 0 0.3rem rgba(59, 130, 246, 0.3);
+    outline: none;
 }
-
-/* Nút Đăng nhập */
+.form-control:hover{
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
+}
 .btn-primary {
     width: 100%;
     border-radius: 16px;
     padding: 1rem;
     font-size: 1.15rem;
     font-weight: 600;
-    background: linear-gradient(135deg, #0d6efd, #0b5ed7) !important;
+    background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
     border: none !important;
-    transition: all 0.3s ease;
-    box-shadow: 0 6px 15px rgba(13, 110, 253, 0.2);
+    transition: all 0.4s ease;
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+    color: white;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #0b5ed7, #094ab2) !important;
-    transform: translateY(-4px);
-    box-shadow: 0 12px 25px rgba(13, 110, 253, 0.35);
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
 }
 
-/* Các liên kết phụ */
 .text-center a {
-    color: #0d6efd;
+    color: #60a5fa;
     font-weight: 600;
     text-decoration: none;
     transition: all 0.3s ease;
 }
 
 .text-center a:hover {
-    color: #0b5ed7;
+    color: #93bbfc;
     text-decoration: underline;
 }
 
-/* Khoảng cách */
 .mt-4 { margin-top: 1.5rem !important; }
 .mt-2 { margin-top: 1rem !important; }
 
@@ -181,20 +174,12 @@ body::after {
     .card-body {
         padding: 2.5rem 1.8rem;
     }
-
     .card-header h3 {
-        font-size: 1.7rem;
+        font-size: 1.8rem;
     }
-
     .btn-primary {
         font-size: 1.05rem;
         padding: 0.9rem;
     }
-
-    body::before {
-        animation-duration: 30s; /* Chậm hơn trên mobile */
-    }
-    body::after {
-        animation-duration: 35s;
-    }
 }
+
