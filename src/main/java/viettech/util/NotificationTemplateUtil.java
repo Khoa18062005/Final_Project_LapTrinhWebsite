@@ -504,6 +504,82 @@ public class NotificationTemplateUtil {
         return notification;
     }
 
+    private static final String IMG_ORDER_COD = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767775253/order-cod.png";
+    private static final String IMG_ORDER_VNPAY = "https://res.cloudinary.com/dzjlcbwwh/image/upload/v1767775253/order-vnpay.png";
+
+    /**
+     * ========== THÔNG BÁO ĐẶT HÀNG THÀNH CÔNG (COD) ==========
+     */
+    public static Notification createOrderConfirmationCODNotification(
+            int userId,
+            String firstName,
+            String lastName,
+            String orderNumber,
+            double totalPrice,
+            String estimatedDelivery) {
+
+        Notification notification = new Notification();
+
+        notification.setUserId(userId);
+        notification.setType(TYPE_ORDER);
+
+        notification.setTitle("🎉 Đặt hàng thành công!");
+        notification.setMessage(
+                String.format("Xin chào %s %s! Đơn hàng #%s của bạn đã được xác nhận thành công. " +
+                                "Tổng tiền: %,.0f đ. Phương thức thanh toán: COD (Thanh toán khi nhận hàng). " +
+                                "Dự kiến giao hàng: %s. Cảm ơn bạn đã tin tưởng VietTech!",
+                        firstName, lastName, orderNumber, totalPrice, estimatedDelivery)
+        );
+
+        notification.setImageUrl(IMG_ORDER_COD);
+        notification.setRead(false);
+        notification.setReadAt(null);
+        notification.setCreatedAt(new Date());
+        notification.setExpiresAt(null);
+        notification.setData(null);
+        notification.setActionUrl("/profile/orders");
+
+        return notification;
+    }
+
+    /**
+     * ========== THÔNG BÁO THANH TOÁN VNPAY THÀNH CÔNG ==========
+     */
+    public static Notification createOrderConfirmationVNPayNotification(
+            int userId,
+            String firstName,
+            String lastName,
+            String orderNumber,
+            String transactionNo,
+            double totalPrice,
+            String bankCode,
+            String estimatedDelivery) {
+
+        Notification notification = new Notification();
+
+        notification.setUserId(userId);
+        notification.setType(TYPE_ORDER);
+
+        notification.setTitle("✅ Thanh toán thành công!");
+        notification.setMessage(
+                String.format("Xin chào %s %s! Thanh toán đơn hàng #%s đã được xác nhận thành công qua VNPay. " +
+                                "Mã giao dịch: %s. Số tiền: %,.0f đ. Ngân hàng: %s. " +
+                                "Dự kiến giao hàng: %s. Đơn hàng đang được xử lý. Cảm ơn bạn!",
+                        firstName, lastName, orderNumber, transactionNo, totalPrice,
+                        bankCode.toUpperCase(), estimatedDelivery)
+        );
+
+        notification.setImageUrl(IMG_ORDER_VNPAY);
+        notification.setRead(false);
+        notification.setReadAt(null);
+        notification.setCreatedAt(new Date());
+        notification.setExpiresAt(null);
+        notification.setData(null);
+        notification.setActionUrl("/profile/orders");
+
+        return notification;
+    }
+
 
     /**
      * ========== THÔNG BÁO KHÁC ==========

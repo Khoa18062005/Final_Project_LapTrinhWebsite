@@ -1,22 +1,28 @@
 package viettech.controller;
 
 import dev.langchain4j.agent.tool.P;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import viettech.config.VNPayConfig;
-import viettech.dao.OrderDAO;
-import viettech.dao.OrderDetailDAO;
-import viettech.dao.OrderStatusDAO;
-import viettech.dao.PaymentDAO;
+import viettech.dao.*;
 import viettech.dto.CartCheckoutItemDTO;
 import viettech.dto.CartItemDTO;
+import viettech.entity.Address;
+import viettech.entity.Notification;
 import viettech.entity.order.Order;
 import viettech.entity.order.OrderDetail;
 import viettech.entity.order.OrderStatus;
 import viettech.entity.payment.Payment;
+import viettech.entity.user.Customer;
+import viettech.service.NotificationService;
+import viettech.util.EmailUtilBrevo;
+import viettech.util.NotificationTemplateUtil;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -27,12 +33,20 @@ public class VNPayReturnServlet extends HttpServlet {
 
     private OrderDAO orderDAO;
     private OrderStatusDAO orderStatusDAO;
+    private CustomerDAO customerDAO;
+    private AddressDAO addressDAO;
+    private NotificationService notificationService;
+
+    private static final Logger logger = LoggerFactory.getLogger(CODPaymentServlet.class);
 
     @Override
     public void init() throws ServletException {
         super.init();
         orderDAO = new OrderDAO();
         orderStatusDAO = new OrderStatusDAO();
+        customerDAO = new CustomerDAO();
+        addressDAO = new AddressDAO();
+        notificationService = new NotificationService();
     }
 
     @Override
@@ -127,6 +141,38 @@ public class VNPayReturnServlet extends HttpServlet {
                         PaymentDAO paymentDAO = new PaymentDAO();
                         paymentDAO.insert(payment);
 
+                        Customer customer = customerDAO.findById(order.getCustomerId());
+
+                        // Lấy thông tin địa chỉ giao hàng
+                        Address shippingAddress = addressDAO.findById(order.getAddressId());
+
+                        // Tính toán các giá trị
+                        double subtotal = order.getTotalPrice() - order.getShippingFee() + order.getDiscount();
+                        // ========== GỬI EMAIL XÁC NHẬN VNPAY ==========
+                        sendVNPayConfirmationEmail(customer, order, vnp_TransactionNo, vnp_BankCode, vnp_PayDate);
+
+                        // ========== TẠO NOTIFICATION VNPAY ==========
+                        createVNPayNotification(customer, order, vnp_TransactionNo, vnp_BankCode);
+
+                        // Lưu thông tin vào session
+                        session.setAttribute("paymentSuccess", true);
+                        session.setAttribute("order", order);
+                        session.setAttribute("customer", customer);
+                        session.setAttribute("shippingAddress", shippingAddress);
+                        session.setAttribute("cartItems", cartItemDTOs);
+                        session.setAttribute("subtotal", subtotal);
+                        session.setAttribute("shippingFee", order.getShippingFee());
+                        session.setAttribute("voucherDiscount", order.getDiscount());
+                        session.setAttribute("totalPrice", order.getTotalPrice());
+
+                        // Thông tin VNPay
+                        session.setAttribute("orderNumber", vnp_TxnRef);
+                        session.setAttribute("transactionNo", vnp_TransactionNo);
+                        session.setAttribute("amount", Long.parseLong(vnp_Amount) / 100);
+                        session.setAttribute("bankCode", vnp_BankCode);
+                        session.setAttribute("payDate", vnp_PayDate);
+
+                        // Clear cart
                         session.removeAttribute("selectedCartItems");
                         session.removeAttribute("pendingOrderNumber");
 
@@ -272,5 +318,65 @@ public class VNPayReturnServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         doGet(request, response);
+    }
+
+    private void sendVNPayConfirmationEmail(Customer customer, Order order,
+                                            String transactionNo, String bankCode, String payDate) {
+        try {
+            String customerName = customer.getFirstName() + " " + customer.getLastName();
+            String estimatedDeliveryStr = new SimpleDateFormat("dd/MM/yyyy")
+                    .format(order.getEstimatedDelivery());
+
+            boolean emailSent = EmailUtilBrevo.sendOrderConfirmationVNPay(
+                    customer.getEmail(),
+                    customerName,
+                    order.getOrderNumber(),
+                    transactionNo,
+                    order.getTotalPrice(),
+                    bankCode,
+                    payDate,
+                    estimatedDeliveryStr
+            );
+
+            if (emailSent) {
+                logger.info("✓ VNPay confirmation email sent successfully to: {}", customer.getEmail());
+            } else {
+                logger.warn("✗ Failed to send VNPay confirmation email to: {}", customer.getEmail());
+            }
+        } catch (Exception e) {
+            logger.error("✗ Error sending VNPay confirmation email", e);
+        }
+    }
+
+    /**
+     * Tạo notification cho thanh toán VNPay
+     */
+    private void createVNPayNotification(Customer customer, Order order,
+                                         String transactionNo, String bankCode) {
+        try {
+            String estimatedDeliveryStr = new SimpleDateFormat("dd/MM/yyyy")
+                    .format(order.getEstimatedDelivery());
+
+            Notification notification = NotificationTemplateUtil.createOrderConfirmationVNPayNotification(
+                    customer.getUserId(),
+                    customer.getFirstName(),
+                    customer.getLastName(),
+                    order.getOrderNumber(),
+                    transactionNo,
+                    order.getTotalPrice(),
+                    bankCode,
+                    estimatedDeliveryStr
+            );
+
+            boolean notificationCreated = notificationService.createNotification(notification);
+
+            if (notificationCreated) {
+                logger.info("✓ VNPay notification created successfully for user: {}", customer.getUserId());
+            } else {
+                logger.warn("✗ Failed to create VNPay notification for user: {}", customer.getUserId());
+            }
+        } catch (Exception e) {
+            logger.error("✗ Error creating VNPay notification", e);
+        }
     }
 }
