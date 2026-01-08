@@ -757,3 +757,268 @@
 .was-validated .form-select:valid {
     border-color: var(--success-color);
 }
+
+.loyalty-section {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #fff9e6 0%, #fff4cc 100%);
+    border-radius: 8px;
+    border: 2px solid #ffd700;
+}
+
+.loyalty-section h5 {
+    color: #333;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.loyalty-section h5 i {
+    color: #ffd700;
+    font-size: 1.3rem;
+}
+
+/* Loyalty balance card */
+.loyalty-balance-card {
+    background: white;
+    padding: 1.25rem;
+    border-radius: 8px;
+    border: 2px solid #ffe680;
+    margin-bottom: 1rem;
+}
+
+.loyalty-points-display {
+    color: #ff9500;
+    font-weight: 700;
+    font-size: 2rem;
+}
+
+/* Loyalty input group */
+.loyalty-input-group {
+    margin-top: 1rem;
+}
+
+.loyalty-input-group .form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.loyalty-input-group .input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.loyalty-input-group .form-control {
+    flex: 1;
+    border: 2px solid #ffd700;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.loyalty-input-group .form-control:focus {
+    border-color: #ff9500;
+    box-shadow: 0 0 0 0.25rem rgba(255, 149, 0, 0.25);
+}
+
+.loyalty-input-group .btn {
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+#applyLoyaltyBtn {
+    background: white;
+    color: #ff9500;
+    border: 2px solid #ff9500;
+}
+
+#applyLoyaltyBtn:hover {
+    background: #ff9500;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 149, 0, 0.3);
+}
+
+#useAllLoyaltyBtn {
+    background: white;
+    color: #28a745;
+    border: 2px solid #28a745;
+}
+
+#useAllLoyaltyBtn:hover {
+    background: #28a745;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Applied loyalty display */
+#appliedLoyaltyDisplay {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+#appliedLoyaltyDisplay strong {
+    color: #155724;
+    font-weight: 700;
+}
+
+#appliedLoyaltyDisplay .btn-close {
+    opacity: 0.7;
+}
+
+#appliedLoyaltyDisplay .btn-close:hover {
+    opacity: 1;
+}
+
+/* Loyalty warning */
+#loyaltyWarning {
+    background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+    border: 2px solid #ffc107;
+    border-radius: 8px;
+    padding: 1rem;
+    color: #856404;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .loyalty-input-group .input-group {
+        flex-direction: column;
+    }
+
+    .loyalty-input-group .btn {
+        width: 100%;
+    }
+
+    .loyalty-points-display {
+        font-size: 1.5rem;
+    }
+
+    .loyalty-balance-card .d-flex {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .loyalty-balance-card .text-end {
+        text-align: center !important;
+        margin-top: 1rem;
+    }
+}
+
+/* ============================================
+   CHECKOUT NOTIFICATION - THAY THẾ ALERT
+   THÊM VÀO CUỐI FILE shipping-info.css
+   ============================================ */
+
+.checkout-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    min-width: 300px;
+    max-width: 400px;
+    padding: 1rem 1.5rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 9999;
+    transform: translateX(500px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.checkout-notification.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.checkout-notification i {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.checkout-notification span {
+    flex: 1;
+    font-weight: 500;
+    color: #333;
+}
+
+/* Success notification */
+.checkout-notification-success {
+    border-left: 4px solid #28a745;
+}
+
+.checkout-notification-success i {
+    color: #28a745;
+}
+
+/* Error notification */
+.checkout-notification-error {
+    border-left: 4px solid #dc3545;
+}
+
+.checkout-notification-error i {
+    color: #dc3545;
+}
+
+/* Warning notification */
+.checkout-notification-warning {
+    border-left: 4px solid #ffc107;
+    background: #fffbf0;
+}
+
+.checkout-notification-warning i {
+    color: #ff9500;
+}
+
+/* Info notification */
+.checkout-notification-info {
+    border-left: 4px solid #0dcaf0;
+}
+
+.checkout-notification-info i {
+    color: #0dcaf0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .checkout-notification {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: calc(100% - 20px);
+        min-width: auto;
+    }
+}
+
+/* Animation */
+@keyframes slideInRight {
+    from {
+        transform: translateX(500px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(500px);
+        opacity: 0;
+    }
+}
