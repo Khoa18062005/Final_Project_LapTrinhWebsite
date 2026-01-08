@@ -4,8 +4,8 @@ import org.mindrot.jbcrypt.BCrypt;
 import viettech.dao.ShipperDAO;
 import viettech.dto.Shipper_dto;
 import viettech.entity.delivery.DeliveryAssignment;
+import viettech.entity.order.Order;
 import viettech.entity.user.Shipper;
-import viettech.entity.user.User;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -24,58 +24,26 @@ public class ShipperService {
         if (shipper == null) return null;
         dto.setShipperInfo(shipper);
 
-        List<DeliveryAssignment> pending = new ArrayList<>();
-        List<DeliveryAssignment> ongoing = new ArrayList<>();
-        List<DeliveryAssignment> history = new ArrayList<>();
+        // 1. SÀN ĐƠN HÀNG - Đơn có status = Ready (chờ shipper nhận)
+        List<Order> pendingOrders = shipperDAO.getOrdersByStatusReady();
+        dto.setPendingOrders(pendingOrders != null ? pendingOrders : new ArrayList<>());
 
-        // 1. SÀN ĐƠN HÀNG
-        List<DeliveryAssignment> marketAssignments = shipperDAO.getAvailableAssignments();
-        if (marketAssignments != null) {
-            for (DeliveryAssignment da : marketAssignments) {
-                if (da.getDelivery() != null && da.getDelivery().getOrder() != null) {
-                    // NẾU MUỐN HIỆN TẤT CẢ (KỂ CẢ CỦA MÌNH):
-                    pending.add(da);
-                }
-            }
-        }
+        // 2. ĐƠN ĐANG GIAO - Đơn có status = Shipping (của shipper này)
+        List<Order> ongoingOrders = shipperDAO.getOrdersByStatusShipping(shipperId);
+        dto.setOngoingOrders(ongoingOrders != null ? ongoingOrders : new ArrayList<>());
 
-        // 2. ĐƠN CỦA TÔI
-        List<DeliveryAssignment> myAssignments = shipperDAO.getAssignmentsByShipperId(shipperId);
-        if (myAssignments != null) {
-            for (DeliveryAssignment da : myAssignments) {
-                if (da.getDelivery() == null || da.getDelivery().getOrder() == null) continue;
+        // 3. LỊCH SỬ - Đơn có status = Completed (của shipper này)
+        List<Order> historyOrders = shipperDAO.getOrdersByStatusCompleted(shipperId);
+        dto.setHistoryOrders(historyOrders != null ? historyOrders : new ArrayList<>());
 
-                String status = (da.getStatus() != null) ? da.getStatus().trim() : "";
+        // Tính thống kê
+        calculateStatisticsFromOrders(shipperId, dto, historyOrders);
 
-                if (containsIgnoreCase(status, "Accepted", "Picking Up", "In Transit", "Shipping", "On Delivery")) {
-                    ongoing.add(da);
-                } else if (containsIgnoreCase(status, "Completed", "Delivered", "Cancelled", "Fail", "Success")) {
-                    history.add(da);
-                }
-            }
-        }
-
-        dto.setPendingOrders(pending);
-        dto.setOngoingOrders(ongoing);
-        dto.setHistoryOrders(history);
-
-        calculateStatistics(shipperId, dto, myAssignments);
         return dto;
     }
 
-    private boolean containsIgnoreCase(String source, String... keywords) {
-        if (source == null) return false;
-        for (String keyword : keywords) {
-            if (source.trim().equalsIgnoreCase(keyword)) return true;
-        }
-        return false;
-    }
-
-    private void calculateStatistics(int shipperId, Shipper_dto dto, List<DeliveryAssignment> allAssignments) {
+    private void calculateStatisticsFromOrders(int shipperId, Shipper_dto dto, List<Order> completedOrders) {
         try {
-            // Lấy dữ liệu thô từ DAO (SQL Native)
-            List<Object[]> results = shipperDAO.getIncomeStatistics(shipperId);
-
             Map<String, Double> dailyIncomeMap = new HashMap<>();
             double sumToday = 0;
             long countToday = 0;
@@ -88,27 +56,30 @@ public class ShipperService {
             LocalDate sevenDaysAgo = now.minusDays(6);
             LocalDate monthAgo = now.minusDays(29);
 
-            for (Object[] row : results) {
-                if (row[0] == null) continue;
-                String dateStr = row[0].toString();
-                double money = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
-                long count = row[2] != null ? ((Number) row[2]).longValue() : 0;
+            if (completedOrders != null) {
+                for (Order order : completedOrders) {
+                    if (order.getCompletedAt() == null) continue;
 
-                LocalDate rowDate = LocalDate.parse(dateStr);
-                dailyIncomeMap.put(dateStr, money);
+                    LocalDate completedDate = order.getCompletedAt().toInstant()
+                            .atZone(ZoneId.systemDefault()).toLocalDate();
+                    double income = order.getShippingFee(); // Thu nhập = phí ship
 
-                // Tính tổng các mốc thời gian
-                if (rowDate.isEqual(now)) {
-                    sumToday += money;
-                    countToday += count;
-                }
-                if (!rowDate.isBefore(sevenDaysAgo)) {
-                    sum7Days += money;
-                    count7Days += count;
-                }
-                if (!rowDate.isBefore(monthAgo)) {
-                    sumMonth += money;
-                    countMonth += count;
+                    String dateStr = completedDate.toString();
+                    dailyIncomeMap.merge(dateStr, income, Double::sum);
+
+                    // Tính tổng các mốc thời gian
+                    if (completedDate.isEqual(now)) {
+                        sumToday += income;
+                        countToday++;
+                    }
+                    if (!completedDate.isBefore(sevenDaysAgo)) {
+                        sum7Days += income;
+                        count7Days++;
+                    }
+                    if (!completedDate.isBefore(monthAgo)) {
+                        sumMonth += income;
+                        countMonth++;
+                    }
                 }
             }
 
@@ -120,12 +91,8 @@ public class ShipperService {
             dto.setIncomeMonth(sumMonth);
             dto.setCountMonth(countMonth);
 
-            // Tính số đơn được giao hôm nay (Assigned Today)
-            long assignedToday = allAssignments.stream()
-                    .filter(a -> a.getAssignedAt() != null &&
-                            a.getAssignedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isEqual(now))
-                    .count();
-            dto.setTodayOrderCount(assignedToday);
+            // Tính số đơn được giao hôm nay
+            dto.setTodayOrderCount(countToday);
 
             // Chuẩn bị dữ liệu cho Biểu đồ
             // 1. Biểu đồ 7 ngày
@@ -142,9 +109,9 @@ public class ShipperService {
                 LocalDate d = now.minusDays(27 - i);
                 double val = dailyIncomeMap.getOrDefault(d.toString(), 0.0);
                 int weekIndex = i / 7;
-                if(weekIndex < 4) weekSum[weekIndex] += val;
+                if (weekIndex < 4) weekSum[weekIndex] += val;
             }
-            for(int i=0; i<4; i++) {
+            for (int i = 0; i < 4; i++) {
                 dto.getChartLabelsMonth().add(weekLabels[i]);
                 dto.getChartDataMonth().add(weekSum[i]);
             }
@@ -154,45 +121,31 @@ public class ShipperService {
         }
     }
 
-    public void updateStatus(int assignmentId, String action, int currentShipperId) {
-        DeliveryAssignment da = shipperDAO.findAssignmentById(assignmentId);
+    public void updateStatus(int orderId, String action, int currentShipperId) {
+        Order order = shipperDAO.findOrderById(orderId);
 
-        if (da != null) {
+        if (order != null) {
             if ("accept".equals(action)) {
                 // Nhận đơn: Chỉ cần status Ready
-                if ("Ready".equalsIgnoreCase(da.getStatus())) {
+                if ("Ready".equalsIgnoreCase(order.getStatus())) {
+                    order.setStatus("Shipping");
+                    shipperDAO.updateOrderStatus(orderId, "Shipping");
 
-                    // SỬA LỖI: Gán trực tiếp int
-                    da.setShipperId(currentShipperId);
-                    da.setStatus("In Transit");
-
-                    da.setAcceptedAt(new Date());
-                    da.setAssignedAt(new Date());
-                    da.setStartedAt(new Date());
-
-                    if (da.getDelivery() != null) {
-                        da.getDelivery().setStatus("In Transit");
-                    }
-                    System.out.println("DEBUG: Shipper " + currentShipperId + " nhận đơn " + assignmentId);
+                    System.out.println("DEBUG: Shipper " + currentShipperId + " nhận đơn " + orderId);
 
                     // Gửi thông báo cho shipper khi nhận đơn
                     try {
-                        String orderNumber = da.getDelivery() != null && da.getDelivery().getOrder() != null
-                            ? da.getDelivery().getOrder().getOrderNumber() : "N/A";
+                        String orderNumber = order.getOrderNumber();
                         String customerName = "";
                         String address = "";
                         int customerId = 0;
 
-                        if (da.getDelivery() != null && da.getDelivery().getOrder() != null) {
-                            if (da.getDelivery().getOrder().getCustomer() != null) {
-                                customerName = da.getDelivery().getOrder().getCustomer().getLastName() + " "
-                                    + da.getDelivery().getOrder().getCustomer().getFirstName();
-                                customerId = da.getDelivery().getOrder().getCustomer().getUserId();
-                            }
-                            if (da.getDelivery().getOrder().getAddress() != null) {
-                                address = da.getDelivery().getOrder().getAddress().getStreet() + ", "
-                                    + da.getDelivery().getOrder().getAddress().getDistrict();
-                            }
+                        if (order.getCustomer() != null) {
+                            customerName = order.getCustomer().getLastName() + " " + order.getCustomer().getFirstName();
+                            customerId = order.getCustomer().getUserId();
+                        }
+                        if (order.getAddress() != null) {
+                            address = order.getAddress().getStreet() + ", " + order.getAddress().getDistrict();
                         }
 
                         // Thông báo cho shipper
@@ -212,30 +165,20 @@ public class ShipperService {
                 }
 
             } else if ("complete".equals(action)) {
-                // SỬA LỖI: So sánh int dùng == (không dùng .equals)
-                if (da.getShipperId() == currentShipperId) {
-                    da.setStatus("Completed");
-                    da.setCompletedAt(new Date());
-
-                    if (da.getDelivery() != null) {
-                        da.getDelivery().setStatus("Delivered");
-                        da.getDelivery().setActualDelivery(new Date());
-                        if (da.getDelivery().getOrder() != null) {
-                            da.getDelivery().getOrder().setStatus("Completed");
-                            da.getDelivery().getOrder().setCompletedAt(new Date());
-                        }
-                    }
+                // Hoàn thành đơn
+                if ("Shipping".equalsIgnoreCase(order.getStatus())) {
+                    order.setStatus("Completed");
+                    order.setCompletedAt(new Date());
+                    shipperDAO.updateOrderStatus(orderId, "Completed");
 
                     // Gửi thông báo cho shipper khi hoàn thành đơn
                     try {
-                        String orderNumber = da.getDelivery() != null && da.getDelivery().getOrder() != null
-                            ? da.getDelivery().getOrder().getOrderNumber() : "N/A";
-                        double earnings = da.getEarnings();
+                        String orderNumber = order.getOrderNumber();
+                        double earnings = order.getShippingFee();
                         int customerId = 0;
 
-                        if (da.getDelivery() != null && da.getDelivery().getOrder() != null
-                            && da.getDelivery().getOrder().getCustomer() != null) {
-                            customerId = da.getDelivery().getOrder().getCustomer().getUserId();
+                        if (order.getCustomer() != null) {
+                            customerId = order.getCustomer().getUserId();
                         }
 
                         // Thông báo cho shipper
@@ -249,10 +192,9 @@ public class ShipperService {
                         System.out.println("Lỗi gửi thông báo hoàn thành: " + e.getMessage());
                     }
                 } else {
-                    System.out.println("Lỗi: Shipper ID không khớp (" + da.getShipperId() + " != " + currentShipperId + ")");
+                    System.out.println("Lỗi: Đơn hàng không ở trạng thái Shipping");
                 }
             }
-            shipperDAO.updateAssignment(da);
         }
     }
 
