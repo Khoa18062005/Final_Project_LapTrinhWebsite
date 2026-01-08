@@ -16,87 +16,7 @@
 
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
-
-  <style>
-    .success-container {
-      min-height: 80vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .success-card {
-      max-width: 600px;
-      width: 100%;
-      text-align: center;
-      padding: 3rem;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
-
-    .success-icon {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 2rem;
-      animation: scaleIn 0.5s ease-out;
-    }
-
-    .success-icon i {
-      font-size: 3rem;
-      color: white;
-    }
-
-    @keyframes scaleIn {
-      from {
-        transform: scale(0);
-        opacity: 0;
-      }
-      to {
-        transform: scale(1);
-        opacity: 1;
-      }
-    }
-
-    .order-info {
-      background: #f8f9fa;
-      border-radius: 10px;
-      padding: 1.5rem;
-      margin: 2rem 0;
-    }
-
-    .order-info-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid #dee2e6;
-    }
-
-    .order-info-row:last-child {
-      border-bottom: none;
-    }
-
-    .order-info-label {
-      font-weight: 600;
-      color: #6c757d;
-    }
-
-    .order-info-value {
-      font-weight: 500;
-      color: #212529;
-    }
-
-    .btn-group-custom {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin-top: 2rem;
-    }
-  </style>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/payment-success.css">
 </head>
 <body>
 <jsp:include page="../../header.jsp" />
@@ -127,9 +47,9 @@
         <div class="order-info-row">
           <span class="order-info-label">Số tiền thanh toán:</span>
           <span class="order-info-value">
-                            <fmt:formatNumber value="${sessionScope.amount}" type="currency"
-                                              currencySymbol="₫" groupingUsed="true" />
-                        </span>
+                        <fmt:formatNumber value="${sessionScope.amount}" type="currency"
+                                          currencySymbol="₫" groupingUsed="true" />
+                    </span>
         </div>
 
         <c:if test="${not empty sessionScope.bankCode}">
@@ -152,10 +72,12 @@
 
       <div class="btn-group-custom">
         <a href="${pageContext.request.contextPath}/profile/orders" class="btn btn-primary btn-lg">
-          <i class="bi bi-list-ul me-2"></i>Xem đơn hàng
+          <i class="bi bi-list-ul"></i>
+          Xem đơn hàng
         </a>
         <a href="${pageContext.request.contextPath}/" class="btn btn-outline-secondary btn-lg">
-          <i class="bi bi-house me-2"></i>Về trang chủ
+          <i class="bi bi-house"></i>
+          Về trang chủ
         </a>
       </div>
     </div>
