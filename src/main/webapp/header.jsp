@@ -16,21 +16,31 @@
       </a>
 
       <!-- Ô tìm kiếm -->
-      <form action="${pageContext.request.contextPath}/search"
-            method="get"
-            class="d-flex w-50 mx-3"
-            role="search">
-        <input class="form-control me-2"
-               type="search"
-               name="q"
-               placeholder="Hôm nay bạn muốn tìm gì..."
-               aria-label="Tìm kiếm sản phẩm"
-               value="${not empty keyword ? keyword : ''}"
-               autocomplete="off">
-        <button class="btn-search" type="submit" title="Tìm kiếm">
-          <i class="bi bi-search text-dark"></i>
-        </button>
-      </form>
+      <div class="position-relative w-50 mx-3">
+
+        <form action="${pageContext.request.contextPath}/search"
+              method="get"
+              class="d-flex w-100"
+              role="search">
+
+          <input class="form-control me-2"
+                 type="search"
+                 id="searchInput"
+                 name="q"
+                 placeholder="Hôm nay bạn muốn tìm gì..."
+                 aria-label="Tìm kiếm sản phẩm"
+                 value="${not empty keyword ? keyword : ''}"
+                 autocomplete="off">
+
+          <button class="btn-search" type="submit" title="Tìm kiếm">
+            <i class="bi bi-search text-dark"></i>
+          </button>
+        </form>
+
+        <div id="suggestionBox" class="suggestion-box list-group" style="display: none;">
+        </div>
+
+      </div>
 
       <!-- Nhóm các nút bên phải -->
       <div class="header-right-items">
@@ -175,7 +185,7 @@
                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
                   <i class="bi bi-person"></i> Tài khoản cá nhân
                 </a></li>
-                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/orders">
+                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/profile/orders">
                   <i class="bi bi-box"></i> Đơn hàng của tôi
                 </a></li>
                 <li><hr class="dropdown-divider"></li>
@@ -270,3 +280,9 @@
   </div>
   <c:remove var="infoMessage" scope="session"/>
 </c:if>
+<script>
+  // Đây là cầu nối để JS biết thư mục gốc của dự án là gì
+  window.contextPath = "${pageContext.request.contextPath}";
+</script>
+
+<script src="${pageContext.request.contextPath}/assets/js/live-search.js"></script>

@@ -769,8 +769,27 @@ public class ProductService {
         return resultList;
     }
 
-    public void increaseViewProduct(int item_id){
+    public void increaseViewProduct(int item_id) {
         ProductDAO productDAO = new ProductDAO();
         productDAO.incrementViewCount(item_id);
+    }
+
+    //    Gợi ý sản phẩm
+    public List<ProductCardDTO> getSearchSuggestions(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        String trimmedKeyword = keyword.trim();
+
+        // Sử dụng hàm DAO có sẵn để tìm kiếm (giả sử nó trả về List<Product>)
+        // Lưu ý: Để tối ưu tốc độ cho gợi ý, ta chỉ lấy khoảng 5-7 kết quả đầu tiên
+        List<Product> products = productDAO.searchByNameWithImages(trimmedKeyword);
+
+        // Convert sang DTO và giới hạn số lượng để trả về JSON cho nhẹ
+        return products.stream()
+                .limit(5) // Chỉ lấy 5 sản phẩm gợi ý
+                .map(this::convertProductToCardDTO)
+                .collect(Collectors.toList());
     }
 }

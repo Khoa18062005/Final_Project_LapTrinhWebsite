@@ -308,27 +308,28 @@ public class CheckoutServlet extends HttpServlet {
                         fullCustomer.getUserId(),
                         vendorId,
                         selectedAddress.getAddressId(),
-                        "Pending_Payment",
+                        "pending",
                         subtotal,
                         shippingFee,
-                        0,
+                        voucherDiscount,
                         tax,
                         voucherDiscount,
-                        0,
-                        0,
+                        (int)usedLoyaltyPoints,
+                        (int)usedLoyaltyPoints*1000,
                         totalPrice,
-                        note,
+                        note ,
                         estimatedDelivery
                 );
 
                 orderDAO.insert(order);
+                session.setAttribute("orderNumber", orderNumber);
                 Order createdOrder = orderDAO.findByOrderNumber(orderNumber);
 
                 if (createdOrder != null) {
                     // Tạo OrderStatus
                     OrderStatus orderStatus = new OrderStatus(
                             createdOrder.getOrderId(),
-                            "Pending_Payment",
+                            "pending",
                             "Đơn hàng đã được tạo, đang chờ thanh toán qua VNPay",
                             null,
                             "SYSTEM",

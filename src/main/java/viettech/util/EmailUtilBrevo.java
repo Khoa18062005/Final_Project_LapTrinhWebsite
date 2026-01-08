@@ -604,6 +604,304 @@ public class EmailUtilBrevo {
         """, fullName, subject, message);
     }
 
+    /**
+     * Gửi email xác nhận đơn hàng COD
+     */
+    public static boolean sendOrderConfirmationCOD(
+            String toEmail,
+            String customerName,
+            String orderNumber,
+            double totalPrice,
+            String estimatedDelivery) {
+
+        String subject = "Xác nhận đơn hàng #" + orderNumber + " - VietTech";
+        String htmlContent = buildOrderConfirmationCODTemplate(
+                customerName, orderNumber, totalPrice, estimatedDelivery
+        );
+
+        try {
+            sendMail(toEmail, SENDER_EMAIL, subject, htmlContent, true);
+            logger.info("✓ Order confirmation COD email sent to: {}", toEmail);
+            return true;
+        } catch (IOException e) {
+            logger.error("✗ Failed to send order confirmation COD email to: {}", toEmail, e);
+            return false;
+        }
+    }
+
+    /**
+     * Gửi email xác nhận thanh toán VNPay thành công
+     */
+    public static boolean sendOrderConfirmationVNPay(
+            String toEmail,
+            String customerName,
+            String orderNumber,
+            String transactionNo,
+            double totalPrice,
+            String bankCode,
+            String payDate,
+            String estimatedDelivery) {
+
+        String subject = "Thanh toán thành công đơn hàng #" + orderNumber + " - VietTech";
+        String htmlContent = buildOrderConfirmationVNPayTemplate(
+                customerName, orderNumber, transactionNo, totalPrice,
+                bankCode, payDate, estimatedDelivery
+        );
+
+        try {
+            sendMail(toEmail, SENDER_EMAIL, subject, htmlContent, true);
+            logger.info("✓ Order confirmation VNPay email sent to: {}", toEmail);
+            return true;
+        } catch (IOException e) {
+            logger.error("✗ Failed to send order confirmation VNPay email to: {}", toEmail, e);
+            return false;
+        }
+    }
+
+    /**
+     * Template email xác nhận đơn hàng COD
+     */
+    private static String buildOrderConfirmationCODTemplate(
+            String customerName,
+            String orderNumber,
+            double totalPrice,
+            String estimatedDelivery) {
+
+        return String.format("""
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Xác nhận đơn hàng</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+        <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f4; padding: 40px 0;">
+            <tr>
+                <td align="center">
+                    <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        
+                        <!-- Header -->
+                        <tr>
+                            <td align="center" style="padding: 30px 20px; background: linear-gradient(135deg, #0d6efd, #1e40af); border-radius: 10px 10px 0 0;">
+                                <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                    🎉 Đặt hàng thành công!
+                                </h1>
+                            </td>
+                        </tr>
+                        
+                        <!-- Body -->
+                        <tr>
+                            <td style="padding: 40px 30px;">
+                                <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                    Xin chào <strong>%s</strong>,
+                                </p>
+                                
+                                <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                    Cảm ơn bạn đã đặt hàng tại <strong>VietTech</strong>! Đơn hàng của bạn đã được xác nhận thành công.
+                                </p>
+                                
+                                <!-- Order Info Box -->
+                                <div style="background: #f8f9fa; border-left: 4px solid #0d6efd; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                                    <h3 style="margin: 0 0 15px; color: #0d6efd; font-size: 18px;">📦 Thông tin đơn hàng:</h3>
+                                    <table width="100%%" border="0" cellspacing="0" cellpadding="8">
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Mã đơn hàng:</td>
+                                            <td style="color: #333; font-weight: bold; font-size: 14px; text-align: right;">%s</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Tổng tiền:</td>
+                                            <td style="color: #dc3545; font-weight: bold; font-size: 16px; text-align: right;">%,.0f đ</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Phương thức thanh toán:</td>
+                                            <td style="color: #333; font-weight: bold; font-size: 14px; text-align: right;">Thanh toán khi nhận hàng (COD)</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Dự kiến giao hàng:</td>
+                                            <td style="color: #333; font-weight: bold; font-size: 14px; text-align: right;">%s</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                
+                                <div style="background: #e7f3ff; border-left: 4px solid #0d6efd; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                                    <h3 style="margin: 0 0 15px; color: #0d6efd; font-size: 18px;">📋 Các bước tiếp theo:</h3>
+                                    <ol style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                                        <li>Chúng tôi sẽ xác nhận và chuẩn bị đơn hàng của bạn</li>
+                                        <li>Đơn hàng sẽ được giao đến địa chỉ bạn đã cung cấp</li>
+                                        <li>Bạn thanh toán khi nhận hàng</li>
+                                        <li>Kiểm tra hàng trước khi thanh toán</li>
+                                    </ol>
+                                </div>
+                                
+                                <div style="text-align: center; margin: 30px 0;">
+                                    <a href="https://viettech.fit/profile/orders" 
+                                       style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #0d6efd, #1e40af); 
+                                              color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                                        Xem chi tiết đơn hàng
+                                    </a>
+                                </div>
+                                
+                                <p style="margin: 20px 0; font-size: 14px; color: #666666; line-height: 1.6;">
+                                    Nếu có thắc mắc, vui lòng liên hệ: <br>
+                                    📞 Hotline: <strong>0866 448 892</strong> (24/7)<br>
+                                    📧 Email: <a href="mailto:support@viettech.vn" style="color: #0d6efd; text-decoration: none;">support@viettech.vn</a>
+                                </p>
+                                
+                                <p style="margin: 20px 0; font-size: 16px; color: #333333;">
+                                    Cảm ơn bạn đã tin tưởng VietTech! 💙
+                                </p>
+                            </td>
+                        </tr>
+                        
+                        <!-- Footer -->
+                        <tr>
+                            <td align="center" style="padding: 20px; background-color: #f8f9fa; border-radius: 0 0 10px 10px;">
+                                <p style="margin: 0; font-size: 12px; color: #999999;">
+                                    © 2025 <strong>VietTech</strong> - Sàn Thương Mại Điện Tử
+                                </p>
+                                <p style="margin: 5px 0 0; font-size: 12px; color: #999999;">
+                                    📧 Email này được gửi tự động, vui lòng không trả lời.
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """, customerName, orderNumber, totalPrice, estimatedDelivery);
+    }
+
+    /**
+     * Template email xác nhận thanh toán VNPay
+     */
+    private static String buildOrderConfirmationVNPayTemplate(
+            String customerName,
+            String orderNumber,
+            String transactionNo,
+            double totalPrice,
+            String bankCode,
+            String payDate,
+            String estimatedDelivery) {
+
+        return String.format("""
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Thanh toán thành công</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+        <table width="100%%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f4f4f4; padding: 40px 0;">
+            <tr>
+                <td align="center">
+                    <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                        
+                        <!-- Header -->
+                        <tr>
+                            <td align="center" style="padding: 30px 20px; background: linear-gradient(135deg, #28a745, #20c997); border-radius: 10px 10px 0 0;">
+                                <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                                    ✅ Thanh toán thành công!
+                                </h1>
+                            </td>
+                        </tr>
+                        
+                        <!-- Body -->
+                        <tr>
+                            <td style="padding: 40px 30px;">
+                                <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                    Xin chào <strong>%s</strong>,
+                                </p>
+                                
+                                <p style="margin: 0 0 20px; font-size: 16px; color: #333333; line-height: 1.6;">
+                                    Thanh toán của bạn đã được xác nhận thành công qua <strong>VNPay</strong>. 
+                                    Đơn hàng của bạn đang được xử lý.
+                                </p>
+                                
+                                <!-- Payment Info Box -->
+                                <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                                    <h3 style="margin: 0 0 15px; color: #28a745; font-size: 18px;">💳 Thông tin thanh toán:</h3>
+                                    <table width="100%%" border="0" cellspacing="0" cellpadding="8">
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Mã đơn hàng:</td>
+                                            <td style="color: #333; font-weight: bold; font-size: 14px; text-align: right;">%s</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Mã giao dịch VNPay:</td>
+                                            <td style="color: #0d6efd; font-weight: bold; font-size: 14px; text-align: right;">%s</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Số tiền đã thanh toán:</td>
+                                            <td style="color: #dc3545; font-weight: bold; font-size: 16px; text-align: right;">%,.0f đ</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Ngân hàng:</td>
+                                            <td style="color: #333; font-weight: bold; font-size: 14px; text-align: right; text-transform: uppercase;">%s</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Thời gian thanh toán:</td>
+                                            <td style="color: #333; font-weight: bold; font-size: 14px; text-align: right;">%s</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="color: #666; font-size: 14px;">Dự kiến giao hàng:</td>
+                                            <td style="color: #333; font-weight: bold; font-size: 14px; text-align: right;">%s</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                
+                                <div style="background: #e7f3ff; border-left: 4px solid #0d6efd; padding: 20px; border-radius: 8px; margin: 30px 0;">
+                                    <h3 style="margin: 0 0 15px; color: #0d6efd; font-size: 18px;">📋 Các bước tiếp theo:</h3>
+                                    <ol style="margin: 0; padding-left: 20px; color: #333; line-height: 1.8;">
+                                        <li>Đơn hàng đang được chuẩn bị</li>
+                                        <li>Chúng tôi sẽ giao hàng đến địa chỉ của bạn</li>
+                                        <li>Bạn có thể theo dõi đơn hàng trên hệ thống</li>
+                                        <li>Kiểm tra hàng khi nhận</li>
+                                    </ol>
+                                </div>
+                                
+                                <div style="text-align: center; margin: 30px 0;">
+                                    <a href="https://viettech.fit/profile/orders" 
+                                       style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #0d6efd, #1e40af); 
+                                              color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                                        Xem chi tiết đơn hàng
+                                    </a>
+                                </div>
+                                
+                                <p style="margin: 20px 0; font-size: 14px; color: #666666; line-height: 1.6;">
+                                    Nếu có thắc mắc, vui lòng liên hệ: <br>
+                                    📞 Hotline: <strong>0866 448 892</strong> (24/7)<br>
+                                    📧 Email: <a href="mailto:support@viettech.vn" style="color: #0d6efd; text-decoration: none;">support@viettech.vn</a>
+                                </p>
+                                
+                                <p style="margin: 20px 0; font-size: 16px; color: #333333;">
+                                    Cảm ơn bạn đã tin tưởng VietTech! 💙
+                                </p>
+                            </td>
+                        </tr>
+                        
+                        <!-- Footer -->
+                        <tr>
+                            <td align="center" style="padding: 20px; background-color: #f8f9fa; border-radius: 0 0 10px 10px;">
+                                <p style="margin: 0; font-size: 12px; color: #999999;">
+                                    © 2025 <strong>VietTech</strong> - Sàn Thương Mại Điện Tử
+                                </p>
+                                <p style="margin: 5px 0 0; font-size: 12px; color: #999999;">
+                                    📧 Email này được gửi tự động, vui lòng không trả lời.
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+    </html>
+    """, customerName, orderNumber, transactionNo, totalPrice, bankCode, payDate, estimatedDelivery);
+    }
+
     private EmailUtilBrevo() {
         throw new AssertionError("Cannot instantiate utility class");
     }

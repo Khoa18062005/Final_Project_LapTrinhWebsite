@@ -61,6 +61,8 @@ public class CartServlet extends HttpServlet {
             double total = cartService.calculateTotal(cartItems);
             int cartCount = cartService.getCartCount(session);
 
+            session.setAttribute("cartItems", cartItems);
+
             request.setAttribute("cartItems", cartItems);
             request.setAttribute("total", total);
             request.setAttribute("itemCount", cartItems.size());
@@ -90,6 +92,7 @@ public class CartServlet extends HttpServlet {
                     .forward(request, response);
         }
     }
+
 
 
     @Override
