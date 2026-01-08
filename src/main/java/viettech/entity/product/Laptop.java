@@ -145,7 +145,7 @@ public class Laptop extends Product {
                   double weight,
                   String dimensions,
                   boolean isFeatured,
-
+                  int quantity,
                   String cpu,
                   String cpuGeneration,
                   double cpuSpeed,
@@ -178,7 +178,7 @@ public class Laptop extends Product {
 
         super(vendorId, categoryId, name, slug, basePrice,
                 description, brand, specifications, status,
-                condition, weight, dimensions, isFeatured);
+                condition, weight, dimensions, isFeatured, quantity);
 
         this.cpu = cpu != null ? cpu : "";
         this.cpuGeneration = cpuGeneration != null ? cpuGeneration : "";
