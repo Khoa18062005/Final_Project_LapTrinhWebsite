@@ -329,7 +329,6 @@ public class NotificationDAO {
             em.close();
         }
     }
-}
 
     /**
      * Bulk delete notifications by (type, actionUrl).

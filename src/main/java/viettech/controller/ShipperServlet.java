@@ -188,17 +188,6 @@ public class ShipperServlet extends HttpServlet {
 
                 String deleteAvatar = request.getParameter("deleteAvatar");
                 if ("true".equals(deleteAvatar)) {
-                    avatarUrl = null; // Xóa ảnh trong DB (hoặc set link ảnh default)
-                } else {
-                    // 2. Upload ảnh mới (Sử dụng CloudinaryUtil vừa sửa)
-                    Part filePart = request.getPart("avatarFile");
-
-                    // Hàm uploadAvatar đã tự kiểm tra null và size, nên gọi thẳng
-                    String uploadedUrl = viettech.util.CloudinaryUtil.uploadAvatar(filePart);
-
-                    if (uploadedUrl != null) {
-                        avatarUrl = uploadedUrl;
-                        System.out.println("DEBUG: Đã upload ảnh mới lên Cloudinary: " + avatarUrl);
                     avatarUrl = ""; // Đánh dấu là xóa
 
                     // (Optional) Xóa ảnh cũ trên Cloudinary nếu cần
@@ -212,6 +201,7 @@ public class ShipperServlet extends HttpServlet {
                         String uploadedUrl = CloudinaryUtil.uploadAvatar(filePart);
                         if (uploadedUrl != null) {
                             avatarUrl = uploadedUrl;
+                            System.out.println("DEBUG: Đã upload ảnh mới lên Cloudinary: " + avatarUrl);
 
                             // (Optional) Xóa ảnh cũ khi đã có ảnh mới
                             if (user.getAvatar() != null) {
