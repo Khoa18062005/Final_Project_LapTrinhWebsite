@@ -73,20 +73,148 @@ function formatCurrency(amount) {
 
 // Show Section
 function showSection(sectionId) {
+    // Ẩn tất cả section
     document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    document.getElementById(sectionId).classList.add('active');
+    // Hiện section được chọn
+    const target = document.getElementById(sectionId);
+    if (target) target.classList.add('active');
 
+    // Cập nhật trạng thái menu bên trái
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
     const activeNav = document.querySelector(`.nav-item[onclick*="${sectionId}"]`);
     if (activeNav) activeNav.classList.add('active');
+}
 
-    if (sectionId === 'income') {
-        // Mặc định hiển thị biểu đồ tháng khi vừa mở tab
-        setTimeout(() => {
-            filterIncome('month');
-        }, 100);
+function openProfileModal() {
+    const modal = document.getElementById('profileModalBackdrop');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.setAttribute('aria-hidden', 'false');
     }
 }
+
+function closeProfileModal() {
+    const modal = document.getElementById('profileModalBackdrop');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.setAttribute('aria-hidden', 'true');
+    }
+}
+
+function openReviewModal(orderNumber, rating, feedback) {
+    const orderIdEl = document.getElementById('reviewOrderId');
+    const starsEl = document.getElementById('reviewStars');
+    const commentEl = document.getElementById('reviewComment');
+    const modal = document.getElementById('reviewModalBackdrop');
+
+    if (orderIdEl) orderIdEl.innerText = '#' + orderNumber;
+
+    if (starsEl) {
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= rating) starsHtml += '<i class="fas fa-star" style="color: #f1c40f;"></i>';
+            else starsHtml += '<i class="far fa-star" style="color: #f1c40f;"></i>';
+        }
+        starsEl.innerHTML = starsHtml;
+    }
+
+    if (commentEl) {
+        if (feedback && feedback !== 'null' && feedback.trim() !== '') {
+            commentEl.innerText = feedback;
+            commentEl.style.fontStyle = 'normal';
+            commentEl.style.color = '#333';
+        } else {
+            commentEl.innerText = "Khách hàng không để lại lời nhắn.";
+            commentEl.style.fontStyle = 'italic';
+            commentEl.style.color = '#999';
+        }
+    }
+
+    if (modal) modal.style.display = 'flex';
+}
+
+function submitProfileForm() {
+    const first = document.getElementById('pfFirstName');
+    if (first && !first.value.trim()) {
+        alert('Vui lòng nhập tên.');
+        return false;
+    }
+    return true;
+}
+
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById('avatarPreview');
+            const flag = document.getElementById('deleteAvatarFlag');
+            if (img) img.src = e.target.result;
+            if (flag) flag.value = "false";
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeAvatar() {
+    const img = document.getElementById('avatarPreview');
+    const input = document.getElementById('avatarInput');
+    const flag = document.getElementById('deleteAvatarFlag');
+
+    if (img) img.src = 'https://via.placeholder.com/100?text=No+Img';
+    if (input) input.value = "";
+    if (flag) flag.value = "true";
+}
+
+// 5. Hệ thống thông báo (Notification)
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-times-circle' : 'fa-info-circle'}"></i>
+        <span>${message}</span>
+    `;
+
+    // Style inline để đảm bảo hiện đúng
+    Object.assign(notification.style, {
+        position: 'fixed', top: '20px', right: '20px',
+        padding: '15px 20px', borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        display: 'flex', alignItems: 'center', gap: '10px',
+        zIndex: '99999', animation: 'slideIn 0.3s ease',
+        minWidth: '250px', fontWeight: '500',
+        background: type === 'success' ? '#2ecc71' : (type === 'error' ? '#e74c3c' : '#3498db'),
+        color: 'white'
+    });
+
+    document.body.appendChild(notification);
+
+    // Tự động tắt sau 3s
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (document.body.contains(notification)) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Thêm animation style cho notification
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+`;
+document.head.appendChild(style);
+
+// 6. Định dạng tiền tệ
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN').format(amount);
+}
+
+// --- KHỞI TẠO ---
+// Chỉ log ra console, không chạy các hàm update mock data nữa
+console.log('🚚 Shipper JS Utilities Loaded.');
 
 // Online Status Toggle
 function updateOnlineStatus() {

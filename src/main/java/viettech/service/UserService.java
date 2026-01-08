@@ -2,17 +2,21 @@ package viettech.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import viettech.dao.AdminDAO;
 import viettech.dao.CartDAO;
 import viettech.dao.CustomerDAO;
 import viettech.dto.Register_dto;
 import viettech.entity.cart.Cart;
+import viettech.entity.user.Admin;
 import viettech.entity.user.Customer;
 import viettech.util.PasswordUtil;
 
 import java.security.SecureRandom;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * User Service - Xử lý đăng ký và quản lý user
@@ -25,6 +29,7 @@ public class UserService {
     private static final String USERNAME_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Bỏ I, O, 0, 1 dễ nhầm
     private static final int USERNAME_LENGTH = 8;
     private static final SecureRandom random = new SecureRandom();
+    private final AdminDAO adminDAO;
 
     // ===== CONSTANTS CHO REFERRAL SYSTEM =====
     private static final int REFERRER_BONUS = 200;  // Người giới thiệu nhận 200 điểm
@@ -33,6 +38,7 @@ public class UserService {
 
     public UserService() {
         this.customerDAO = new CustomerDAO();
+        this.adminDAO = new AdminDAO();
     }
 
     /**
@@ -303,8 +309,33 @@ public class UserService {
         return REFERRED_BONUS;
     }
 
+    /**
+     * ========== TÌM TẤT CẢ ADMIN ĐANG ACTIVE ==========
+     * Sử dụng AdminDAO để tìm admin
+     * @return List<Admin> danh sách admin active
+     */
+    public List<Admin> findAllAdmins() {
+        try {
+            List<Admin> admins = adminDAO.findAllActive();
+            logger.debug("UserService: Retrieved {} admin(s) from DAO", admins.size());
+            return admins;
+        } catch (Exception e) {
+            logger.error("✗ UserService: Error finding admins", e);
+            return new ArrayList<>();
+        }
+    }
 
-
-
+    /**
+     * ========== ĐẾM SỐ LƯỢNG ADMIN ==========
+     * @return long số lượng admin active
+     */
+    public long countActiveAdmins() {
+        try {
+            return adminDAO.countActive();
+        } catch (Exception e) {
+            logger.error("✗ UserService: Error counting admins", e);
+            return 0;
+        }
+    }
 
 }

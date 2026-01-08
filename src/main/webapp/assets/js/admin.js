@@ -1,82 +1,272 @@
-// Mock Data
-let products = [
-    { id: 1, name: 'iPhone 15 Pro Max', category: 'Điện thoại', price: 29990000, stock: 45, status: 'active', image: 'https://via.placeholder.com/50?text=iPhone' },
-    { id: 2, name: 'Samsung Galaxy S24 Ultra', category: 'Điện thoại', price: 27990000, stock: 32, status: 'active', image: 'https://via.placeholder.com/50?text=Samsung' },
-    { id: 3, name: 'MacBook Pro 16"', category: 'Laptop', price: 59990000, stock: 15, status: 'active', image: 'https://via.placeholder.com/50?text=MacBook' },
-    { id: 4, name: 'Dell XPS 15', category: 'Laptop', price: 42990000, stock: 20, status: 'active', image: 'https://via.placeholder.com/50?text=Dell' },
-    { id: 5, name: 'AirPods Pro 2', category: 'Phụ kiện', price: 5990000, stock: 100, status: 'active', image: 'https://via.placeholder.com/50?text=AirPods' },
-    { id: 6, name: 'iPad Pro 12.9"', category: 'Tablet', price: 32990000, stock: 25, status: 'active', image: 'https://via.placeholder.com/50?text=iPad' },
-    { id: 7, name: 'Apple Watch Ultra 2', category: 'Phụ kiện', price: 19990000, stock: 18, status: 'active', image: 'https://via.placeholder.com/50?text=Watch' },
-    { id: 8, name: 'Sony WH-1000XM5', category: 'Phụ kiện', price: 8990000, stock: 60, status: 'active', image: 'https://via.placeholder.com/50?text=Sony' },
-];
+// ===== CRITICAL FUNCTIONS - MUST BE LOADED FIRST =====
 
-let users = [
-    { id: 1, name: 'Nguyễn Văn A', email: 'nguyenvana@gmail.com', phone: '0123456789', role: 'Khách hàng', status: 'active', avatar: 'https://via.placeholder.com/50?text=A' },
-    { id: 2, name: 'Trần Thị B', email: 'tranthib@gmail.com', phone: '0987654321', role: 'Khách hàng', status: 'active', avatar: 'https://via.placeholder.com/50?text=B' },
-    { id: 3, name: 'Lê Văn C', email: 'levanc@gmail.com', phone: '0345678901', role: 'Khách hàng', status: 'active', avatar: 'https://via.placeholder.com/50?text=C' },
-    { id: 4, name: 'Phạm Thị D', email: 'phamthid@gmail.com', phone: '0912345678', role: 'Admin', status: 'active', avatar: 'https://via.placeholder.com/50?text=D' },
-    { id: 5, name: 'Hoàng Văn E', email: 'hoangvane@gmail.com', phone: '0765432109', role: 'Khách hàng', status: 'inactive', avatar: 'https://via.placeholder.com/50?text=E' },
-];
+// Get context path from page or default
+function getContextPath() {
+    if (typeof contextPath !== 'undefined') {
+        return contextPath;
+    }
+    const path = window.location.pathname;
+    const contextEnd = path.indexOf('/', 1);
+    return contextEnd > 0 ? path.substring(0, contextEnd) : '';
+}
 
-let orders = [
-    { id: 'DH001', customer: 'Nguyễn Văn A', date: '2025-12-20', total: 29990000, status: 'completed', payment: 'Đã thanh toán' },
-    { id: 'DH002', customer: 'Trần Thị B', date: '2025-12-21', total: 15980000, status: 'processing', payment: 'Đã thanh toán' },
-    { id: 'DH003', customer: 'Lê Văn C', date: '2025-12-22', total: 59990000, status: 'pending', payment: 'Chờ thanh toán' },
-    { id: 'DH004', customer: 'Phạm Thị D', date: '2025-12-23', total: 8990000, status: 'completed', payment: 'Đã thanh toán' },
-    { id: 'DH005', customer: 'Hoàng Văn E', date: '2025-12-24', total: 42990000, status: 'cancelled', payment: 'Đã hoàn tiền' },
-];
+// Toggle Notifications
+function toggleNotifications() {
+    console.log('Toggle notifications');
+}
 
-let categories = [
-    { id: 1, name: 'Điện thoại', icon: 'fa-mobile-alt', count: 45, color: '#667eea' },
-    { id: 2, name: 'Laptop', icon: 'fa-laptop', count: 32, color: '#f093fb' },
-    { id: 3, name: 'Tablet', icon: 'fa-tablet-alt', count: 28, color: '#4facfe' },
-    { id: 4, name: 'Phụ kiện', icon: 'fa-headphones', count: 156, color: '#43e97b' },
-    { id: 5, name: 'Smartwatch', icon: 'fa-clock', count: 42, color: '#fa709a' },
-    { id: 6, name: 'TV & Audio', icon: 'fa-tv', count: 38, color: '#30cfd0' },
-];
+// Toggle Sidebar
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    if (sidebar) sidebar.classList.toggle('collapsed');
+    if (mainContent) mainContent.classList.toggle('expanded');
+}
 
-let reviews = [
-    { id: 1, user: 'Nguyễn Văn A', avatar: 'https://via.placeholder.com/50?text=A', product: 'iPhone 15 Pro Max', rating: 5, comment: 'Sản phẩm rất tuyệt vời, giao hàng nhanh!', date: '2025-12-20' },
-    { id: 2, user: 'Trần Thị B', avatar: 'https://via.placeholder.com/50?text=B', product: 'MacBook Pro 16"', rating: 5, comment: 'Máy chạy rất mượt, đáng đồng tiền!', date: '2025-12-21' },
-    { id: 3, user: 'Lê Văn C', avatar: 'https://via.placeholder.com/50?text=C', product: 'AirPods Pro 2', rating: 4, comment: 'Âm thanh tốt, chống ồn hiệu quả.', date: '2025-12-22' },
-    { id: 4, user: 'Phạm Thị D', avatar: 'https://via.placeholder.com/50?text=D', product: 'Samsung Galaxy S24', rating: 5, comment: 'Màn hình đẹp, camera xuất sắc!', date: '2025-12-23' },
-];
+// Navigation - Show Section
+function showSection(sectionId, clickedItem) {
+    if (!sectionId) return false;
+
+    const targetSection = document.getElementById(sectionId);
+    if (!targetSection) {
+        console.warn('Section not found:', sectionId);
+        // Try to find any content-section and show the first one (dashboard) as fallback
+        const fallbackSection = document.getElementById('dashboard');
+        if (fallbackSection) {
+            console.log('Falling back to dashboard section');
+            return showSection('dashboard', document.querySelector('a[href="#dashboard"]'));
+        }
+        return false;
+    }
+
+    // Hide all sections first
+    document.querySelectorAll('.content-section').forEach(section => {
+        if (section) section.classList.remove('active');
+    });
+
+    // Show target section
+    targetSection.classList.add('active');
+
+    // Update nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        if (item) item.classList.remove('active');
+    });
+    if (clickedItem && clickedItem.classList) {
+        clickedItem.classList.add('active');
+    }
+
+    const titles = {
+        'dashboard': 'Dashboard', 'products': 'Sản phẩm', 'vouchers': 'Voucher',
+        'users': 'Người dùng', 'orders': 'Đơn hàng', 'reviews': 'Đánh giá',
+        'settings': 'Cài đặt', 'flash-sales': 'Flash Sale', 'chatbot': 'AI Chatbot'
+    };
+    const pageTitle = document.getElementById('page-title');
+    if (pageTitle) pageTitle.textContent = titles[sectionId] || 'Dashboard';
+
+    if (history.pushState) history.pushState(null, null, '#' + sectionId);
+    return false;
+}
+
+// ===== CHATBOT FUNCTIONS =====
+
+function sendMessage() {
+    const input = document.getElementById('user-input');
+    if (!input) return;
+
+    const message = input.value.trim();
+    if (!message) return;
+
+    addChatMessage(message, 'user');
+    input.value = '';
+    showTypingIndicator();
+
+    const ctx = getContextPath();
+    fetch(ctx + '/admin/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideTypingIndicator();
+        addChatMessage(data.success ? data.response : (data.response || 'Lỗi xảy ra!'), 'bot');
+    })
+    .catch(error => {
+        hideTypingIndicator();
+        console.error('Error:', error);
+        addChatMessage('Không thể kết nối đến server!', 'bot');
+    });
+}
+
+function sendQuickMessage(message) {
+    const input = document.getElementById('user-input');
+    if (input) {
+        input.value = message;
+        sendMessage();
+    }
+}
+
+function addChatMessage(content, type) {
+    const chatBox = document.getElementById('chat-box');
+    if (!chatBox) return;
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message ' + type;
+    const now = new Date();
+    const timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+
+    if (type === 'bot') {
+        messageDiv.innerHTML = '<div class="message-avatar"><i class="fas fa-robot"></i></div>' +
+            '<div class="message-bubble"><div class="message-content">' + formatChatMessage(content) + '</div>' +
+            '<div class="message-time">' + timeStr + '</div></div>';
+    } else {
+        messageDiv.innerHTML = '<div class="message-bubble"><div class="message-content">' + escapeHtmlChat(content) + '</div>' +
+            '<div class="message-time">' + timeStr + '</div></div>' +
+            '<div class="message-avatar"><i class="fas fa-user"></i></div>';
+    }
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function showTypingIndicator() {
+    const chatBox = document.getElementById('chat-box');
+    if (!chatBox || document.getElementById('typing-indicator')) return;
+
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typing-indicator';
+    typingDiv.className = 'message bot';
+    typingDiv.innerHTML = '<div class="message-avatar"><i class="fas fa-robot"></i></div>' +
+        '<div class="typing-indicator"><span class="typing-text">Đang trả lời</span>' +
+        '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+    chatBox.appendChild(typingDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.disabled = true;
+}
+
+function hideTypingIndicator() {
+    const typing = document.getElementById('typing-indicator');
+    if (typing) typing.remove();
+    const sendBtn = document.getElementById('sendBtn');
+    if (sendBtn) sendBtn.disabled = false;
+}
+
+function escapeHtmlChat(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatChatMessage(text) {
+    return escapeHtmlChat(text).replace(/\n/g, '<br>');
+}
+
+function clearChatHistory() {
+    if (confirm('Bạn có chắc muốn xóa lịch sử chat?')) {
+        const chatBox = document.getElementById('chat-box');
+        if (chatBox) {
+            chatBox.innerHTML = '<div class="message bot"><div class="message-avatar"><i class="fas fa-robot"></i></div>' +
+                '<div class="message-bubble"><div class="message-content"><p>Lịch sử chat đã được xóa!</p></div>' +
+                '<div class="message-time">Vừa xong</div></div></div>';
+        }
+    }
+}
+
+function minimizeChat() {
+    const container = document.querySelector('.chatbot-container');
+    if (container) container.classList.toggle('minimized');
+}
+
+function expandChat() {
+    const container = document.querySelector('.chatbot-container');
+    if (container) container.classList.toggle('expanded');
+}
+
+// Modal Functions
+function openAddProductModal() {
+    const modal = document.getElementById('productModal');
+    if (modal) modal.classList.add('show');
+}
+
+function openAddUserModal() {
+    alert('Chức năng thêm người dùng đang được phát triển.');
+}
+
+function openAddCategoryModal() {
+    alert('Chức năng thêm danh mục đang được phát triển.');
+}
+
+function openAddVoucherModal() {
+    const modal = document.getElementById('voucherModal');
+    if (modal) modal.classList.add('show');
+    else alert('Chức năng thêm voucher đang được phát triển.');
+}
+
+function openAddFlashSaleModal() {
+    const modal = document.getElementById('flashSaleModal');
+    if (modal) modal.classList.add('show');
+    else alert('Chức năng tạo Flash Sale đang được phát triển.');
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('show');
+}
+
+// ===== END CRITICAL FUNCTIONS =====
+
+
 
 // Initialize Dashboard
 function initDashboard() {
-    updateStats();
-    renderProducts();
-    renderUsers();
-    renderOrders();
-    renderCategories();
-    renderReviews();
-    renderTopProducts();
-    initCharts();
+    try {
+        updateStats();
+        renderProducts();
+        renderUsers();
+        renderOrders();
+        renderCategories();
+        renderReviews();
+        renderTopProducts();
+        initCharts();
+    } catch (e) {
+        console.log('Dashboard init - some elements may not exist:', e.message);
+    }
 }
 
 // Update Statistics
 function updateStats() {
-    document.getElementById('total-products').textContent = products.length;
-    document.getElementById('total-users').textContent = users.length;
-    document.getElementById('total-orders').textContent = orders.length;
+    const totalProductsEl = document.getElementById('total-products');
+    const totalUsersEl = document.getElementById('total-users');
+    const totalOrdersEl = document.getElementById('total-orders');
+    const totalRevenueEl = document.getElementById('total-revenue');
+    const monthRevenueEl = document.getElementById('monthRevenue');
+    const completedOrdersEl = document.getElementById('completedOrders');
+    const avgOrderValueEl = document.getElementById('avgOrderValue');
+
+    if (totalProductsEl) totalProductsEl.textContent = products.length;
+    if (totalUsersEl) totalUsersEl.textContent = users.length;
+    if (totalOrdersEl) totalOrdersEl.textContent = orders.length;
 
     const totalRevenue = orders
         .filter(order => order.status === 'completed')
         .reduce((sum, order) => sum + order.total, 0);
 
-    document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
-    document.getElementById('monthRevenue').textContent = formatCurrency(totalRevenue);
+    if (totalRevenueEl) totalRevenueEl.textContent = formatCurrency(totalRevenue);
+    if (monthRevenueEl) monthRevenueEl.textContent = formatCurrency(totalRevenue);
 
     const completedOrders = orders.filter(order => order.status === 'completed').length;
-    document.getElementById('completedOrders').textContent = completedOrders;
+    if (completedOrdersEl) completedOrdersEl.textContent = completedOrders;
 
     const avgOrder = completedOrders > 0 ? totalRevenue / completedOrders : 0;
-    document.getElementById('avgOrderValue').textContent = formatCurrency(avgOrder);
+    if (avgOrderValueEl) avgOrderValueEl.textContent = formatCurrency(avgOrder);
 }
 
 // Render Products Table
 function renderProducts() {
     const tbody = document.getElementById('productsTable');
+    if (!tbody) return;
+
     tbody.innerHTML = products.map(product => `
         <tr>
             <td>${product.id}</td>
@@ -106,6 +296,8 @@ function renderProducts() {
 // Render Users Table
 function renderUsers() {
     const tbody = document.getElementById('usersTable');
+    if (!tbody) return;
+
     tbody.innerHTML = users.map(user => `
         <tr>
             <td>${user.id}</td>
@@ -135,6 +327,8 @@ function renderUsers() {
 // Render Orders Table
 function renderOrders() {
     const tbody = document.getElementById('ordersTable');
+    if (!tbody) return;
+
     tbody.innerHTML = orders.map(order => `
         <tr>
             <td>${order.id}</td>
@@ -160,6 +354,8 @@ function renderOrders() {
 // Render Categories Grid
 function renderCategories() {
     const grid = document.getElementById('categoriesGrid');
+    if (!grid) return;
+
     grid.innerHTML = categories.map(category => `
         <div class="category-card">
             <div class="category-icon" style="background: ${category.color}">
@@ -182,6 +378,8 @@ function renderCategories() {
 // Render Reviews List
 function renderReviews() {
     const list = document.getElementById('reviewsList');
+    if (!list) return;
+
     list.innerHTML = reviews.map(review => `
         <div class="review-card">
             <div class="review-header">
@@ -212,8 +410,10 @@ function renderReviews() {
 
 // Render Top Products
 function renderTopProducts() {
-    const topProductsData = products.slice(0, 5);
     const container = document.getElementById('topProducts');
+    if (!container) return;
+
+    const topProductsData = products.slice(0, 5);
     container.innerHTML = topProductsData.map(product => `
         <div class="product-item">
             <div class="product-info">
@@ -311,65 +511,9 @@ function getOrderStatusText(status) {
     return statusMap[status] || status;
 }
 
-// Navigation Functions
-function showSection(sectionId) {
-    // Hide all sections
-    document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-    });
-
-    // Show selected section
-    document.getElementById(sectionId).classList.add('active');
-
-    // Update active nav item
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
-    event.target.closest('.nav-item').classList.add('active');
-
-    // Update page title
-    const titles = {
-        'dashboard': 'Dashboard',
-        'products': 'Quản lý sản phẩm',
-        'voucher': 'Quản lý Voucher',
-        'users': 'Quản lý người dùng',
-        'orders': 'Quản lý đơn hàng',
-        'revenue': 'Báo cáo doanh thu',
-        'categories': 'Quản lý danh mục',
-        'reviews': 'Quản lý đánh giá',
-        'settings': 'Cài đặt hệ thống'
-    };
-    document.getElementById('page-title').textContent = titles[sectionId] || 'Dashboard';
-}
-
-function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    const mainContent = document.querySelector('.main-content');
-    sidebar.classList.toggle('collapsed');
-    mainContent.classList.toggle('collapsed');
-}
-
-// Modal Funct4ions
-function openAddProductModal() {
-    const modal = document.getElementById('productModal');
-    modal.classList.add('show');
-}
-
-function openAddUserModal() {
-    alert('Mở form thêm người dùng (chưa implement UI)');
-}
-
-function openAddCategoryModal() {
-    alert('Mở form thêm danh mục (chưa implement UI)');
-}
-
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.classList.remove('show');
-}
-
 // Product Form Submit
 document.addEventListener('DOMContentLoaded', function() {
+    // Product Form Handler
     const productForm = document.getElementById('productForm');
     if (productForm) {
         productForm.addEventListener('submit', function(e) {
@@ -395,8 +539,84 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Check URL hash on page load for navigation
+    const hash = window.location.hash.replace('#', '');
+    if (hash) {
+        const navItem = document.querySelector('a[href="#' + hash + '"]');
+        const targetSection = document.getElementById(hash);
+        if (navItem && targetSection) {
+            showSection(hash, navItem);
+        }
+    }
+
+    // Handle browser back/forward buttons
+    window.addEventListener('popstate', function() {
+        const hash = window.location.hash.replace('#', '');
+        if (hash) {
+            const navItem = document.querySelector('a[href="#' + hash + '"]');
+            if (navItem) {
+                showSection(hash, navItem);
+            }
+        } else {
+            // Default to dashboard if no hash
+            const dashboardNav = document.querySelector('a[href="#dashboard"]');
+            if (dashboardNav) {
+                showSection('dashboard', dashboardNav);
+            }
+        }
+    });
+
+    // Handle responsive sidebar on initial load
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.add('collapsed');
+        }
+    }
+
+    // Store Settings Form Handler
+    const storeSettingsForm = document.getElementById('storeSettingsForm');
+    if (storeSettingsForm) {
+        storeSettingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Đã lưu cài đặt thành công!');
+        });
+    }
+
+    // Email Settings Form Handler
+    const emailSettingsForm = document.getElementById('emailSettingsForm');
+    if (emailSettingsForm) {
+        emailSettingsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Đã lưu cấu hình email!');
+        });
+    }
+
+    // Close modal when clicking outside
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+            }
+        });
+    });
+
     // Initialize dashboard
     initDashboard();
+});
+
+// Handle window resize for responsive sidebar
+window.addEventListener('resize', function() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+
+    if (window.innerWidth <= 768) {
+        if (sidebar) sidebar.classList.add('collapsed');
+        if (mainContent) mainContent.classList.add('expanded');
+    } else {
+        if (sidebar) sidebar.classList.remove('collapsed');
+        if (mainContent) mainContent.classList.remove('expanded');
+    }
 });
 
 // CRUD Operations
@@ -474,12 +694,13 @@ function filterRevenue() {
     alert(`Lọc doanh thu theo: ${filter} (chưa implement)`);
 }
 
-// Close modal when clicking outside
-window.onclick = function(event) {
-    // Handle all modals with the 'modal' class
-    if (event.target.classList.contains('modal')) {
-        event.target.classList.remove('show');
-        event.target.style.display = 'none';
+// Filter orders by status
+function filterOrders() {
+    const filter = document.getElementById('orderStatusFilter');
+    if (filter) {
+        const status = filter.value;
+        console.log('Filtering orders by status:', status);
+        // TODO: Implement order filtering
     }
 }
 
@@ -504,6 +725,152 @@ function showProductDetails(sourceId) {
         modal.style.display = "block";
         modal.classList.add("show");
     } else {
-        console.error("Error: Cannot find detail data or Modal. ID:", sourceId);
+        // Fallback: Create dynamic modal if viewDetailModal doesn't exist
+        const detailElement = document.getElementById(sourceId);
+        if (!detailElement) {
+            console.error("Error: Cannot find detail data. ID:", sourceId);
+            return;
+        }
+
+        // Remove existing modal if any
+        const existingModal = document.getElementById('productDetailModal');
+        if (existingModal) existingModal.remove();
+
+        // Create new modal
+        const newModal = document.createElement('div');
+        newModal.className = 'modal show';
+        newModal.id = 'productDetailModal';
+        newModal.innerHTML =
+            '<div class="modal-content modal-lg">' +
+                '<div class="modal-header">' +
+                    '<h3>Chi tiết sản phẩm</h3>' +
+                    '<button class="modal-close" onclick="closeProductDetailModal()">&times;</button>' +
+                '</div>' +
+                '<div class="modal-body" style="max-height: 70vh; overflow-y: auto;">' +
+                    detailElement.innerHTML +
+                '</div>' +
+                '<div class="modal-footer">' +
+                    '<button class="btn btn-secondary" onclick="closeProductDetailModal()"><i class="fas fa-times"></i> Đóng</button>' +
+                '</div>' +
+            '</div>';
+
+        document.body.appendChild(newModal);
+
+        newModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeProductDetailModal();
+            }
+        });
     }
 }
+
+/**
+ * Close product detail modal
+ */
+function closeProductDetailModal() {
+    const modal = document.getElementById('productDetailModal');
+    if (modal) modal.remove();
+
+    // Also try to close viewDetailModal if it exists
+    const viewModal = document.getElementById('viewDetailModal');
+    if (viewModal) {
+        viewModal.style.display = "none";
+        viewModal.classList.remove("show");
+    }
+}
+
+// ===== MODAL FUNCTIONS =====
+
+/**
+ * Open a modal by ID
+ * @param {string} modalId - The ID of the modal to open
+ */
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+
+        // Focus on first input if exists
+        setTimeout(() => {
+            const firstInput = modal.querySelector('input:not([type="hidden"]), select, textarea');
+            if (firstInput) firstInput.focus();
+        }, 100);
+    }
+}
+
+/**
+ * Close a modal by ID
+ * @param {string} modalId - The ID of the modal to close
+ */
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+}
+
+/**
+ * Close modal when clicking outside
+ */
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal')) {
+        e.target.style.display = 'none';
+        e.target.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+});
+
+/**
+ * Close modal on Escape key
+ */
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const openModals = document.querySelectorAll('.modal.show');
+        openModals.forEach(modal => {
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        });
+        document.body.style.overflow = '';
+    }
+});
+
+// ===== PRODUCT MODAL FUNCTIONS =====
+
+function openAddProductModal() {
+    openModal('productModal');
+}
+
+
+// Initialize chat input event listener when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    const userInput = document.getElementById('user-input');
+    if (userInput) {
+        userInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    }
+
+    // Debug: Log available sections
+    const sections = document.querySelectorAll('.content-section');
+    console.log('Available sections:', Array.from(sections).map(s => s.id));
+
+    // Handle hash-based navigation for admin sections
+    if (window.location.hash) {
+        const hash = window.location.hash.substring(1);
+        const navItem = document.querySelector(`a[href="#${hash}"]`);
+        if (navItem) {
+            // Small delay to ensure all content is loaded
+            setTimeout(() => {
+                showSection(hash, navItem);
+            }, 100);
+        }
+    }
+});
+

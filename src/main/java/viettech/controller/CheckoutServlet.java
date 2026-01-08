@@ -1,30 +1,45 @@
 package viettech.controller;
 
-import viettech.dao.AddressDAO;
-import viettech.dao.CustomerDAO;
+import viettech.config.VNPayConfig;
+import viettech.dao.*;
 import viettech.dto.CartCheckoutItemDTO;
 import viettech.entity.Address;
+import viettech.entity.order.Order;
+import viettech.entity.order.OrderStatus;
 import viettech.entity.user.Customer;
 import viettech.entity.user.User;
+import viettech.entity.voucher.Voucher;
+import viettech.entity.voucher.VoucherUsage;
+import viettech.service.CartService;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @WebServlet(name = "CheckoutServlet", urlPatterns = {"/checkout"})
 public class CheckoutServlet extends HttpServlet {
 
     private CustomerDAO customerDAO;
     private AddressDAO addressDAO;
+    private OrderDAO orderDAO;
+    private OrderStatusDAO orderStatusDAO;
+    private VoucherDAO voucherDAO;
+    private VoucherUsageDAO voucherUsageDAO;
+    private CartService cartService;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        // Khởi tạo DAO
         customerDAO = new CustomerDAO();
         addressDAO = new AddressDAO();
+        orderDAO = new OrderDAO();
+        orderStatusDAO = new OrderStatusDAO();
+        voucherDAO = new VoucherDAO();
+        voucherUsageDAO = new VoucherUsageDAO();
+        cartService = new CartService();
     }
 
     @Override
@@ -52,10 +67,10 @@ public class CheckoutServlet extends HttpServlet {
             List<Address> savedAddresses = addressDAO.findByCustomerId(fullCustomer.getUserId());
             Address defaultAddress = addressDAO.findDefaultByCustomerId(user.getUserId());
 
-            // Tìm địa chỉ mặc định để pre-select
             for (Address address : savedAddresses) {
                 if (address == defaultAddress) {
                     savedAddresses.remove(defaultAddress);
+                    break;
                 }
             }
 
@@ -63,23 +78,50 @@ public class CheckoutServlet extends HttpServlet {
                 defaultAddress = savedAddresses.get(0);
             }
 
-            // Đặt các attribute cho JSP
             request.setAttribute("customer", fullCustomer);
             request.setAttribute("savedAddresses", savedAddresses);
             request.setAttribute("defaultAddress", defaultAddress);
 
-            // Kiểm tra xem có selectedCartItems trong session không
+            // Lấy danh sách voucher active và valid
+            List<Voucher> vouchers = voucherDAO.findActiveAndValid();
+            List<Voucher> availableVouchers = new ArrayList<>();
+
             List<CartCheckoutItemDTO> selectedCartItems = (List<CartCheckoutItemDTO>) session.getAttribute("selectedCartItems");
             if (selectedCartItems != null && !selectedCartItems.isEmpty()) {
                 request.setAttribute("selectedCartItems", selectedCartItems);
 
-                // Tính tổng tiền cho các item đã chọn
                 double total = 0;
                 for (CartCheckoutItemDTO item : selectedCartItems) {
                     total += item.getSubtotal();
                 }
                 request.setAttribute("total", total);
             }
+            for (Voucher voucher : vouchers) {
+
+                List<Integer> productIds = parseIds(voucher.getApplicableProducts());
+                List<Integer> categoryIds = parseIds(voucher.getApplicableCategories());
+
+                // Voucher áp dụng cho tất cả
+                if (productIds.isEmpty() && categoryIds.isEmpty()) {
+                    long userUsageCount = this.numberOfUsagePerCustomer(fullCustomer.getUserId(), voucher.getVoucherId());
+                    if (userUsageCount < voucher.getUsageLimitPerUser()) {
+                        availableVouchers.add(voucher);
+                        continue;
+                    }
+                }
+
+                boolean matchProduct = !productIds.isEmpty()
+                        && cartService.isProductsInCart(selectedCartItems, productIds);
+
+                boolean matchCategory = !categoryIds.isEmpty()
+                        && cartService.isCategoriesInCart(selectedCartItems, categoryIds);
+
+                if (matchProduct || matchCategory) {
+                    availableVouchers.add(voucher);
+                }
+            }
+
+            request.setAttribute("availableVouchers", availableVouchers);
 
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/shipping-info.jsp");
             dispatcher.forward(request, response);
@@ -95,7 +137,6 @@ public class CheckoutServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Xử lý khi người dùng CHỌN địa chỉ và submit form
         HttpSession session = request.getSession();
         Customer customer = (Customer) session.getAttribute("user");
 
@@ -106,10 +147,16 @@ public class CheckoutServlet extends HttpServlet {
 
         try {
             String selectedAddressIdStr = request.getParameter("selectedAddressId");
+            String paymentMethod = request.getParameter("paymentMethod");
             String note = request.getParameter("note");
+            String voucherCode = request.getParameter("voucherCode");
 
             if (selectedAddressIdStr == null || selectedAddressIdStr.trim().isEmpty()) {
                 throw new Exception("Vui lòng chọn địa chỉ giao hàng");
+            }
+
+            if (paymentMethod == null || paymentMethod.trim().isEmpty()) {
+                throw new Exception("Vui lòng chọn phương thức thanh toán");
             }
 
             int selectedAddressId = Integer.parseInt(selectedAddressIdStr);
@@ -132,19 +179,199 @@ public class CheckoutServlet extends HttpServlet {
                 throw new Exception("Địa chỉ không tồn tại hoặc không thuộc về tài khoản của bạn");
             }
 
-            // Lưu thông tin giao hàng vào session
+            // Lưu thông tin vào session
             session.setAttribute("shippingAddress", selectedAddress);
             session.setAttribute("shippingNote", note);
+            session.setAttribute("paymentMethod", paymentMethod);
 
-            // Kiểm tra xem là buy-now hay từ giỏ hàng
-            Boolean isBuyNow = (Boolean) session.getAttribute("isBuyNow");
+            // Lấy thông tin giỏ hàng
+            List<CartCheckoutItemDTO> selectedCartItems = (List<CartCheckoutItemDTO>) session.getAttribute("selectedCartItems");
+            if (selectedCartItems == null || selectedCartItems.isEmpty()) {
+                throw new Exception("Giỏ hàng trống");
+            }
 
-            if (isBuyNow != null && isBuyNow) {
-                // Nếu là buy-now, chuyển hướng đến payment
-                response.sendRedirect(request.getContextPath() + "/checkout/payment");
-            } else {
-                // Nếu là từ giỏ hàng, chuyển hướng đến payment-cart
-                response.sendRedirect(request.getContextPath() + "/checkout/payment-cart");
+            // Tính tổng tiền
+            double subtotal = 0;
+            for (CartCheckoutItemDTO item : selectedCartItems) {
+                subtotal += item.getSubtotal();
+            }
+
+            double shippingFee = 30000;
+            double tax = 0;
+            double voucherDiscount = 0.0;
+            Voucher appliedVoucher = null;
+
+            // Xử lý voucher nếu có
+            if (voucherCode != null && !voucherCode.trim().isEmpty()) {
+                appliedVoucher = voucherDAO.findByCode(voucherCode);
+
+                if (appliedVoucher != null) {
+                    // Kiểm tra voucher còn hợp lệ không
+                    Date now = new Date();
+                    if (!appliedVoucher.isActive() ||
+                            appliedVoucher.getStartDate().after(now) ||
+                            appliedVoucher.getExpiryDate().before(now)) {
+                        throw new Exception("Voucher không còn hiệu lực");
+                    }
+
+                    // Kiểm tra đã sử dụng hết chưa
+                    if (appliedVoucher.getUsageCount() >= appliedVoucher.getUsageLimit()) {
+                        throw new Exception("Voucher đã hết lượt sử dụng");
+                    }
+
+                    // Kiểm tra giá trị đơn hàng tối thiểu
+                    if (subtotal < appliedVoucher.getMinOrderValue()) {
+                        throw new Exception("Đơn hàng chưa đạt giá trị tối thiểu để áp dụng voucher");
+                    }
+
+                    // Kiểm tra user đã dùng voucher này chưa (nếu có giới hạn per user)
+                    if (appliedVoucher.getUsageLimitPerUser() > 0) {
+                        long userUsageCount = this.numberOfUsagePerCustomer(customer.getUserId(), appliedVoucher.getVoucherId());
+                        if (userUsageCount >= appliedVoucher.getUsageLimitPerUser()) {
+                            throw new Exception("Bạn đã sử dụng hết lượt áp dụng voucher này");
+                        }
+                    }
+
+                    // Tính toán giảm giá
+                    if ("PERCENTAGE".equals(appliedVoucher.getType())) {
+                        voucherDiscount = subtotal * (appliedVoucher.getDiscountPercent() / 100.0);
+                        if (appliedVoucher.getMaxDiscount() > 0 && voucherDiscount > appliedVoucher.getMaxDiscount()) {
+                            voucherDiscount = appliedVoucher.getMaxDiscount();
+                        }
+                    } else if ("FIXED_AMOUNT".equals(appliedVoucher.getType())) {
+                        voucherDiscount = appliedVoucher.getDiscountAmount();
+                    } else if ("SHIPPING".equals(appliedVoucher.getType())) {
+                        voucherDiscount = appliedVoucher.getDiscountAmount();
+                        shippingFee -= voucherDiscount;
+                        if(shippingFee < 0){
+                            shippingFee = 0;
+                        }
+                        voucherDiscount = 0;
+                    }
+
+                    // Lưu voucher vào session để dùng sau
+                    session.setAttribute("appliedVoucher", appliedVoucher);
+                } else {
+                    throw new Exception("Mã voucher không hợp lệ");
+                }
+            }
+
+            String usedLoyaltyPointsStr = request.getParameter("usedLoyaltyPoints");
+            int usedLoyaltyPoints = 0;
+            double loyaltyDiscount = 0.0;
+
+            if (usedLoyaltyPointsStr != null && !usedLoyaltyPointsStr.trim().isEmpty()) {
+                try {
+                    usedLoyaltyPoints = Integer.parseInt(usedLoyaltyPointsStr);
+
+                    // Kiểm tra user có đủ điểm không
+                    if (usedLoyaltyPoints > fullCustomer.getLoyaltyPoints()) {
+                        throw new Exception("Bạn không có đủ điểm tích lũy");
+                    }
+
+                    // Tính giá trị giảm giá từ loyalty points (1 điểm = 1000đ)
+                    loyaltyDiscount = usedLoyaltyPoints * 1000.0;
+
+                    // Kiểm tra không vượt quá tổng tiền còn lại
+                    double remainingAmount = subtotal - voucherDiscount;
+                    if (loyaltyDiscount > remainingAmount) {
+                        loyaltyDiscount = remainingAmount;
+                        usedLoyaltyPoints = (int) (loyaltyDiscount / 1000.0);
+                    }
+
+                    // Lưu vào session để sử dụng sau
+                    session.setAttribute("usedLoyaltyPoints", usedLoyaltyPoints);
+                    session.setAttribute("loyaltyDiscount", loyaltyDiscount);
+
+                } catch (NumberFormatException e) {
+                    throw new Exception("Số điểm tích lũy không hợp lệ");
+                }
+            }
+
+            double totalPrice = subtotal + shippingFee + tax - voucherDiscount - loyaltyDiscount;
+
+            if (totalPrice < 0) {
+                totalPrice = 0;
+            }
+
+            // Xử lý theo phương thức thanh toán
+            if ("VNPAY".equals(paymentMethod)) {
+                String orderNumber = VNPayConfig.generateOrderNumber();
+                int vendorId = 1;
+
+                Calendar cal = Calendar.getInstance();
+                cal.add(Calendar.DAY_OF_MONTH, 3);
+                Date estimatedDelivery = cal.getTime();
+
+                Order order = new Order(
+                        orderNumber,
+                        fullCustomer.getUserId(),
+                        vendorId,
+                        selectedAddress.getAddressId(),
+                        "Pending_Payment",
+                        subtotal,
+                        shippingFee,
+                        0,
+                        tax,
+                        voucherDiscount,
+                        0,
+                        0,
+                        totalPrice,
+                        note,
+                        estimatedDelivery
+                );
+
+                orderDAO.insert(order);
+                Order createdOrder = orderDAO.findByOrderNumber(orderNumber);
+
+                if (createdOrder != null) {
+                    // Tạo OrderStatus
+                    OrderStatus orderStatus = new OrderStatus(
+                            createdOrder.getOrderId(),
+                            "Pending_Payment",
+                            "Đơn hàng đã được tạo, đang chờ thanh toán qua VNPay",
+                            null,
+                            "SYSTEM",
+                            null
+                    );
+                    orderStatusDAO.insert(orderStatus);
+
+                    // Lưu VoucherUsage nếu có voucher
+                    if (appliedVoucher != null) {
+                        VoucherUsage voucherUsage = new VoucherUsage(
+                                appliedVoucher.getVoucherId(),
+                                fullCustomer.getUserId(),
+                                createdOrder.getOrderId(),
+                                new Date(),
+                                subtotal,
+                                voucherDiscount
+                        );
+                        session.setAttribute("voucherUsage", voucherUsage);
+
+                        // Tăng usage count của voucher
+                        session.setAttribute("appliedVoucher", appliedVoucher);
+
+                    }
+                }
+
+                session.setAttribute("pendingOrderNumber", orderNumber);
+
+                String orderInfo = "Thanh toan don hang " + orderNumber;
+                long amount = (long) totalPrice;
+                String vnpayUrl = VNPayConfig.createPaymentUrl(request, orderNumber, amount, orderInfo);
+
+                response.sendRedirect(vnpayUrl);
+
+            } else if ("COD".equals(paymentMethod)) {
+                Boolean isBuyNow = (Boolean) session.getAttribute("isBuyNow");
+                if (isBuyNow != null && isBuyNow) {
+                    response.sendRedirect(request.getContextPath() + "/checkout/payment");
+                } else {
+                    response.sendRedirect(request.getContextPath() + "/checkout/payment-cod-confirmed");
+                }
+
+            } else if ("MOMO".equals(paymentMethod)) {
+                throw new Exception("Phương thức thanh toán MoMo chưa được hỗ trợ");
             }
 
         } catch (NumberFormatException e) {
@@ -156,5 +383,22 @@ public class CheckoutServlet extends HttpServlet {
             request.setAttribute("errorMessage", "Có lỗi xảy ra: " + e.getMessage());
             doGet(request, response);
         }
+    }
+
+    public int numberOfUsagePerCustomer(int customerId, int voucherId) {
+        List<VoucherUsage> voucherUsage = voucherUsageDAO.findByCustomerId(customerId);
+        return (int) voucherUsage.stream().filter(vu -> vu.getVoucherId() == voucherId).count();
+    }
+
+    private List<Integer> parseIds(String str) {
+        if (str == null || str.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return Arrays.stream(str.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
     }
 }

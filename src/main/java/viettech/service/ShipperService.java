@@ -6,6 +6,7 @@ import viettech.dto.Shipper_dto;
 import viettech.entity.delivery.DeliveryAssignment;
 import viettech.entity.user.Shipper;
 import viettech.entity.user.User;
+import viettech.entity.order.Order;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -50,9 +51,9 @@ public class ShipperService {
             System.out.println("Tổng số đơn tìm thấy trong DB: " + allAssignments.size());
 
             // 3. Phân loại đơn hàng
-            List<DeliveryAssignment> pending = new ArrayList<>();
-            List<DeliveryAssignment> ongoing = new ArrayList<>();
-            List<DeliveryAssignment> history = new ArrayList<>();
+            List<Order> pending = new ArrayList<>();
+            List<Order> ongoing = new ArrayList<>();
+            List<Order> history = new ArrayList<>();
 
             for (DeliveryAssignment da : allAssignments) {
                 // Kiểm tra an toàn để tránh NullPointerException
@@ -61,36 +62,37 @@ public class ShipperService {
                     continue;
                 }
 
+                Order order = da.getDelivery().getOrder();
                 String status = (da.getStatus() != null) ? da.getStatus().trim() : "";
-                String orderStatus = (da.getDelivery().getOrder().getStatus() != null) ? da.getDelivery().getOrder().getStatus().trim() : "";
+                String orderStatus = (order.getStatus() != null) ? order.getStatus().trim() : "";
 
-                System.out.println("-> Đơn #" + da.getDelivery().getOrder().getOrderNumber() +
+                System.out.println("-> Đơn #" + order.getOrderNumber() +
                         " | AssignStatus: " + status +
                         " | OrderStatus: " + orderStatus);
 
                 // --- NHÓM 1: CHỜ NHẬN (Pending) ---
                 if (containsIgnoreCase(status, "Assigned", "Pending", "Processing", "Ready", "Created")) {
-                    pending.add(da);
+                    pending.add(order);
                 }
                 // --- NHÓM 2: ĐANG THỰC HIỆN (Ongoing) ---
                 else if (containsIgnoreCase(status, "Accepted", "Picking Up", "In Transit", "Shipping", "On Delivery")) {
-                    ongoing.add(da);
+                    ongoing.add(order);
                 }
                 // --- NHÓM 3: LỊCH SỬ (History) ---
                 else if (containsIgnoreCase(status, "Completed", "Delivered", "Cancelled", "Returned", "Fail", "Success")) {
-                    history.add(da);
+                    history.add(order);
                 }
                 // --- TRƯỜNG HỢP LẠ (Fallback) ---
                 else {
                     // Nếu trạng thái Shipper lạ, thử check theo trạng thái Order
                     if (containsIgnoreCase(orderStatus, "Shipping", "In Transit")) {
-                        ongoing.add(da);
+                        ongoing.add(order);
                     } else if (containsIgnoreCase(orderStatus, "Completed", "Delivered")) {
-                        history.add(da);
+                        history.add(order);
                     } else {
                         // Mặc định ném vào pending để Shipper thấy
                         System.out.println("   (Trạng thái lạ -> Chuyển vào Pending)");
-                        pending.add(da);
+                        pending.add(order);
                     }
                 }
             }
@@ -297,31 +299,6 @@ public class ShipperService {
         } catch (Exception e) {
             if (trans.isActive()) trans.rollback();
             e.printStackTrace();
-        } finally {
-            em.close();
-        }
-    }
-
-    /**
-     * Find assignment_id for the given order and shipper.
-     * Used by notification accept flow: /shipper?action=acceptDelivery&orderId=...
-     */
-    public int findAssignmentIdForOrderAndShipper(int orderId, int shipperId) {
-        EntityManager em = JPAConfig.getEntityManager();
-        try {
-            String sql = "SELECT da.assignment_id " +
-                    "FROM deliveries d JOIN delivery_assignments da ON da.delivery_id = d.delivery_id " +
-                    "WHERE d.order_id = ? AND da.shipper_id = ? " +
-                    "ORDER BY da.assigned_at DESC LIMIT 1";
-
-            Object one = em.createNativeQuery(sql)
-                    .setParameter(1, orderId)
-                    .setParameter(2, shipperId)
-                    .getResultStream()
-                    .findFirst()
-                    .orElse(null);
-
-            return one == null ? 0 : ((Number) one).intValue();
         } finally {
             em.close();
         }

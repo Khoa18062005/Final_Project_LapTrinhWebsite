@@ -865,41 +865,57 @@ public class VendorService {
      * Called when order status changes to READY
      */
     private void broadcastReadyToShippers(int orderId) {
-        Order order = orderDAO.findById(orderId);
-        String orderNumber = (order != null && order.getOrderNumber() != null)
-                             ? order.getOrderNumber()
-                             : String.valueOf(orderId);
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            // Fetch order with address eagerly
+            Order order = em.createQuery(
+                    "SELECT o FROM Order o LEFT JOIN FETCH o.address WHERE o.orderId = :orderId",
+                    Order.class)
+                    .setParameter("orderId", orderId)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
 
-        // Get delivery address for context
-        String addressInfo = "";
-        if (order != null && order.getAddress() != null) {
-            addressInfo = " - Giao đến: " + order.getAddress().getDistrict() + ", " + order.getAddress().getCity();
-        }
+            String orderNumber = (order != null && order.getOrderNumber() != null)
+                                 ? order.getOrderNumber()
+                                 : String.valueOf(orderId);
 
-        String actionUrl = "/shipper?focus=assignment&orderId=" + orderId;
-        List<Shipper> shippers = getAvailableShippers();
-        NotificationService notificationService = new NotificationService();
-
-        logger.info("Broadcasting READY notification for order {} to {} available shippers", orderId, shippers.size());
-
-        int sentCount = 0;
-        for (Shipper s : shippers) {
-            try {
-                Notification n = new Notification();
-                n.setUserId(s.getUserId());
-                n.setType("DELIVERY_READY");
-                n.setTitle("Có đơn hàng mới cần giao");
-                n.setMessage("Đơn hàng #" + orderNumber + " đang chờ shipper nhận" + addressInfo + ". Nhấn để xem chi tiết.");
-                n.setActionUrl(actionUrl);
-                n.setCreatedAt(new Date());
-                notificationService.createNotification(n);
-                sentCount++;
-            } catch (Exception e) {
-                logger.warn("Failed to send notification to shipper {}", s.getUserId(), e);
+            // Get delivery address for context
+            String addressInfo = "";
+            if (order != null && order.getAddress() != null) {
+                addressInfo = " - Giao đến: " + order.getAddress().getDistrict() + ", " + order.getAddress().getCity();
             }
-        }
 
-        logger.info("✓ Broadcasted READY notification for order {} to {}/{} shippers", orderId, sentCount, shippers.size());
+            String actionUrl = "/shipper?focus=assignment&orderId=" + orderId;
+            List<Shipper> shippers = getAvailableShippers();
+            NotificationService notificationService = new NotificationService();
+
+            logger.info("Broadcasting READY notification for order {} to {} available shippers", orderId, shippers.size());
+
+            int sentCount = 0;
+            for (Shipper s : shippers) {
+                try {
+                    Notification n = new Notification();
+                    n.setUserId(s.getUserId());
+                    n.setType("DELIVERY_READY");
+                    n.setTitle("Có đơn hàng mới cần giao");
+                    n.setMessage("Đơn hàng #" + orderNumber + " đang chờ shipper nhận" + addressInfo + ". Nhấn để xem chi tiết.");
+                    n.setActionUrl(actionUrl);
+                    n.setCreatedAt(new Date());
+                    notificationService.createNotification(n);
+                    sentCount++;
+                } catch (Exception e) {
+                    logger.warn("Failed to send notification to shipper {}", s.getUserId(), e);
+                }
+            }
+
+            logger.info("✓ Broadcasted READY notification for order {} to {}/{} shippers", orderId, sentCount, shippers.size());
+        } catch (Exception e) {
+            logger.error("✗ Failed to broadcast READY notifications for order {}", orderId, e);
+            throw new RuntimeException("Failed to broadcast notifications: " + e.getMessage(), e);
+        } finally {
+            em.close();
+        }
     }
 
     /**
@@ -1574,33 +1590,54 @@ public class VendorService {
 
     /**
      * Vendor bấm nút "Gửi cho shipper" ở trang giao hàng.
-     * - ONLY allowed when order status = PROCESSING
-     * - Updates order status to READY
+     * - ONLY allowed when order status = PROCESSING or READY
+     * - Updates order status to READY (if PROCESSING)
      * - Broadcasts notification to all available shippers
      */
     public void broadcastDeliveryRequest(int orderId, int vendorId) {
-        Order order = orderDAO.findById(orderId);
-        if (order == null) {
-            throw new RuntimeException("Order not found");
-        }
-        if (order.getVendorId() != vendorId) {
-            throw new RuntimeException("Order does not belong to this vendor");
-        }
+        EntityManager em = JPAConfig.getEntityManager();
+        EntityTransaction tx = null;
+        try {
+            Order order = orderDAO.findById(orderId);
+            if (order == null) {
+                throw new RuntimeException("Đơn hàng không tồn tại");
+            }
+            if (order.getVendorId() != vendorId) {
+                throw new RuntimeException("Đơn hàng không thuộc về vendor này");
+            }
 
-        // Enforce: can only broadcast when status = PROCESSING
-        String currentStatus = order.getStatus() != null ? order.getStatus().trim().toUpperCase() : "";
-        if (!"PROCESSING".equals(currentStatus)) {
-            throw new RuntimeException("Chỉ có thể gửi thông báo cho shipper khi đơn hàng đang ở trạng thái PROCESSING. Trạng thái hiện tại: " + order.getStatus());
+            String currentStatus = order.getStatus() != null ? order.getStatus().trim().toUpperCase() : "";
+            logger.info("BroadcastDeliveryRequest: Order {} current status: {}", orderId, currentStatus);
+
+            // Allow broadcasting if status is PROCESSING or READY
+            if ("PROCESSING".equals(currentStatus)) {
+                // Update order status to READY
+                tx = em.getTransaction();
+                tx.begin();
+                order.setStatus("READY");
+                em.merge(order);
+                tx.commit();
+                tx = null; // Reset to avoid double rollback
+                logger.info("✓ Order {} status updated from PROCESSING to READY", orderId);
+            } else if ("READY".equals(currentStatus)) {
+                // Already READY, just broadcast again
+                logger.info("✓ Order {} already READY, broadcasting again", orderId);
+            } else {
+                throw new RuntimeException("Chỉ có thể gửi thông báo cho shipper khi đơn hàng đang ở trạng thái PROCESSING hoặc READY. Trạng thái hiện tại: " + order.getStatus());
+            }
+
+            // Broadcast to all available shippers
+            broadcastReadyToShippers(orderId);
+            logger.info("✓ Broadcasted delivery request for order {} to all available shippers", orderId);
+        } catch (Exception e) {
+            logger.error("✗ Failed to broadcast delivery request for order {}", orderId, e);
+            throw new RuntimeException("Không thể gửi yêu cầu giao hàng: " + e.getMessage(), e);
+        } finally {
+            if (tx != null && tx.isActive()) {
+                tx.rollback();
+            }
+            if (em.isOpen()) em.close();
         }
-
-        // Update order status to READY
-        order.setStatus("READY");
-        orderDAO.update(order);
-        logger.info("✓ Order {} status updated from PROCESSING to READY", orderId);
-
-        // Broadcast to all available shippers
-        broadcastReadyToShippers(orderId);
-        logger.info("✓ Broadcasted delivery request for order {} to all available shippers", orderId);
     }
 
     // ==================== SHIPPER ACCEPT (DB handles transaction/lock/validation) ====================

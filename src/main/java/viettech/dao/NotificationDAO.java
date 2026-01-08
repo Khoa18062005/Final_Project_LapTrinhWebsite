@@ -286,4 +286,74 @@ public class NotificationDAO {
             em.close();
         }
     }
+
+    // READ - Tìm theo Action URL
+    public List<Notification> findByActionUrl(String actionUrl) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT n FROM Notification n WHERE n.actionUrl = :actionUrl ORDER BY n.createdAt DESC";
+            TypedQuery<Notification> query = em.createQuery(jpql, Notification.class);
+            query.setParameter("actionUrl", actionUrl);
+            List<Notification> notifications = query.getResultList();
+            logger.debug("✓ Found {} notification(s) by action URL: {}", notifications.size(), actionUrl);
+            return notifications;
+        } catch (Exception e) {
+            logger.error("✗ Error finding notifications by action URL: {}", actionUrl, e);
+            throw new RuntimeException("Failed to find notifications by action URL", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    // READ - Tìm theo Action URL với phân trang
+    public List<Notification> findByActionUrlPaginated(String actionUrl, int page, int pageSize) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT n FROM Notification n WHERE n.actionUrl = :actionUrl ORDER BY n.createdAt DESC";
+            TypedQuery<Notification> query = em.createQuery(jpql, Notification.class);
+            query.setParameter("actionUrl", actionUrl);
+            query.setFirstResult((page - 1) * pageSize);
+            query.setMaxResults(pageSize);
+            List<Notification> notifications = query.getResultList();
+            logger.debug("✓ Found {} notification(s) by action URL (page {}): {}", notifications.size(), page, actionUrl);
+            return notifications;
+        } catch (Exception e) {
+            logger.error("✗ Error finding notifications by action URL with pagination: {}", actionUrl, e);
+            throw new RuntimeException("Failed to find notifications by action URL with pagination", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    // COUNT - Đếm theo Action URL
+    public long countByActionUrl(String actionUrl) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT COUNT(n) FROM Notification n WHERE n.actionUrl = :actionUrl";
+            Long count = em.createQuery(jpql, Long.class).setParameter("actionUrl", actionUrl).getSingleResult();
+            logger.debug("✓ Count {} notification(s) by action URL: {}", count, actionUrl);
+            return count;
+        } catch (Exception e) {
+            logger.error("✗ Error counting notifications by action URL: {}", actionUrl, e);
+            throw new RuntimeException("Failed to count notifications by action URL", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    // COUNT - Đếm unread theo Action URL
+    public long countUnreadByActionUrl(String actionUrl) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT COUNT(n) FROM Notification n WHERE n.actionUrl = :actionUrl AND n.isRead = false";
+            Long count = em.createQuery(jpql, Long.class).setParameter("actionUrl", actionUrl).getSingleResult();
+            logger.debug("✓ Count {} unread notification(s) by action URL: {}", count, actionUrl);
+            return count;
+        } catch (Exception e) {
+            logger.error("✗ Error counting unread notifications by action URL: {}", actionUrl, e);
+            throw new RuntimeException("Failed to count unread notifications by action URL", e);
+        } finally {
+            em.close();
+        }
+    }
 }

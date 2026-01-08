@@ -20,16 +20,21 @@ public class ReviewDAO {
 
     // CREATE
     public void insert(Review review) {
+        logger.info(">>> DAO insert called for productId: {}, customerId: {}", review.getProductId(), review.getCustomerId());
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         EntityTransaction trans = em.getTransaction();
         try {
             trans.begin();
+            logger.info(">>> Transaction started");
             em.persist(review);
+            logger.info(">>> Persist called");
             trans.commit();
-            logger.info("✓ Inserted review for product ID: {}", review.getProduct().getProductId());
+            logger.info(">>> Transaction committed");
+            logger.info("✓ Inserted review for product ID: {}", review.getProductId());
         } catch (Exception e) {
             if (trans.isActive()) trans.rollback();
-            logger.error("✗ Failed to insert review", e);
+            logger.error("✗ Failed to insert review - Error: {}", e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Failed to insert review", e);
         } finally {
             em.close();

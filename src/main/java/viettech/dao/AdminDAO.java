@@ -104,11 +104,17 @@ public class AdminDAO {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
             List<Admin> admins = em.createQuery("SELECT a FROM Admin a", Admin.class).getResultList();
+            // Ensure roleID is set correctly
+            for (Admin a : admins) {
+                if (a.getRoleID() != 1) {
+                    a.setRoleID(1);
+                }
+            }
             logger.debug("✓ Retrieved {} admin(s)", admins.size());
             return admins;
         } catch (Exception e) {
             logger.error("✗ Error retrieving all admins", e);
-            throw new RuntimeException("Failed to retrieve admins", e);
+            return new java.util.ArrayList<>();
         } finally {
             em.close();
         }
@@ -150,6 +156,49 @@ public class AdminDAO {
             if (trans.isActive()) trans.rollback();
             logger.error("✗ Failed to delete admin ID: {}", adminId, e);
             throw new RuntimeException("Failed to delete admin", e);
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * READ - Tìm tất cả admin đang active
+     * @return List<Admin> danh sách admin active
+     */
+    public List<Admin> findAllActive() {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT a FROM Admin a WHERE a.isActive = true";
+            TypedQuery<Admin> query = em.createQuery(jpql, Admin.class);
+            List<Admin> admins = query.getResultList();
+
+            logger.info("✓ Found {} active admin(s)", admins.size());
+            return admins;
+
+        } catch (Exception e) {
+            logger.error("✗ Error finding active admins", e);
+            return new java.util.ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * COUNT - Đếm số lượng admin đang active
+     * @return long số lượng admin active
+     */
+    public long countActive() {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT COUNT(a) FROM Admin a WHERE a.isActive = true";
+            Long count = em.createQuery(jpql, Long.class).getSingleResult();
+
+            logger.debug("✓ Total active admins: {}", count);
+            return count;
+
+        } catch (Exception e) {
+            logger.error("✗ Error counting active admins", e);
+            return 0;
         } finally {
             em.close();
         }
