@@ -387,7 +387,7 @@ public class ProductService {
 
                     dto.setPrimaryImage(primaryImageUrl);
                     // ==========================================
-
+                    dto.setBrand(p.getBrand());
                     return dto;
                 })
                 .toList();

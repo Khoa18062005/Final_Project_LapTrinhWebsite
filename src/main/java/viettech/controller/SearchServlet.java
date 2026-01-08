@@ -49,7 +49,7 @@ public class SearchServlet extends HttpServlet {
         // === 4. PHÁT HIỆN DANH MỤC CHÍNH & LẤY DANH SÁCH BRAND ===
         boolean showBrandFilter = false;
         List<String> availableBrands = new ArrayList<>();
-        int dominantCategoryId = -1;
+        int dominantCategoryId;
 
         if (!products.isEmpty()) {
             // Đếm số lượng sản phẩm theo category
@@ -68,7 +68,7 @@ public class SearchServlet extends HttpServlet {
             long total = products.size();
 
             // Nếu category chiếm >= 80% hoặc toàn bộ kết quả → coi là danh mục chính
-            if (dominantCount >= total * 0.8 || dominantCount == total) {
+            if (dominantCount >= total * 0.5 || dominantCount == total) {
                 // Chỉ áp dụng cho 4 danh mục chính
                 if (dominantCategoryId == ProductService.CATEGORY_PHONE ||
                         dominantCategoryId == ProductService.CATEGORY_TABLET ||
@@ -88,6 +88,8 @@ public class SearchServlet extends HttpServlet {
                             .collect(Collectors.toList());
                 }
             }
+        } else {
+            dominantCategoryId = -1;
         }
 
         // === 5. ÁP DỤNG LỌC THEO BRAND (nếu có) ===

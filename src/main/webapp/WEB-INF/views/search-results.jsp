@@ -135,40 +135,34 @@
         </div>
       </div>
 
+      <!-- ==================== THÊM PHẦN NÚT BUTTON BRAND Ở ĐÂY ==================== -->
+      <!-- Đoạn này sẽ hiển thị các nút brand khi tìm kiếm điện thoại/laptop/tablet/tai nghe -->
+      <c:if test="${showBrandFilter && not empty availableBrands}">
+        <div class="mb-4" style="margin-left: 45px;">
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="fw-bold text-secondary me-3">Hãng sản xuất</span>
+
+            <!-- Nút Tất cả -->
+            <a href="?q=${keyword}&sort=${currentSort}&min_price=${currentMinPrice}&max_price=${currentMaxPrice}"
+               class="btn ${empty currentBrand ? 'btn-primary' : 'btn-outline-primary'} btn-sm">
+              Tất cả
+            </a>
+
+            <!-- Các nút brand từ danh sách availableBrands -->
+            <c:forEach var="brand" items="${availableBrands}">
+              <a href="?q=${keyword}&brand=${brand}&sort=${currentSort}&min_price=${currentMinPrice}&max_price=${currentMaxPrice}"
+                 class="btn ${currentBrand == brand ? 'btn-primary' : 'btn-outline-primary'} btn-sm">
+                  ${brand}
+              </a>
+            </c:forEach>
+          </div>
+        </div>
+      </c:if>
+      <!-- ===================================================================== -->
+
       <!-- Số lượng sản phẩm -->
       <div class="text-muted-filter mb-4">
         Đã tìm thấy <strong>${products.size()}</strong> sản phẩm
-          <%-- ==================== LỌC THEO HÃNG (BRAND) ==================== --%>
-        <c:if test="${showBrandFilter && not empty availableBrands}">
-          <div class="mb-4">
-            <div class="d-flex flex-wrap gap-2 align-items-center">
-      <span class="fw-bold text-secondary me-3">
-        Hãng
-        <c:choose>
-          <c:when test="${dominantCategoryId == 1}">điện thoại</c:when>
-          <c:when test="${dominantCategoryId == 3}">laptop</c:when>
-          <c:when test="${dominantCategoryId == 4}">máy tính bảng</c:when>
-          <c:when test="${dominantCategoryId == 5}">tai nghe</c:when>
-        </c:choose>
-      </span>
-
-              <!-- Nút "Tất cả" -->
-              <a href="?q=${keyword}&sort=${currentSort}&min_price=${currentMinPrice}&max_price=${currentMaxPrice}"
-                 class="btn ${empty currentBrand ? 'btn-primary' : 'btn-outline-primary'} btn-sm rounded-pill px-3">
-                Tất cả
-              </a>
-
-              <!-- Các nút hãng -->
-              <c:forEach var="brand" items="${availableBrands}">
-                <a href="?q=${keyword}&brand=${brand}&sort=${currentSort}&min_price=${currentMinPrice}&max_price=${currentMaxPrice}"
-                   class="btn ${currentBrand == brand ? 'btn-primary' : 'btn-outline-primary'} btn-sm rounded-pill px-3">
-                    ${brand}
-                </a>
-              </c:forEach>
-            </div>
-          </div>
-        </c:if>
-          <%-- ========================================================== --%>
       </div>
 
       <!-- DANH SÁCH SẢN PHẨM -->
