@@ -53,6 +53,32 @@
         <h1>Shipper Dashboard</h1>
     </div>
     <div class="header-right">
+        <!-- Nút thông báo -->
+        <div class="shipper-notification-container">
+            <div class="notification-bell-wrapper" id="shipperNotificationBell">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge" id="shipperNotificationBadge" style="display: none;">0</span>
+            </div>
+
+            <div class="notification-dropdown" id="shipperNotificationDropdown">
+                <div class="notification-dropdown-header">
+                    <h4>Thông báo</h4>
+                    <button class="btn-mark-all-read" id="btnMarkAllRead">Đánh dấu tất cả đã đọc</button>
+                </div>
+
+                <div class="notification-dropdown-body" id="shipperNotificationBody">
+                    <div class="notification-loading">
+                        <i class="fas fa-spinner fa-spin"></i> Đang tải...
+                    </div>
+                </div>
+
+                <div class="notification-dropdown-footer">
+                    <a href="${pageContext.request.contextPath}/shipper/notifications">Xem tất cả</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile shipper -->
         <div class="shipper-profile" style="cursor:pointer" onclick="openProfileModal()" title="Chỉnh sửa thông tin">
             <img src="${not empty data.shipperInfo.avatar ? data.shipperInfo.avatar : 'https://via.placeholder.com/40'}" alt="Shipper">
             <div class="profile-info">
@@ -338,6 +364,11 @@
 </div>
 
 <script src="${pageContext.request.contextPath}/assets/js/shipper.js"></script>
+<script>
+    // Set context path for notification system
+    window.shipperContextPath = '${pageContext.request.contextPath}';
+</script>
+<script src="${pageContext.request.contextPath}/assets/js/shipper-notification.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         requestGPS();

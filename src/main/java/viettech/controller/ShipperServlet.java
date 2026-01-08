@@ -13,9 +13,9 @@ import java.io.IOException;
 
 @WebServlet("/shipper")
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024 * 2, // 2MB (Lưu bộ nhớ đệm)
-        maxFileSize = 1024 * 1024 * 10,      // 10MB (Kích thước file tối đa)
-        maxRequestSize = 1024 * 1024 * 50    // 50MB (Tổng kích thước request)
+        fileSizeThreshold = 1024 * 1024 * 2, // 2MB
+        maxFileSize = 1024 * 1024 * 10,      // 10MB
+        maxRequestSize = 1024 * 1024 * 50    // 50MB
 )
 public class ShipperServlet extends HttpServlet {
 
@@ -24,10 +24,6 @@ public class ShipperServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        // Thiết lập Tiếng Việt cho response
-        response.setContentType("text/html; charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
 
         // 1. Kiểm tra Session
         HttpSession session = request.getSession(false);
@@ -59,9 +55,7 @@ public class ShipperServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Bắt buộc thiết lập UTF-8 ngay đầu tiên để đọc form tiếng Việt
         request.setCharacterEncoding("UTF-8");
-        response.setCharacterEncoding("UTF-8");
 
         // 1. Kiểm tra xác thực (Authentication)
         HttpSession session = request.getSession(false);
@@ -86,22 +80,18 @@ public class ShipperServlet extends HttpServlet {
                 String latStr = request.getParameter("lat");
                 String lonStr = request.getParameter("lon");
 
-                if (latStr != null && lonStr != null && !latStr.isEmpty() && !lonStr.isEmpty()) {
+                if (latStr != null && lonStr != null) {
                     double lat = Double.parseDouble(latStr);
                     double lon = Double.parseDouble(lonStr);
 
                     // Gọi Service update
                     service.updateLocation(user.getUserId(), lat, lon);
                     System.out.println("DEBUG: GPS Updated for User " + user.getUserId() + ": " + lat + ", " + lon);
-
-                    // Phản hồi OK cho Client
-                    response.setStatus(HttpServletResponse.SC_OK);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             }
-            return; // KẾT THÚC REQUEST NGAY TẠI ĐÂY (Không redirect)
+            return; // KẾT THÚC REQUEST NGAY TẠI ĐÂY
         }
 
         // --- CASE 2: XỬ LÝ ĐƠN HÀNG (Accept / Complete) ---
@@ -110,7 +100,7 @@ public class ShipperServlet extends HttpServlet {
             if (idStr != null) {
                 try {
                     int assignmentId = Integer.parseInt(idStr);
-                    service.updateStatus(assignmentId, action);
+                    service.updateStatus(assignmentId, action, user.getUserId());
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }
@@ -129,27 +119,27 @@ public class ShipperServlet extends HttpServlet {
 
                 // Logic Avatar: null (giữ nguyên), "" (xóa), "link" (cập nhật)
                 String avatarUrl = null;
-                String currentAvatar = user.getAvatar();
 
                 String deleteAvatar = request.getParameter("deleteAvatar");
-
                 if ("true".equals(deleteAvatar)) {
                     avatarUrl = ""; // Đánh dấu là xóa
 
-                    // Nếu muốn xóa trên Cloudinary thì uncomment dòng dưới
-                    // if (currentAvatar != null) CloudinaryUtil.deleteImage(currentAvatar);
-
+                    // (Optional) Xóa ảnh cũ trên Cloudinary nếu cần
+                    if (user.getAvatar() != null) {
+                        CloudinaryUtil.deleteImage(user.getAvatar());
+                    }
                 } else {
                     // Kiểm tra file upload
                     Part filePart = request.getPart("avatarFile");
                     if (filePart != null && filePart.getSize() > 0) {
-                        // Upload ảnh mới
                         String uploadedUrl = CloudinaryUtil.uploadAvatar(filePart);
                         if (uploadedUrl != null) {
                             avatarUrl = uploadedUrl;
 
-                            // Xóa ảnh cũ trên Cloudinary sau khi upload ảnh mới thành công (Tùy chọn)
-                            // if (currentAvatar != null) CloudinaryUtil.deleteImage(currentAvatar);
+                            // (Optional) Xóa ảnh cũ khi đã có ảnh mới
+                            if (user.getAvatar() != null) {
+                                CloudinaryUtil.deleteImage(user.getAvatar());
+                            }
                         }
                     }
                 }
@@ -160,10 +150,10 @@ public class ShipperServlet extends HttpServlet {
                         vehiclePlate, licenseNumber, avatarUrl
                 );
 
-                // Cập nhật lại Session để giao diện đổi ngay lập tức
-                if (firstName != null) user.setFirstName(firstName);
-                if (lastName != null) user.setLastName(lastName);
-                if (phone != null) user.setPhone(phone);
+                // Cập nhật lại Session để giao diện đổi ngay
+                user.setFirstName(firstName);
+                user.setLastName(lastName);
+                user.setPhone(phone);
 
                 if (avatarUrl != null) {
                     if (avatarUrl.isEmpty()) user.setAvatar(null);
