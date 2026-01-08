@@ -1,16 +1,25 @@
 package viettech.controller;
 
+import dev.langchain4j.agent.tool.P;
 import viettech.config.VNPayConfig;
 import viettech.dao.OrderDAO;
+import viettech.dao.OrderDetailDAO;
 import viettech.dao.OrderStatusDAO;
+import viettech.dao.PaymentDAO;
+import viettech.dto.CartCheckoutItemDTO;
+import viettech.dto.CartItemDTO;
 import viettech.entity.order.Order;
+import viettech.entity.order.OrderDetail;
 import viettech.entity.order.OrderStatus;
+import viettech.entity.payment.Payment;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @WebServlet(name = "VNPayReturnServlet", urlPatterns = {"/vnpay-return"})
@@ -50,6 +59,8 @@ public class VNPayReturnServlet extends HttpServlet {
 
         HttpSession session = request.getSession();
 
+        List<CartCheckoutItemDTO> cartItemDTOs = (List<CartCheckoutItemDTO>) session.getAttribute("selectedCartItems");
+
         try {
             if (vnp_SecureHash != null && VNPayConfig.verifySignature(fields, vnp_SecureHash)) {
 
@@ -59,25 +70,14 @@ public class VNPayReturnServlet extends HttpServlet {
 
                     if (order != null) {
                         // Cập nhật status sang PAID
-                        order.setStatus("Paid");
+                        order.setStatus("processing");
                         orderDAO.update(order);
 
-                        // Ghi OrderStatus: PAID
-                        OrderStatus paidStatus = new OrderStatus(
-                                order.getOrderId(),
-                                "PAID",
-                                "Thanh toán VNPay thành công. Mã GD: " + vnp_TransactionNo
-                                        + ", Ngân hàng: " + vnp_BankCode,
-                                null,
-                                "VNPAY",
-                                null
-                        );
-                        orderStatusDAO.insert(paidStatus);
 
                         // Ghi OrderStatus: CONFIRMED
                         OrderStatus confirmedStatus = new OrderStatus(
                                 order.getOrderId(),
-                                "Confirmed",
+                                "processing",
                                 "Đơn hàng đã được xác nhận tự động sau thanh toán",
                                 null,
                                 "SYSTEM",
@@ -86,7 +86,7 @@ public class VNPayReturnServlet extends HttpServlet {
                         orderStatusDAO.insert(confirmedStatus);
 
                         // Cập nhật status cuối cùng sang CONFIRMED
-                        order.setStatus("Confirmed");
+                        order.setStatus("processing");
                         orderDAO.update(order);
 
                         session.setAttribute("paymentSuccess", true);
@@ -95,6 +95,37 @@ public class VNPayReturnServlet extends HttpServlet {
                         session.setAttribute("amount", Long.parseLong(vnp_Amount) / 100);
                         session.setAttribute("bankCode", vnp_BankCode);
                         session.setAttribute("payDate", vnp_PayDate);
+
+                        System.out.println("cartItemDTOs = " + cartItemDTOs);
+                        System.out.println("cartItemDTOs size = " +
+                                (cartItemDTOs == null ? "NULL" : cartItemDTOs.size()));
+
+                        for(CartCheckoutItemDTO cartItemDTO : cartItemDTOs) {
+                            OrderDetail orderDetail = new OrderDetail();
+                            orderDetail.setOrderId(order.getOrderId());
+                            orderDetail.setDiscount(order.getDiscount());
+                            orderDetail.setQuantity(cartItemDTO.getQuantity());
+                            orderDetail.setStatus("active");
+                            orderDetail.setProductId(cartItemDTO.getProductId());
+                            orderDetail.setProductName(cartItemDTO.getProductName());
+                            orderDetail.setSubtotal(cartItemDTO.getSubtotal());
+                            orderDetail.setVariantId(cartItemDTO.getVariantId());
+                            orderDetail.setUnitPrice(cartItemDTO.getPrice());
+                            orderDetail.setVariantInfo(cartItemDTO.getVariantDisplay());
+                            OrderDetailDAO orderDetailDAO = new OrderDetailDAO();
+                            orderDetailDAO.insert(orderDetail);
+                        }
+
+                        Payment payment = new Payment();
+                        payment.setOrderId(order.getOrderId());
+                        payment.setAmount(Long.parseLong(vnp_Amount) / 100);
+                        payment.setPaymentDate(new Date());
+                        payment.setPaidAt(new Date());
+                        payment.setMethod("online");
+                        payment.setStatus("completed");
+                        payment.setProvider("VNPAY");
+                        PaymentDAO paymentDAO = new PaymentDAO();
+                        paymentDAO.insert(payment);
 
                         session.removeAttribute("selectedCartItems");
                         session.removeAttribute("pendingOrderNumber");
@@ -111,13 +142,13 @@ public class VNPayReturnServlet extends HttpServlet {
 
                     Order order = orderDAO.findByOrderNumber(vnp_TxnRef);
                     if (order != null) {
-                        order.setStatus("Payment_Failed");
+                        order.setStatus("cancelled");
                         order.setCancelReason("VNPay error: " + errorMessage);
                         orderDAO.update(order);
 
                         OrderStatus failedStatus = new OrderStatus(
                                 order.getOrderId(),
-                                "Payment_Failed",
+                                "cancelled",
                                 "Thanh toán VNPay thất bại. Lý do: " + errorMessage
                                         + " (Mã lỗi: " + vnp_ResponseCode + ")",
                                 null,
@@ -125,6 +156,33 @@ public class VNPayReturnServlet extends HttpServlet {
                                 null
                         );
                         orderStatusDAO.insert(failedStatus);
+
+                        for(CartCheckoutItemDTO cartItemDTO : cartItemDTOs) {
+                            OrderDetail orderDetail = new OrderDetail();
+                            orderDetail.setOrderId(order.getOrderId());
+                            orderDetail.setDiscount(order.getDiscount());
+                            orderDetail.setQuantity(cartItemDTO.getQuantity());
+                            orderDetail.setStatus("cancelled");
+                            orderDetail.setProductId(cartItemDTO.getProductId());
+                            orderDetail.setProductName(cartItemDTO.getProductName());
+                            orderDetail.setSubtotal(cartItemDTO.getSubtotal());
+                            orderDetail.setVariantId(cartItemDTO.getVariantId());
+                            orderDetail.setUnitPrice(cartItemDTO.getPrice());
+                            orderDetail.setVariantInfo(cartItemDTO.getVariantDisplay());
+                            OrderDetailDAO orderDetailDAO = new OrderDetailDAO();
+                            orderDetailDAO.insert(orderDetail);
+
+                            Payment payment = new Payment();
+                            payment.setOrderId(order.getOrderId());
+                            payment.setAmount(Long.parseLong(vnp_Amount) / 100);
+                            payment.setPaymentDate(new Date());
+                            payment.setPaidAt(new Date());
+                            payment.setMethod("online");
+                            payment.setStatus("failed");
+                            payment.setProvider("VNPAY");
+                            PaymentDAO paymentDAO = new PaymentDAO();
+                            paymentDAO.insert(payment);
+                        }
                     }
 
                     session.setAttribute("paymentSuccess", false);
@@ -137,19 +195,47 @@ public class VNPayReturnServlet extends HttpServlet {
                 // CHỮ KÝ KHÔNG HỢP LỆ
                 Order order = orderDAO.findByOrderNumber(vnp_TxnRef);
                 if (order != null) {
-                    order.setStatus("Payment_Failed");
+                    order.setStatus("cancelled");
                     order.setCancelReason("Chữ ký VNPay không hợp lệ");
                     orderDAO.update(order);
 
                     OrderStatus securityFailedStatus = new OrderStatus(
                             order.getOrderId(),
-                            "Payment_Failed",
+                            "cancelled",
                             "Xác thực chữ ký VNPay thất bại. Giao dịch có thể bị giả mạo.",
                             null,
                             "SYSTEM",
                             null
                     );
                     orderStatusDAO.insert(securityFailedStatus);
+
+                    for(CartCheckoutItemDTO cartItemDTO : cartItemDTOs) {
+                        OrderDetail orderDetail = new OrderDetail();
+                        orderDetail.setOrderId(order.getOrderId());
+                        orderDetail.setDiscount(order.getDiscount());
+                        orderDetail.setQuantity(cartItemDTO.getQuantity());
+                        orderDetail.setStatus("cancelled");
+                        orderDetail.setProductId(cartItemDTO.getProductId());
+                        orderDetail.setProductName(cartItemDTO.getProductName());
+                        orderDetail.setSubtotal(cartItemDTO.getSubtotal());
+                        orderDetail.setVariantId(cartItemDTO.getVariantId());
+                        orderDetail.setUnitPrice(cartItemDTO.getPrice());
+                        orderDetail.setVariantInfo(cartItemDTO.getVariantDisplay());
+                        OrderDetailDAO orderDetailDAO = new OrderDetailDAO();
+                        orderDetailDAO.insert(orderDetail);
+
+                        Payment payment = new Payment();
+                        payment.setOrderId(order.getOrderId());
+                        payment.setAmount(Long.parseLong(vnp_Amount) / 100);
+                        payment.setPaymentDate(new Date());
+                        payment.setPaidAt(new Date());
+                        payment.setMethod("online");
+                        payment.setStatus("failed");
+                        payment.setProvider("VNPAY");
+                        PaymentDAO paymentDAO = new PaymentDAO();
+                        paymentDAO.insert(payment);
+                    }
+
                 }
 
                 session.setAttribute("paymentSuccess", false);
