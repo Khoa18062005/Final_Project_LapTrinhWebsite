@@ -268,9 +268,9 @@ public class OrderDAO {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
             String jpql = "SELECT o FROM Order o " +
-                         "LEFT JOIN FETCH o.customer " +
-                         "LEFT JOIN FETCH o.address " +
-                         "WHERE o.orderId = :orderId";
+                    "LEFT JOIN FETCH o.customer " +
+                    "LEFT JOIN FETCH o.address " +
+                    "WHERE o.orderId = :orderId";
             TypedQuery<Order> query = em.createQuery(jpql, Order.class);
             query.setParameter("orderId", orderId);
             Order order = query.getSingleResult();
@@ -284,6 +284,8 @@ public class OrderDAO {
         } catch (Exception e) {
             logger.error("✗ Error finding order with relations by ID: {}", orderId, e);
             return null;
+        }
+    }
     public List<Order> findByCustomerIdAndStatus(int customerId, String status) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {

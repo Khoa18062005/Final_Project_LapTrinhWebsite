@@ -538,6 +538,7 @@ public class ProductDAO {
         temp = Pattern.compile("\\p{InCombiningDiacriticalMarks}+").matcher(temp).replaceAll("");
         temp = temp.replaceAll("đ", "d").replaceAll("Đ", "d");
         return temp.toLowerCase();
+    }
     public Product findByIdWithImages(int productId) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
