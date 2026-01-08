@@ -2,226 +2,2605 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vendor Dashboard - VietTech</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/vendor.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Dashboard - VietTech</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: white !important;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+            transition: transform 0.3s;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 56px;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: white;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 1000;
+            padding: 20px 0;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 3px;
+        }
+
+        .sidebar .nav-link {
+            color: #333;
+            padding: 15px 25px;
+            margin: 5px 15px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar .nav-link:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+            color: white;
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: 56px;
+            padding: 30px;
+            min-height: calc(100vh - 56px);
+        }
+
+        /* Stats Cards */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--secondary-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        .stat-card .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .stat-card .stat-label {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .bg-gradient-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .bg-gradient-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .bg-gradient-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .quick-action-btn {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            color: var(--secondary-color);
+        }
+
+        .quick-action-btn i {
+            font-size: 2.5rem;
+        }
+
+        .quick-action-btn span {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        /* Cards */
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .content-card .card-header {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-bottom: 3px solid var(--secondary-color);
+            padding: 20px 25px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary-color);
+        }
+
+        .content-card .card-body {
+            padding: 25px;
+        }
+
+        /* Table */
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background: #f8f9fa;
+            border: none;
+            font-weight: 600;
+            color: var(--primary-color);
+            padding: 15px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .badge-pending {
+            background: #ffeaa7;
+            color: #d63031;
+        }
+
+        .badge-processing {
+            background: #74b9ff;
+            color: #0984e3;
+        }
+
+        .badge-confirmed {
+            background: #a29bfe;
+            color: #6c5ce7;
+        }
+
+        .badge-completed {
+            background: #55efc4;
+            color: #00b894;
+        }
+
+        .badge-cancelled {
+            background: #fab1a0;
+            color: #d63031;
+        }
+
+        /* Buttons */
+        .btn {
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s;
+            border: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--secondary-color), #5dade2);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9, var(--secondary-color));
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color), #2ecc71);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #229954, var(--success-color));
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning-color), #f8c471);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-color), #ec7063);
+        }
+
+        /* Modal */
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px 15px 0 0;
+            padding: 20px 25px;
+        }
+
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+
+        /* Form */
+        .form-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
+            padding: 10px 15px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        /* Alerts */
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Border utilities */
+        .border-left-primary {
+            border-left: 4px solid var(--secondary-color) !important;
+        }
+
+        /* Warehouse info styles */
+        .warehouse-info {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .warehouse-details div {
+            line-height: 1.4;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #bdc3c7;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h5 {
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: #95a5a6;
+        }
+
+        /* Enhanced Status Badges */
+        .badge-confirmed {
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7) !important;
+            color: white !important;
+        }
+
+        .badge-processing {
+            background: linear-gradient(135deg, #74b9ff, #0984e3) !important;
+            color: white !important;
+        }
+
+        .badge-ready {
+            background: linear-gradient(135deg, #fdcb6e, #f39c12) !important;
+            color: #2d3436 !important;
+        }
+
+        .badge-shipping {
+            background: linear-gradient(135deg, #fab1a0, #e17055) !important;
+            color: white !important;
+        }
+
+        .badge-completed {
+            background: linear-gradient(135deg, #55efc4, #00b894) !important;
+            color: white !important;
+        }
+
+        .badge-cancelled {
+            background: linear-gradient(135deg, #dfe6e9, #b2bec3) !important;
+            color: #636e72 !important;
+        }
+
+        /* Order Detail Modal Styles */
+        .order-detail-section {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .order-detail-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .order-detail-section h6 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .order-detail-section .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .order-detail-section .info-row .label {
+            color: #7f8c8d;
+        }
+
+        .order-detail-section .info-row .value {
+            font-weight: 500;
+        }
+
+        .product-table {
+            font-size: 0.9rem;
+        }
+
+        .product-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .order-total-row {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        /* Completed orders styling */
+        .order-row-completed {
+            opacity: 0.7;
+            background: #f9f9f9;
+        }
+
+        .order-row-completed:hover {
+            opacity: 1;
+        }
+
+        /* Action button styles */
+        .btn-action-process {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            border: none;
+            color: white;
+        }
+
+        .btn-action-ready {
+            background: linear-gradient(135deg, #fdcb6e, #f39c12);
+            border: none;
+            color: #2d3436;
+        }
+
+        .btn-action-ship {
+            background: linear-gradient(135deg, #fab1a0, #e17055);
+            border: none;
+            color: white;
+        }
+
+        .btn-action-complete {
+            background: linear-gradient(135deg, #55efc4, #00b894);
+            border: none;
+            color: white;
+        }
+
+        /* Notification Styles */
+        .notification-dropdown {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            border: none;
+            border-radius: 12px;
+        }
+
+        .notification-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+
+        .notification-item.unread {
+            background: #e3f2fd;
+        }
+
+        .notification-item.unread:hover {
+            background: #bbdefb;
+        }
+
+        .notification-icon {
+            font-size: 1.2rem;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 4px;
+            color: #2c3e50;
+        }
+
+        .notification-message {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+            line-height: 1.4;
+        }
+
+        .notification-time {
+            font-size: 0.75rem;
+            color: #95a5a6;
+        }
+
+        /* Modal Styles */
+        .order-detail-section {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-detail-section:last-child {
+            border-bottom: none;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+
+        .info-row .label {
+            font-weight: 500;
+            color: #666;
+            min-width: 120px;
+        }
+
+        .info-row .value {
+            color: #333;
+        }
+    </style>
 </head>
 <body>
 
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#"><i class="fas fa-store"></i> VietTech Vendor</a>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-            <%-- Hiển thị tên Shop --%>
-            <i class="fas fa-user-circle"></i> ${data.vendorInfo.businessName}
-          </a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="${pageContext.request.contextPath}/logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a></li>
-          </ul>
-        </li>
-      </ul>
+    <div class="container-fluid">
+        <a class="navbar-brand" href="${pageContext.request.contextPath}/vendor">
+            <i class="fas fa-store"></i> VietTech Vendor
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <!-- Notification Icon -->
+                <li class="nav-item dropdown me-3">
+                    <a class="nav-link position-relative" href="#" id="notificationDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell fa-lg"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              id="notificationBadge" style="display: none; font-size: 0.6rem;">
+                                                    </span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                        <li class="dropdown-header d-flex justify-content-between align-items-center px-3">
+                            <span><i class="fas fa-bell"></i> Thông báo</span>
+                            <button class="btn btn-sm btn-link text-primary p-0" onclick="markAllNotificationsAsRead()">
+                                Đánh dấu đã đọc
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider m-0"></li>
+                        <li id="notificationEmpty" class="text-center text-muted py-3" style="display:none;">
+                            <i class="fas fa-inbox"></i> Không có thông báo mới
+                        </li>
+                        <li id="notificationList"></li>
+                    </ul>
+                </li>
+
+                <!-- User Dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-circle fa-lg"></i>
+                        <c:choose>
+                            <c:when test="${not empty data.vendorInfo}">
+                                ${data.vendorInfo.businessName}
+                            </c:when>
+                            <c:otherwise>
+                                ${sessionScope.user.email}
+                            </c:otherwise>
+                        </c:choose>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user-cog"></i> Cài đặt tài khoản</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-bell"></i> Thông báo</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="${pageContext.request.contextPath}/logout">
+                            <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        </a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
     </div>
-  </div>
 </nav>
 
-<div class="container-fluid">
-  <div class="row">
-    <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-      <div class="position-sticky pt-3">
-        <ul class="nav flex-column">
-          <li class="nav-item"><a class="nav-link active" href="#dashboard" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-          <li class="nav-item"><a class="nav-link" href="#products" data-section="products"><i class="fas fa-box"></i> Quản lý sản phẩm</a></li>
-          <li class="nav-item"><a class="nav-link" href="#orders" data-section="orders"><i class="fas fa-shopping-cart"></i> Đơn hàng</a></li>
-          <%-- Các menu khác... --%>
-        </ul>
-      </div>
-    </nav>
-
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-
-      <div id="dashboard" class="content-section active">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-          <h1 class="h2"><i class="fas fa-tachometer-alt"></i> Dashboard</h1>
-        </div>
-
-        <div class="row g-3 mb-4">
-          <div class="col-md-3">
-            <div class="stat-card">
-              <div class="stat-icon bg-primary"><i class="fas fa-box"></i></div>
-              <div class="stat-info">
-                <h3>${data.totalProducts}</h3>
-                <p>Tổng sản phẩm</p>
-              </div>
+<!-- Sidebar -->
+<nav class="sidebar">
+    <!-- Warehouse Information -->
+    <c:if test="${not empty data.warehouseInfo}">
+        <div class="warehouse-info mb-4 p-3 bg-light rounded">
+            <h6 class="text-primary mb-2">
+                <i class="fas fa-warehouse"></i> Kho hàng
+            </h6>
+            <div class="warehouse-details small">
+                <div class="mb-1">
+                    <strong>${data.warehouseInfo.name}</strong>
+                </div>
+                <div class="mb-1">
+                    <i class="fas fa-hashtag"></i> ${data.warehouseInfo.code}
+                </div>
+                <div class="mb-1">
+                    <i class="fas fa-map-marker-alt"></i>
+                    ${data.warehouseInfo.addressLine}
+                    <c:if test="${not empty data.warehouseInfo.ward}">, ${data.warehouseInfo.ward}</c:if>
+                    <c:if test="${not empty data.warehouseInfo.district}">, ${data.warehouseInfo.district}</c:if>
+                    <c:if test="${not empty data.warehouseInfo.province}">, ${data.warehouseInfo.province}</c:if>
+                </div>
             </div>
-          </div>
-          <div class="col-md-3">
-            <div class="stat-card">
-              <div class="stat-icon bg-success"><i class="fas fa-shopping-cart"></i></div>
-              <div class="stat-info">
-                <h3>${data.newOrdersCount}</h3>
-                <p>Đơn hàng mới</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="stat-card">
-              <div class="stat-icon bg-warning"><i class="fas fa-clock"></i></div>
-              <div class="stat-info">
-                <h3>${data.pendingApprovals}</h3>
-                <p>Chờ phê duyệt</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="stat-card">
-              <div class="stat-icon bg-info"><i class="fas fa-dollar-sign"></i></div>
-              <div class="stat-info">
-                <h3><fmt:formatNumber value="${data.monthlyRevenue}" type="number" maxFractionDigits="0"/></h3>
-                <p>Doanh thu tháng</p>
-              </div>
-            </div>
-          </div>
         </div>
+    </c:if>
 
-        <div class="card mb-4">
-          <div class="card-header"><h5><i class="fas fa-shopping-cart"></i> Đơn hàng gần đây</h5></div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                <tr>
-                  <th>Mã đơn</th>
-                  <th>Khách hàng</th>
-                  <th>Ngày đặt</th>
-                  <th>Tổng tiền</th>
-                  <th>Trạng thái</th>
-                  <th>Thao tác</th>
-                </tr>
-                </thead>
-                <tbody>
-                <c:forEach var="o" items="${data.recentOrders}" end="4"> <%-- Chỉ hiện 5 đơn mới nhất --%>
-                  <tr>
-                    <td>#${o.orderNumber}</td>
-                    <td>${o.customer.lastName} ${o.customer.firstName}</td>
-                    <td><fmt:formatDate value="${o.orderDate}" pattern="dd/MM/yyyy"/></td>
-                    <td><fmt:formatNumber value="${o.totalPrice}" type="currency" currencySymbol="₫"/></td>
-                    <td>
-                          <span class="badge ${o.status == 'Completed' ? 'bg-success' : (o.status == 'Cancelled' ? 'bg-danger' : 'bg-warning')}">
-                              ${o.status}
-                          </span>
-                    </td>
-                    <td><button class="btn btn-sm btn-primary">Xem</button></td>
-                  </tr>
-                </c:forEach>
-                </tbody>
-              </table>
+    <ul class="nav flex-column">
+        <li class="nav-item">
+            <a class="nav-link active" href="${pageContext.request.contextPath}/vendor">
+                <span><i class="fas fa-tachometer-alt"></i> Dashboard</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/vendor?action=products">
+                <span><i class="fas fa-box"></i> Quản lý sản phẩm</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/vendor?action=orders">
+                <span><i class="fas fa-shopping-cart"></i> Đơn hàng</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/vendor?action=shipping">
+                <span><i class="fas fa-truck"></i> Giao hàng</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="${pageContext.request.contextPath}/vendor?action=stats">
+                <span><i class="fas fa-chart-bar"></i> Thống kê</span>
+            </a>
+        </li>
+    </ul>
+</nav>
+
+<!-- Main Content - ROUTING BASED ON ACTION -->
+<div class="main-content">
+    <!-- Alert Messages (shown on all pages) -->
+    <c:if test="${not empty error}">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> <strong>Lỗi!</strong> ${error}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </c:if>
+    <c:if test="${not empty success}">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <strong>Thành công!</strong> ${success}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </c:if>
+    <c:choose>
+        <%-- DASHBOARD PAGE (default) --%>
+        <c:when test="${empty param.action or param.action == 'dashboard'}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+                    <p class="text-muted mb-0">Tổng quan hoạt động gian hàng</p>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <div id="products" class="content-section">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-          <h1 class="h2"><i class="fas fa-box"></i> Quản lý sản phẩm</h1>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal"><i class="fas fa-plus"></i> Thêm mới</button>
-        </div>
-
-        <div class="card">
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-hover">
-                <thead>
-                <tr>
-                  <th>Hình ảnh</th>
-                  <th>Tên sản phẩm</th>
-                  <th>Giá</th>
-                  <th>Trạng thái</th>
-                  <th>Thao tác</th>
-                </tr>
-                </thead>
-                <tbody>
-                <c:forEach var="p" items="${data.productList}">
-                  <tr>
-                    <td><img src="https://via.placeholder.com/50" alt="Product" class="img-thumbnail"></td>
-                    <td>${p.name}</td>
-                    <td><fmt:formatNumber value="${p.basePrice}" type="currency" currencySymbol="₫"/></td>
-                    <td><span class="badge ${p.status == 'Available' ? 'bg-success' : 'bg-danger'}">${p.status}</span></td>
-                    <td>
-                      <button class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></button>
-                      <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                    </td>
-                  </tr>
-                </c:forEach>
-                </tbody>
-              </table>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-primary"><i class="fas fa-box"></i></div>
+                    <div class="stat-value">${not empty data ? data.totalProducts : 0}</div>
+                    <div class="stat-label">Sản phẩm</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-warning"><i class="fas fa-clock"></i></div>
+                    <div class="stat-value">${not empty data ? data.newOrdersCount : 0}</div>
+                    <div class="stat-label">Đơn mới (Pending)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-info"><i class="fas fa-truck"></i></div>
+                    <div class="stat-value">${not empty data && not empty data.pendingShippingOrders ? fn:length(data.pendingShippingOrders) : 0}</div>
+                    <div class="stat-label">Đơn chờ giao</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon bg-gradient-success"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-value">${not empty data ? data.pendingApprovals : 0}</div>
+                    <div class="stat-label">Sản phẩm chờ duyệt</div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <div id="delivery" class="content-section">
-        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-          <h1 class="h2"><i class="fas fa-shipping-fast"></i> Phân phối hàng</h1>
-        </div>
-        <div class="card">
-          <div class="card-body">
-            <table class="table table-hover">
-              <thead>
-              <tr>
-                <th>Mã đơn</th>
-                <th>Khách hàng</th>
-                <th>Địa chỉ</th>
-                <th>Giá trị</th>
-                <th>Thao tác</th>
-              </tr>
-              </thead>
-              <tbody>
-              <c:forEach var="so" items="${data.pendingShippingOrders}">
-                <tr>
-                  <td>#${so.orderNumber}</td>
-                  <td>${so.customer.lastName} ${so.customer.firstName}</td>
-                  <td>${so.address.street}, ${so.address.district}</td>
-                  <td><fmt:formatNumber value="${so.totalPrice}" type="currency" currencySymbol="₫"/></td>
-                  <td>
-                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#assignShipperModal">
-                      <i class="fas fa-user-plus"></i> Gán Shipper
+            <div class="row g-3">
+                <div class="col-lg-7">
+                    <div class="card mb-3">
+                        <div class="card-header"><i class="fas fa-clock"></i> Đơn hàng gần đây</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Ngày đặt</th>
+                                        <th class="text-end">Tổng tiền</th>
+                                        <th>Trạng thái</th>
+                                        <th class="text-end"></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <c:choose>
+                                        <c:when test="${not empty data and not empty data.recentOrders}">
+                                            <c:forEach items="${data.recentOrders}" var="o" begin="0" end="9">
+                                                <tr>
+                                                    <td><strong>#${o.orderNumber}</strong></td>
+                                                    <td>
+                                                        <c:if test="${not empty o.orderDate}">
+                                                            <fmt:formatDate value="${o.orderDate}" pattern="dd/MM/yyyy"/>
+                                                        </c:if>
+                                                    </td>
+                                                    <td class="text-end text-success fw-bold">
+                                                        <fmt:formatNumber value="${o.totalPrice}" type="number" groupingUsed="true" maxFractionDigits="0"/>đ
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge bg-secondary">${o.status}</span>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/vendor?action=orders">Chi tiết</a>
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted p-4">Chưa có đơn hàng gần đây</td>
+                                            </tr>
+                                        </c:otherwise>
+                                    </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="card mb-3">
+                        <div class="card-header"><i class="fas fa-truck"></i> Đơn chờ giao (Ready)</div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                    <tr>
+                                        <th>Mã đơn</th>
+                                        <th>Ngày đặt</th>
+                                        <th class="text-end">Tổng</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <c:choose>
+                                        <c:when test="${not empty data and not empty data.pendingShippingOrders}">
+                                            <c:forEach items="${data.pendingShippingOrders}" var="o" begin="0" end="9">
+                                                <tr>
+                                                    <td><strong>#${o.orderNumber}</strong></td>
+                                                    <td>
+                                                        <c:if test="${not empty o.orderDate}">
+                                                            <fmt:formatDate value="${o.orderDate}" pattern="dd/MM/yyyy"/>
+                                                        </c:if>
+                                                    </td>
+                                                    <td class="text-end fw-bold">
+                                                        <fmt:formatNumber value="${o.totalPrice}" type="number" groupingUsed="true" maxFractionDigits="0"/>đ
+                                                    </td>
+                                                </tr>
+                                            </c:forEach>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted p-4">Không có đơn chờ giao</td>
+                                            </tr>
+                                        </c:otherwise>
+                                    </c:choose>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white text-end">
+                            <a class="btn btn-sm btn-primary" href="${pageContext.request.contextPath}/vendor?action=shipping">
+                                <i class="fas fa-truck"></i> Quản lý giao hàng
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header"><i class="fas fa-box"></i> Sản phẩm (tóm tắt)</div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">Tổng sản phẩm</span>
+                                <strong>${not empty data ? data.totalProducts : 0}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mt-2">
+                                <span class="text-muted">Sản phẩm chờ duyệt</span>
+                                <strong>${not empty data ? data.pendingApprovals : 0}</strong>
+                            </div>
+                            <div class="mt-3 text-end">
+                                <a class="btn btn-sm btn-outline-primary" href="${pageContext.request.contextPath}/vendor?action=products">
+                                    <i class="fas fa-box"></i> Quản lý sản phẩm
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </c:when>
+
+        <%-- ORDERS PAGE - ENHANCED --%>
+        <c:when test="${param.action == 'orders'}">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-shopping-cart"></i> Quản lý đơn hàng</h2>
+                    <p class="text-muted mb-0">Xử lý và theo dõi đơn hàng (sắp xếp theo trạng thái)</p>
+                </div>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="status-filter mb-4">
+                <a href="${pageContext.request.contextPath}/vendor?action=orders"
+                   class="btn ${empty param.status ? 'btn-primary' : 'btn-outline-secondary'}">
+                    <i class="fas fa-list"></i> Tất cả
+                </a>
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=CONFIRMED"
+                   class="btn ${fn:toUpperCase(param.status) == 'CONFIRMED' ? 'btn-primary' : 'btn-outline-primary'}">
+                    <i class="fas fa-check"></i> Confirmed
+                </a>
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=PROCESSING"
+                   class="btn ${fn:toUpperCase(param.status) == 'PROCESSING' ? 'btn-info' : 'btn-outline-info'}">
+                    <i class="fas fa-cog fa-spin"></i> Processing
+                </a>
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=READY"
+                   class="btn ${fn:toUpperCase(param.status) == 'READY' ? 'btn-warning' : 'btn-outline-warning'}">
+                    <i class="fas fa-dolly"></i> Ready
+                </a>
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=SHIPPING"
+                   class="btn ${fn:toUpperCase(param.status) == 'SHIPPING' ? 'btn-danger' : 'btn-outline-danger'}">
+                    <i class="fas fa-truck"></i> Shipping
+                </a>
+                <a href="${pageContext.request.contextPath}/vendor?action=orders&status=COMPLETED"
+                   class="btn ${fn:toUpperCase(param.status) == 'COMPLETED' ? 'btn-success' : 'btn-outline-success'}">
+                    <i class="fas fa-check-double"></i> Completed
+                </a>
+            </div>
+
+            <!-- Orders Table -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i>
+                        Danh sách đơn hàng
+                        <c:if test="${not empty param.status}"> - ${param.status}</c:if>
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Mã đơn hàng</th>
+                                    <th>Khách hàng</th>
+                                    <th>Ngày đặt</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <c:choose>
+                                    <c:when test="${not empty orders}">
+                                        <c:forEach items="${orders}" var="order">
+                                            <c:set var="statusUpper" value="${fn:toUpperCase(order.status)}"/>
+                                            <tr class="${statusUpper == 'COMPLETED' ? 'order-row-completed' : ''}">
+                                                <td>
+                                                    <strong>#${order.orderNumber}</strong>
+                                                    <br>
+                                                    <small class="text-muted">ID: ${order.orderId}</small>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${not empty order.customer}">
+                                                            <c:choose>
+                                                                <c:when test="${not empty order.customer.firstName || not empty order.customer.lastName}">
+                                                                    <strong>${order.customer.firstName} ${order.customer.lastName}</strong><br>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    <strong>${order.customer.email}</strong><br>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-phone"></i> ${order.customer.phone}
+                                                            </small>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="text-muted">N/A</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy"/><br>
+                                                    <small class="text-muted">
+                                                        <i class="far fa-clock"></i>
+                                                        <fmt:formatDate value="${order.orderDate}" pattern="HH:mm"/>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <strong class="text-success">
+                                                        <fmt:formatNumber value="${order.totalPrice}" type="currency"
+                                                                        currencySymbol="" maxFractionDigits="0"/>đ
+                                                    </strong>
+                                                </td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${statusUpper == 'CONFIRMED'}">
+                                                            <span class="badge badge-confirmed">
+                                                                <i class="fas fa-check"></i> CONFIRMED
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'PROCESSING'}">
+                                                            <span class="badge badge-processing">
+                                                                <i class="fas fa-cog fa-spin"></i> PROCESSING
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'READY'}">
+                                                            <span class="badge badge-ready">
+                                                                <i class="fas fa-dolly"></i> READY
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'SHIPPING'}">
+                                                            <span class="badge badge-shipping">
+                                                                <i class="fas fa-truck"></i> SHIPPING
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'COMPLETED'}">
+                                                            <span class="badge badge-completed">
+                                                                <i class="fas fa-check-double"></i> COMPLETED
+                                                            </span>
+                                                        </c:when>
+                                                        <c:when test="${statusUpper == 'CANCELLED'}">
+                                                            <span class="badge badge-cancelled">
+                                                                <i class="fas fa-times"></i> CANCELLED
+                                                            </span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="badge bg-secondary">${order.status}</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <!-- View Details Button -->
+                                                        <button class="btn btn-outline-info"
+                                                                onclick="showOrderDetailModal(${order.orderId})"
+                                                                title="Xem chi tiết">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+
+                                                        <%-- Action buttons based on current status --%>
+                                                        <c:choose>
+                                                            <c:when test="${statusUpper == 'CONFIRMED'}">
+                                                                <button class="btn btn-action-process"
+                                                                        onclick="updateOrderStatus(${order.orderId}, 'PROCESSING')"
+                                                                        title="Chuyển sang Processing">
+                                                                    <i class="fas fa-play"></i> Process
+                                                                </button>
+                                                            </c:when>
+                                                            <c:when test="${statusUpper == 'PROCESSING'}">
+                                                                <a href="${pageContext.request.contextPath}/vendor?action=shipping"
+                                                                   class="btn btn-action-ready"
+                                                                   title="Đi đến trang giao hàng để gửi cho shipper">
+                                                                    <i class="fas fa-truck"></i> Giao hàng
+                                                                </a>
+                                                            </c:when>
+                                                            <c:when test="${statusUpper == 'READY'}">
+                                                                <span class="badge bg-info">
+                                                                    <i class="fas fa-hourglass-half"></i> Chờ shipper nhận
+                                                                </span>
+                                                            </c:when>
+                                                            <c:when test="${statusUpper == 'SHIPPING'}">
+                                                                <button class="btn btn-action-complete"
+                                                                        onclick="updateOrderStatus(${order.orderId}, 'COMPLETED')"
+                                                                        title="Hoàn thành đơn hàng">
+                                                                    <i class="fas fa-check-double"></i> Complete
+                                                                </button>
+                                                            </c:when>
+                                                            <c:when test="${statusUpper == 'COMPLETED'}">
+                                                                <span class="text-muted small">
+                                                                    <i class="fas fa-check-circle text-success"></i> Đã hoàn thành
+                                                                </span>
+                                                            </c:when>
+                                                        </c:choose>
+
+                                                        <%-- Cancel button (only for non-completed/non-cancelled orders) --%>
+                                                        <c:if test="${statusUpper != 'COMPLETED' && statusUpper != 'CANCELLED'}">
+                                                            <button class="btn btn-outline-danger"
+                                                                    onclick="showCancelModal(${order.orderId})"
+                                                                    title="Hủy đơn hàng">
+                                                                <i class="fas fa-times"></i>
+                                                            </button>
+                                                        </c:if>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <tr>
+                                            <td colspan="6">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-inbox"></i>
+                                                    <h5>Không có đơn hàng nào</h5>
+                                                    <c:if test="${not empty param.status}">
+                                                        <p>Không có đơn hàng với trạng thái "${param.status}"</p>
+                                                    </c:if>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </c:otherwise>
+                                </c:choose>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modals moved to outside c:choose block -->
+        </c:when>
+
+        <%-- PRODUCTS PAGE --%>
+        <c:when test="${param.action == 'products'}">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-box"></i> Quản lý sản phẩm</h2>
+                    <p class="text-muted mb-0">Tổng số: ${fn:length(products)} sản phẩm</p>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="showAddProductModal()">
+                        <i class="fas fa-plus"></i> Thêm sản phẩm
                     </button>
-                  </td>
-                </tr>
-              </c:forEach>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+                </div>
+            </div>
 
-    </main>
-  </div>
+            <!-- Products Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i>
+                        Danh sách sản phẩm
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <c:choose>
+                        <c:when test="${not empty products}">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Sản phẩm</th>
+                                            <th>Danh mục</th>
+                                            <th>Giá bán</th>
+                                            <th>Đã bán</th>
+                                            <th>Trạng thái</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <%-- Duyệt danh sách sản phẩm - CHỈ truy cập các field scalar, KHÔNG truy cập LAZY relations --%>
+                                        <c:forEach var="p" items="${products}" varStatus="loop">
+                                            <tr>
+                                                <td><strong>#${p.productId}</strong></td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div>
+                                                            <strong><c:out value="${p.name}" default="N/A"/></strong><br>
+                                                            <small class="text-muted"><c:out value="${p.brand}" default=""/></small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                        <c:choose>
+                                                        <c:when test="${p.categoryId == 1}">Điện thoại</c:when>
+                                                        <c:when test="${p.categoryId == 2}">Phụ kiện điện thoại</c:when>
+                                                        <c:when test="${p.categoryId == 3}">Laptop</c:when>
+                                                        <c:when test="${p.categoryId == 4}">Máy tính bảng</c:when>
+                                                        <c:when test="${p.categoryId == 5}">Tai nghe</c:when>
+                                                        <c:otherwise>Khác (${p.categoryId})</c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                <td>
+                                                    <strong class="text-success">
+                                                        <fmt:formatNumber value="${p.basePrice}" type="number"
+                                                                        groupingUsed="true" maxFractionDigits="0"/>đ
+                                                    </strong>
+                                                </td>
+                                                <td>${p.totalSold}</td>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${p.status eq 'AVAILABLE'}">
+                                                            <span class="badge bg-success">Hoạt động</span>
+                                                        </c:when>
+                                                        <c:when test="${p.status eq 'INACTIVE'}">
+                                                            <span class="badge bg-secondary">Tạm dừng</span>
+                                                        </c:when>
+                                                        <c:when test="${not empty p.status}">
+                                                            <span class="badge bg-warning">${p.status}</span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="badge bg-secondary">N/A</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+                                                         <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button class="btn btn-outline-warning"
+                                                                onclick="editProduct(${p.productId})"
+                                                                title="Sửa sản phẩm">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <button class="btn btn-outline-danger"
+                                                                onclick="deleteProduct(${p.productId})"
+                                                                title="Xóa sản phẩm">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </c:when>
+                        <c:otherwise>
+                            <div class="empty-state p-5 text-center">
+                                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                <h5>Chưa có sản phẩm nào</h5>
+                                <p class="text-muted">Hãy bắt đầu bằng cách thêm sản phẩm đầu tiên</p>
+                                <button class="btn btn-primary" onclick="showAddProductModal()">
+                                    <i class="fas fa-plus"></i> Thêm sản phẩm
+                                </button>
+                            </div>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </div>
+        </c:when>
+
+        <%-- SHIPPING PAGE --%>
+        <c:when test="${param.action == 'shipping'}">
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-truck"></i> Quản lý giao hàng</h2>
+                    <p class="text-muted mb-0">Phân chia và theo dõi đơn hàng giao cho shipper</p>
+                </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning mb-0">${processingOrders}</h3>
+                            <p class="text-muted mb-0">Chờ gửi shipper</p>
+                            <small class="text-muted">(PROCESSING)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h3 class="text-info mb-0">${ordersToDeliver}</h3>
+                            <p class="text-muted mb-0">Chờ shipper nhận</p>
+                            <small class="text-muted">(READY)</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h3 class="text-success mb-0">${shippingOrders}</h3>
+                            <p class="text-muted mb-0">Đang giao hàng</p>
+                            <small class="text-muted">(SHIPPING)</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders in Shipping Flow -->
+            <c:choose>
+                <c:when test="${not empty orders}">
+                    <c:forEach items="${orders}" var="order">
+                        <c:set var="orderStatusUpper" value="${fn:toUpperCase(order.status)}"/>
+                        <div class="card mb-3 border-left-primary" data-order-id="${order.orderId}">
+                            <div class="card-header bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h5 class="mb-1">
+                                            <i class="fas fa-shopping-cart text-primary"></i>
+                                            Đơn hàng #${order.orderNumber}
+                                        </h5>
+                                        <small class="text-muted">
+                                            <i class="far fa-clock"></i>
+                                            <fmt:formatDate value="${order.orderDate}" pattern="dd/MM/yyyy HH:mm"/>
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <c:choose>
+                                            <c:when test="${orderStatusUpper == 'PROCESSING'}">
+                                                <span class="badge bg-warning fs-6">
+                                                    <i class="fas fa-cog"></i> Chờ gửi shipper
+                                                </span>
+                                            </c:when>
+                                            <c:when test="${orderStatusUpper == 'READY'}">
+                                                <span class="badge bg-info fs-6">
+                                                    <i class="fas fa-clock"></i> Chờ shipper nhận
+                                                </span>
+                                            </c:when>
+                                            <c:when test="${orderStatusUpper == 'SHIPPING'}">
+                                                <span class="badge bg-success fs-6">
+                                                    <i class="fas fa-truck"></i> Đang giao hàng
+                                                </span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="badge bg-secondary fs-6">${order.status}</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Customer Information -->
+                                    <div class="col-md-4">
+                                        <div class="border-end pe-3">
+                                            <h6 class="text-primary mb-2">
+                                                <i class="fas fa-user"></i> Thông tin khách hàng
+                                            </h6>
+                                            <c:choose>
+                                                <c:when test="${not empty order.customer}">
+                                                    <div class="mb-1">
+                                                        <strong>${order.customer.firstName} ${order.customer.lastName}</strong>
+                                                    </div>
+                                                    <div class="mb-1">
+                                                        <i class="fas fa-envelope text-muted"></i>
+                                                        ${order.customer.email}
+                                                    </div>
+                                                    <div class="mb-1">
+                                                        <i class="fas fa-phone text-muted"></i>
+                                                        ${order.customer.phone}
+                                                    </div>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="text-muted">Thông tin khách hàng không có</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </div>
+
+                                    <!-- Delivery Address -->
+                                    <div class="col-md-4">
+                                        <div class="border-end pe-3">
+                                            <h6 class="text-primary mb-2">
+                                                <i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng
+                                            </h6>
+                                            <c:choose>
+                                                <c:when test="${not empty order.address}">
+                                                    <div class="mb-1">
+                                                        <strong>${order.address.street}</strong>
+                                                    </div>
+                                                    <div class="mb-1">
+                                                        ${order.address.district}, ${order.address.city}
+                                                    </div>
+                                                    <c:if test="${not empty order.address.ward}">
+                                                        <div class="mb-1">${order.address.ward}</div>
+                                                    </c:if>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="text-muted">Địa chỉ không có</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+                                    </div>
+
+                                    <!-- Order Details -->
+                                    <div class="col-md-4">
+                                        <h6 class="text-primary mb-2">
+                                            <i class="fas fa-box"></i> Chi tiết đơn hàng
+                                        </h6>
+                                        <div class="mb-2">
+                                            <strong class="text-success">
+                                                <fmt:formatNumber value="${order.totalPrice}" type="currency"
+                                                                currencySymbol="" maxFractionDigits="0"/>đ
+                                            </strong>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Phí ship:</small>
+                                            <fmt:formatNumber value="${order.shippingFee}" type="currency"
+                                                            currencySymbol="" maxFractionDigits="0"/>đ
+                                        </div>
+
+                                        <!-- Product List -->
+                                        <c:if test="${not empty order.orderDetails}">
+                                            <div class="mt-2">
+                                                <small class="text-muted fw-bold">Sản phẩm:</small>
+                                                <c:forEach items="${order.orderDetails}" var="detail" begin="0" end="2">
+                                                    <div class="small">
+                                                        • ${detail.productName} (x${detail.quantity})
+                                                    </div>
+                                                </c:forEach>
+                                                <c:if test="${fn:length(order.orderDetails) > 3}">
+                                                    <div class="small text-muted">
+                                                        và ${fn:length(order.orderDetails) - 3} sản phẩm khác...
+                                                    </div>
+                                                </c:if>
+                                            </div>
+                                        </c:if>
+                                    </div>
+                                </div>
+
+                                <!-- Shipper Information and Actions -->
+                                <div class="row mt-3 pt-3 border-top">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div id="shipper-info-${order.orderId}">
+                                                <c:choose>
+                                                    <c:when test="${orderStatusUpper == 'PROCESSING'}">
+                                                        <small class="text-warning">
+                                                            <i class="fas fa-exclamation-circle"></i>
+                                                            Đơn hàng chưa được gửi cho shipper
+                                                        </small>
+                                                    </c:when>
+                                                    <c:when test="${orderStatusUpper == 'READY'}">
+                                                        <small class="text-info">
+                                                            <i class="fas fa-clock"></i>
+                                                            Đang chờ shipper nhận đơn...
+                                                        </small>
+                                                    </c:when>
+                                                    <c:when test="${orderStatusUpper == 'SHIPPING'}">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-user-tie"></i>
+                                                            Đang tải thông tin shipper...
+                                                        </small>
+                                                    </c:when>
+                                                </c:choose>
+                                            </div>
+                                            <div class="d-flex gap-2" id="shipper-actions-${order.orderId}">
+                                                <button class="btn btn-outline-primary btn-sm"
+                                                        onclick="viewOrderDetails(${order.orderId})">
+                                                    <i class="fas fa-eye"></i> Chi tiết
+                                                </button>
+
+                                                <!-- PROCESSING: Allow vendor to send notification to shippers -->
+                                                <c:if test="${orderStatusUpper == 'PROCESSING'}">
+                                                    <button class="btn btn-success btn-sm" id="btn-broadcast-${order.orderId}"
+                                                            onclick="broadcastDelivery(${order.orderId})">
+                                                        <i class="fas fa-bullhorn"></i> Gửi cho shipper
+                                                    </button>
+                                                </c:if>
+
+                                                <!-- READY: Already sent to shipper, waiting for acceptance -->
+                                                <c:if test="${orderStatusUpper == 'READY'}">
+                                                    <button class="btn btn-outline-info btn-sm" disabled>
+                                                        <i class="fas fa-hourglass-half"></i> Đang chờ shipper
+                                                    </button>
+                                                    <button class="btn btn-outline-warning btn-sm"
+                                                            onclick="broadcastDelivery(${order.orderId})"
+                                                            title="Gửi lại thông báo cho shipper">
+                                                        <i class="fas fa-redo"></i> Gửi lại
+                                                    </button>
+                                                </c:if>
+
+                                                <!-- SHIPPING: Shipper has accepted, show refresh button -->
+                                                <c:if test="${orderStatusUpper == 'SHIPPING'}">
+                                                    <button class="btn btn-outline-secondary btn-sm" onclick="loadShipperInfo(${order.orderId})">
+                                                        <i class="fas fa-sync"></i> Làm mới
+                                                    </button>
+                                                </c:if>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </c:forEach>
+                </c:when>
+                <c:otherwise>
+                    <div class="text-center py-5">
+                        <i class="fas fa-truck fa-4x text-muted mb-3"></i>
+                        <h4 class="text-muted">Không có đơn hàng cần giao</h4>
+                        <p class="text-muted">Tất cả đơn hàng sẵn sàng giao sẽ hiển thị ở đây</p>
+                        <a href="${pageContext.request.contextPath}/vendor" class="btn btn-primary mt-3">
+                            <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+                        </a>
+                    </div>
+                </c:otherwise>
+            </c:choose>
+        </c:when>
+
+        <%-- STATS PAGE --%>
+        <c:when test="${param.action == 'stats'}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2><i class="fas fa-chart-bar"></i> Thống kê</h2>
+                    <p class="text-muted mb-0">Theo dõi nhanh sản phẩm bán chạy, số lượng đã bán và tồn kho</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <select class="form-select form-select-sm" id="statsPeriod" style="width: 170px;">
+                        <option value="month" selected>Tháng này</option>
+                        <option value="3months">3 tháng gần đây</option>
+                        <option value="year">Năm nay</option>
+                        <option value="all">Tất cả</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary" onclick="loadVendorStats()">
+                        <i class="fas fa-sync"></i> Tải lại
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-muted small">Tổng số lượng đã bán</div>
+                                    <div class="fs-3 fw-bold text-success" id="statsTotalSold">--</div>
+                                </div>
+                                <i class="fas fa-shopping-bag fa-2x text-success"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-muted small">Tổng số lượng (Product.quantity)</div>
+                                    <div class="fs-3 fw-bold text-primary" id="statsTotalProductQty">--</div>
+                                </div>
+                                <i class="fas fa-layer-group fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <i class="fas fa-warehouse fa-2x text-info"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-warning">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="text-muted small">Sắp hết hàng</div>
+                                    <div class="fs-3 fw-bold text-warning" id="statsLowStockCount">--</div>
+                                </div>
+                                <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-box"></i> Tồn kho theo sản phẩm
+                            <span class="text-muted small">(Product.quantity)</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-end">Tồn</th>
+                                        <th class="text-end">Trạng thái</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="statsProductQtyBody">
+                                    <tr><td colspan="3" class="text-muted">Đang tải...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-fire"></i> Top sản phẩm bán chạy
+                            <span class="text-muted small">(theo số lượng)</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-end">Đã bán</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="statsTopSoldBody">
+                                    <tr><td colspan="2" class="text-muted">Đang tải...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header"><i class="fas fa-boxes"></i> Sản phẩm sắp hết hàng</div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle">
+                                    <thead>
+                                    <tr>
+                                        <th>Sản phẩm</th>
+                                        <th class="text-end">Tồn</th>
+                                        <th class="text-end">Ngưỡng</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="statsLowStockBody">
+                                    <tr><td colspan="3" class="text-muted">Đang tải...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <small class="text-muted">Gợi ý: vào Kho hàng để bổ sung tồn kho kịp thời.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header"><i class="fas fa-tags"></i> Sản phẩm theo trạng thái</div>
+                        <div class="card-body">
+                            <div id="statsStatusBadges" class="d-flex flex-wrap gap-2">
+                                <span class="text-muted">Đang tải...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // ---- Stats helpers (safe JSON parsing) ----
+                function parseJsonSafe(response) {
+                    const ct = (response.headers && response.headers.get) ? (response.headers.get('content-type') || '') : '';
+                    return response.text().then(text => {
+                        if (!text) return null;
+                        try {
+                            return JSON.parse(text);
+                        } catch (e) {
+                            // Helpful debug: server returned HTML (usually forwarded JSP or login page)
+                            const preview = text.substring(0, 200);
+                            throw new Error('Response is not JSON. HTTP ' + response.status + '. content-type=' + ct + '. Preview: ' + preview);
+                        }
+                    });
+                }
+
+                function getStatsParams() {
+                    const period = document.getElementById('statsPeriod')?.value || 'month';
+                    return { period };
+                }
+
+                function renderTopSold(items) {
+                    const body = document.getElementById('statsTopSoldBody');
+                    if (!body) return;
+                    body.innerHTML = '';
+                    if (!items || items.length === 0) {
+                        body.innerHTML = '<tr><td colspan="2" class="text-muted">Chưa có dữ liệu bán hàng</td></tr>';
+                        return;
+                    }
+                    items.forEach(it => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + (it.productName || 'N/A') + '</td>' +
+                            '<td class="text-end fw-bold text-success">' + (it.soldQuantity ?? 0) + '</td>';
+                        body.appendChild(tr);
+                    });
+                }
+
+                function renderLowStock(items) {
+                    const body = document.getElementById('statsLowStockBody');
+                    if (!body) return;
+                    body.innerHTML = '';
+                    if (!items || items.length === 0) {
+                        body.innerHTML = '<tr><td colspan="3" class="text-muted">Không có sản phẩm sắp hết hàng</td></tr>';
+                        return;
+                    }
+                    items.forEach(it => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + (it.productName || 'N/A') + '</td>' +
+                            '<td class="text-end fw-bold">' + (it.availableQuantity ?? 0) + '</td>' +
+                            '<td class="text-end text-muted">' + (it.threshold ?? 0) + '</td>';
+                        body.appendChild(tr);
+                    });
+                }
+
+                function renderStatusCounts(items) {
+                    const box = document.getElementById('statsStatusBadges');
+                    if (!box) return;
+                    box.innerHTML = '';
+                    if (!items || items.length === 0) {
+                        box.innerHTML = '<span class="text-muted">Không có dữ liệu</span>';
+                        return;
+                    }
+
+                    const color = (status) => {
+                        switch ((status || '').toUpperCase()) {
+                            case 'AVAILABLE': return 'bg-success';
+                            case 'OUT_OF_STOCK': return 'bg-warning text-dark';
+                            case 'INACTIVE': return 'bg-secondary';
+                            default: return 'bg-info';
+                        }
+                    };
+
+                    items.forEach(it => {
+                        const span = document.createElement('span');
+                        span.className = 'badge ' + color(it.status) + ' p-2';
+                        span.textContent = (it.status || 'UNKNOWN') + ': ' + (it.count ?? 0);
+                        box.appendChild(span);
+                    });
+                }
+
+                function renderProductQty(items) {
+                    const body = document.getElementById('statsProductQtyBody');
+                    if (!body) return;
+                    body.innerHTML = '';
+                    if (!items || items.length === 0) {
+                        body.innerHTML = '<tr><td colspan="3" class="text-muted">Không có dữ liệu</td></tr>';
+                        return;
+                    }
+                    items.forEach(it => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + (it.name || 'N/A') + '</td>' +
+                            '<td class="text-end fw-bold">' + (it.quantity ?? 0) + '</td>' +
+                            '<td class="text-end text-muted">' + (it.status || 'UNKNOWN') + '</td>';
+                        body.appendChild(tr);
+                    });
+                }
+
+                function loadVendorStats() {
+                    const p = getStatsParams();
+                    const qs = new URLSearchParams({ action: 'statsData', period: p.period }).toString();
+
+                    fetch('${pageContext.request.contextPath}/vendor?' + qs, {
+                        method: 'GET',
+                        headers: { 'Accept': 'application/json' }
+                    })
+                        .then(res => parseJsonSafe(res))
+                        .then(result => {
+                            if (!result || !result.success) {
+                                throw new Error((result && result.message) ? result.message : 'Không thể tải thống kê');
+                            }
+
+                            const data = result.data || {};
+                            const soldEl = document.getElementById('statsTotalSold');
+                            if (soldEl) soldEl.textContent = (data.totalSoldQuantity ?? 0);
+
+                            const totalQtyEl = document.getElementById('statsTotalProductQty');
+                            if (totalQtyEl) totalQtyEl.textContent = (data.totalProductQuantity ?? 0);
+
+                            const stockEl = document.getElementById('statsTotalStock');
+                            if (stockEl) stockEl.textContent = (data.totalStockQuantity ?? 0);
+
+                            const lowEl = document.getElementById('statsLowStockCount');
+                            if (lowEl) lowEl.textContent = (data.lowStockCount ?? 0);
+
+                            renderProductQty(data.productsQuantity || []);
+                            renderTopSold(data.topSoldProducts || []);
+                            renderLowStock(data.lowStockProducts || []);
+                            renderStatusCounts(data.statusCounts || []);
+                        })
+                        .catch(err => {
+                            console.error('Stats load error', err);
+                            alert('Có lỗi khi tải thống kê: ' + err.message);
+                        });
+                }
+
+                // Auto load when on stats page
+                document.addEventListener('DOMContentLoaded', function () {
+                    loadVendorStats();
+                });
+            </script>
+        </c:when>
+    </c:choose>
 </div>
 
+<!-- ==================== ALL MODALS (Always Rendered) ==================== -->
+
+<!-- Order Detail Modal -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="orderDetailModalLabel">
+                    <i class="fas fa-receipt"></i> Chi tiết đơn hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="orderDetailContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Order Modal -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-times-circle"></i> Hủy đơn hàng</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="cancelOrderId">
+                <div class="mb-3">
+                    <label for="cancelReason" class="form-label">Lý do hủy đơn hàng:</label>
+                    <textarea id="cancelReason" class="form-control" rows="3" placeholder="Nhập lý do hủy..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-danger" onclick="confirmCancelOrder()">Xác nhận hủy</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-plus-circle"></i> Thêm sản phẩm mới</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProductForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productName" class="form-label">Tên sản phẩm *</label>
+                            <input type="text" class="form-control" id="productName" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="productCategory" class="form-label">Danh mục *</label>
+                            <select class="form-select" id="productCategory" name="categoryId" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                <option value="1">Điện thoại</option>
+                                <option value="3">Laptop</option>
+                                <option value="4">Máy tính bảng</option>
+                                <option value="5">Tai nghe</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productBrand" class="form-label">Thương hiệu</label>
+                            <input type="text" class="form-control" id="productBrand" name="brand">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="productPrice" class="form-label">Giá bán *</label>
+                            <input type="number" class="form-control" id="productPrice" name="basePrice" required min="0">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="productDescription" class="form-label">Mô tả</label>
+                        <textarea class="form-control" id="productDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="productStatus" class="form-label">Trạng thái</label>
+                            <select class="form-select" id="productStatus" name="status">
+                                <option value="AVAILABLE" selected>Còn hàng</option>
+                                <option value="OUT_OF_STOCK">Hết hàng</option>
+                                <option value="INACTIVE">Ngừng kinh doanh</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="productCondition" class="form-label">Tình trạng</label>
+                            <select class="form-select" id="productCondition" name="conditions">
+                                <option value="New" selected>Mới</option>
+                                <option value="Used">Đã sử dụng</option>
+                                <option value="Refurbished">Tân trang</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="submitAddProduct()">
+                    <i class="fas fa-save"></i> Thêm sản phẩm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== END MODALS ==================== -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script>
-  // Script chuyển Tab (Giữ nguyên logic cũ của bạn)
-  document.querySelectorAll('.sidebar .nav-link').forEach(link => {
-    link.addEventListener('click', function(e) {
-      e.preventDefault();
-      document.querySelectorAll('.sidebar .nav-link').forEach(l => l.classList.remove('active'));
-      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-      this.classList.add('active');
-      const sectionId = this.getAttribute('data-section');
-      document.getElementById(sectionId).classList.add('active');
+    // Sidebar toggle
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.querySelector('.sidebar');
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function () {
+                sidebar.classList.toggle('show');
+            });
+        }
     });
-  });
+
+    // Show Order Detail Modal
+    function showOrderDetailModal(orderId) {
+        const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+        const contentDiv = document.getElementById('orderDetailContent');
+
+        // Show loading state
+        contentDiv.innerHTML = '<div class="text-center py-5">' +
+            '<div class="spinner-border text-primary" role="status">' +
+            '<span class="visually-hidden">Đang tải...</span>' +
+            '</div>' +
+            '<p class="mt-2 text-muted">Đang tải thông tin đơn hàng...</p>' +
+            '</div>';
+
+        modal.show();
+
+        // Fetch order details
+        fetch('${pageContext.request.contextPath}/vendor?action=getCompleteOrderDetails&orderId=' + orderId, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể tải thông tin đơn hàng');
+            }
+
+            var data = result.data;
+            var order = data.order || {};
+            var customer = data.customer || {};
+            var address = data.address || {};
+            var items = data.orderItems || [];
+
+            // Format date
+            var orderDate = order.orderDate ? new Date(order.orderDate).toLocaleString('vi-VN') : 'N/A';
+
+            // Format currency
+            var formatCurrency = function(value) {
+                return new Intl.NumberFormat('vi-VN').format(value || 0) + 'đ';
+            };
+
+            // Get status badge class
+            var getStatusBadge = function(status) {
+                var statusUpper = (status || '').toUpperCase();
+                var badges = {
+                    'CONFIRMED': 'badge-confirmed',
+                    'PROCESSING': 'badge-processing',
+                    'READY': 'badge-ready',
+                    'SHIPPING': 'badge-shipping',
+                    'COMPLETED': 'badge-completed',
+                    'CANCELLED': 'badge-cancelled'
+                };
+                return badges[statusUpper] || 'bg-secondary';
+            };
+
+            // Build products table
+            var productsHtml = '';
+            var subtotal = 0;
+            items.forEach(function(item) {
+                var itemSubtotal = (item.quantity || 0) * (item.unitPrice || 0);
+                subtotal += itemSubtotal;
+                productsHtml += '<tr>' +
+                    '<td>' + (item.productName || 'N/A') + '</td>' +
+                    '<td class="text-center">' + (item.quantity || 0) + '</td>' +
+                    '<td class="text-end">' + formatCurrency(item.unitPrice) + '</td>' +
+                    '<td class="text-end fw-bold">' + formatCurrency(itemSubtotal) + '</td>' +
+                    '</tr>';
+            });
+
+            // Build full address
+            var addressParts = [address.street, address.ward, address.district, address.city].filter(Boolean);
+            var fullAddress = addressParts.length > 0 ? addressParts.join(', ') : 'N/A';
+
+            var customerName = ((customer.firstName || '') + ' ' + (customer.lastName || '')).trim() || 'N/A';
+
+            var html = '<!-- Order Header -->' +
+                '<div class="order-detail-section">' +
+                '<div class="d-flex justify-content-between align-items-center">' +
+                '<div>' +
+                '<h5 class="mb-1">Đơn hàng #' + (order.orderNumber || 'N/A') + '</h5>' +
+                '<small class="text-muted"><i class="far fa-clock"></i> ' + orderDate + '</small>' +
+                '</div>' +
+                '<span class="badge ' + getStatusBadge(order.status) + ' fs-6">' + (order.status || 'N/A') + '</span>' +
+                '</div>' +
+                '</div>' +
+
+                '<!-- Customer Information -->' +
+                '<div class="order-detail-section">' +
+                '<h6><i class="fas fa-user text-primary"></i> Thông tin khách hàng</h6>' +
+                '<div class="row">' +
+                '<div class="col-md-6">' +
+                '<div class="info-row">' +
+                '<span class="label">Họ tên:</span>' +
+                '<span class="value">' + customerName + '</span>' +
+                '</div>' +
+                '<div class="info-row">' +
+                '<span class="label">Email:</span>' +
+                '<span class="value">' + (customer.email || 'N/A') + '</span>' +
+                '</div>' +
+                '</div>' +
+                '<div class="col-md-6">' +
+                '<div class="info-row">' +
+                '<span class="label">Số điện thoại:</span>' +
+                '<span class="value">' + (customer.phone || 'N/A') + '</span>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
+
+                '<!-- Delivery Address -->' +
+                '<div class="order-detail-section">' +
+                '<h6><i class="fas fa-map-marker-alt text-danger"></i> Địa chỉ giao hàng</h6>' +
+                '<p class="mb-0">' + fullAddress + '</p>' +
+                '</div>' +
+
+                '<!-- Product List -->' +
+                '<div class="order-detail-section">' +
+                '<h6><i class="fas fa-box text-warning"></i> Danh sách sản phẩm</h6>' +
+                '<table class="table table-sm product-table">' +
+                '<thead>' +
+                '<tr>' +
+                '<th>Sản phẩm</th>' +
+                '<th class="text-center" style="width: 80px;">SL</th>' +
+                '<th class="text-end" style="width: 120px;">Đơn giá</th>' +
+                '<th class="text-end" style="width: 120px;">Thành tiền</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody>' + productsHtml + '</tbody>' +
+                '<tfoot>' +
+                '<tr>' +
+                '<td colspan="3" class="text-end">Tạm tính:</td>' +
+                '<td class="text-end">' + formatCurrency(subtotal) + '</td>' +
+                '</tr>' +
+                '<tr>' +
+                '<td colspan="3" class="text-end">Phí vận chuyển:</td>' +
+                '<td class="text-end">' + formatCurrency(order.shippingFee) + '</td>' +
+                '</tr>' +
+                '<tr class="order-total-row">' +
+                '<td colspan="3" class="text-end"><strong>Tổng cộng:</strong></td>' +
+                '<td class="text-end text-success"><strong>' + formatCurrency(order.totalPrice) + '</strong></td>' +
+                '</tr>' +
+                '</tfoot>' +
+                '</table>' +
+                '</div>';
+
+            if (order.notes) {
+                html += '<!-- Order Notes -->' +
+                    '<div class="order-detail-section">' +
+                    '<h6><i class="fas fa-sticky-note text-info"></i> Ghi chú</h6>' +
+                    '<p class="mb-0 text-muted">' + order.notes + '</p>' +
+                    '</div>';
+            }
+
+            contentDiv.innerHTML = html;
+        })
+        .catch(function(err) {
+            console.error('Error loading order details:', err);
+            contentDiv.innerHTML = '<div class="alert alert-danger">' +
+                '<i class="fas fa-exclamation-circle"></i> ' + (err.message || 'Không thể tải thông tin đơn hàng') +
+                '</div>';
+        });
+    }
+
+    // Update order status with confirmation
+    function updateOrderStatus(orderId, newStatus) {
+        var statusLabels = {
+            'PROCESSING': 'Processing (Đang xử lý)',
+            'READY': 'Ready (Sẵn sàng giao)',
+            'SHIPPING': 'Shipping (Đang giao)',
+            'COMPLETED': 'Completed (Hoàn thành)'
+        };
+
+        if (!confirm('Bạn có chắc muốn chuyển đơn hàng sang trạng thái "' + (statusLabels[newStatus] || newStatus) + '"?')) {
+            return;
+        }
+
+        fetch('${pageContext.request.contextPath}/vendor?action=updateOrderStatus&orderId=' + orderId + '&status=' + newStatus, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể cập nhật trạng thái');
+            }
+            alert('Cập nhật trạng thái thành công!');
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Error updating order status:', err);
+            alert('Lỗi: ' + err.message);
+        });
+    }
+
+    // Show cancel order modal
+    function showCancelModal(orderId) {
+        document.getElementById('cancelOrderId').value = orderId;
+        document.getElementById('cancelReason').value = '';
+        var modal = new bootstrap.Modal(document.getElementById('cancelOrderModal'));
+        modal.show();
+    }
+
+    // Confirm cancel order
+    function confirmCancelOrder() {
+        var orderId = document.getElementById('cancelOrderId').value;
+        var reason = document.getElementById('cancelReason').value.trim();
+
+        if (!reason) {
+            alert('Vui lòng nhập lý do hủy đơn hàng');
+            return;
+        }
+
+        fetch('${pageContext.request.contextPath}/vendor?action=cancelOrder&orderId=' + orderId + '&reason=' + encodeURIComponent(reason), {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể hủy đơn hàng');
+            }
+            alert('Đã hủy đơn hàng thành công!');
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Error cancelling order:', err);
+            alert('Lỗi: ' + err.message);
+        });
+    }
+
+    // Show add product modal
+    function showAddProductModal() {
+        var modal = new bootstrap.Modal(document.getElementById('addProductModal'));
+        modal.show();
+    }
+
+    // Submit add product form
+    function submitAddProduct() {
+        var form = document.getElementById('addProductForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        var formData = new FormData(form);
+        var productData = {};
+        formData.forEach(function(value, key) {
+            productData[key] = value;
+        });
+
+        fetch('${pageContext.request.contextPath}/vendor?action=addProduct', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(productData)
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể thêm sản phẩm');
+            }
+            alert('Thêm sản phẩm thành công!');
+            var modal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+            if (modal) modal.hide();
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Error adding product:', err);
+            alert('Lỗi: ' + err.message);
+        });
+    }
+
+    // Show edit product modal
+    function editProduct(productId) {
+        if (!productId) {
+            alert('ID sản phẩm không hợp lệ');
+            return;
+        }
+
+        // Fetch product data
+        fetch('${pageContext.request.contextPath}/vendor?action=getProduct&productId=' + productId, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) {
+            if (!res.ok) {
+                throw new Error('Không thể tải thông tin sản phẩm');
+            }
+            return res.json();
+        })
+        .then(function(result) {
+            if (!result.success || !result.data) {
+                throw new Error(result.message || 'Không tìm thấy sản phẩm');
+            }
+
+            var product = result.data;
+
+            // Simple prompt-based edit (can be enhanced with a modal later)
+            var newName = prompt('Tên sản phẩm mới:', product.name);
+            if (newName && newName.trim()) {
+                // Send update request
+                var formData = new FormData();
+                formData.append('productId', productId);
+                formData.append('name', newName.trim());
+
+                fetch('${pageContext.request.contextPath}/vendor?action=updateProduct', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(updateResult) {
+                    if (!updateResult.success) {
+                        throw new Error(updateResult.message || 'Không thể cập nhật sản phẩm');
+                    }
+                    alert('Cập nhật sản phẩm thành công!');
+                    location.reload();
+                })
+                .catch(function(err) {
+                    console.error('Error updating product:', err);
+                    alert('Lỗi: ' + err.message);
+                });
+            }
+        })
+        .catch(function(err) {
+            console.error('Error loading product:', err);
+            alert('Có lỗi xảy ra khi tải dữ liệu sản phẩm: ' + err.message);
+        });
+    }
+
+    // Delete product
+    function deleteProduct(productId) {
+        if (!productId) {
+            alert('ID sản phẩm không hợp lệ');
+            return;
+        }
+
+        if (!confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+            return;
+        }
+
+        fetch('${pageContext.request.contextPath}/vendor?action=deleteProduct&productId=' + productId, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) {
+            if (!res.ok) {
+                throw new Error('Không thể xóa sản phẩm');
+            }
+            return res.json();
+        })
+        .then(function(result) {
+            if (!result.success) {
+                throw new Error(result.message || 'Không thể xóa sản phẩm');
+            }
+            alert('Đã xóa sản phẩm thành công!');
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Error deleting product:', err);
+            alert('Có lỗi xảy ra khi xóa sản phẩm: ' + err.message);
+        });
+    }
+
+    // Load shipper info for an order
+    function loadShipperInfo(orderId) {
+        var infoBox = document.getElementById('shipper-info-' + orderId);
+
+        fetch('${pageContext.request.contextPath}/vendor?action=getShipper&orderId=' + orderId, {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result || !result.success) {
+                if (infoBox) {
+                    infoBox.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-circle"></i> Không tải được thông tin shipper</small>';
+                }
+                return;
+            }
+
+            var data = result.data || {};
+            var hasShipper = data.hasShipper || false;
+
+            if (infoBox) {
+                if (hasShipper && data.shipper) {
+                    var s = data.shipper;
+                    infoBox.innerHTML = '<small class="text-success">' +
+                        '<i class="fas fa-user-check"></i> ' +
+                        '<strong>Shipper:</strong> ' + (s.firstName || '') + ' ' + (s.lastName || '') +
+                        ' - <i class="fas fa-phone"></i> ' + (s.phone || 'N/A') +
+                        '</small>';
+                } else {
+                    infoBox.innerHTML = '<small class="text-muted">' +
+                        '<i class="fas fa-user-clock"></i> Chưa có shipper nhận đơn' +
+                        '</small>';
+                }
+            }
+        })
+        .catch(function(err) {
+            console.error('Error loading shipper info:', err);
+            if (infoBox) {
+                infoBox.innerHTML = '<small class="text-danger"><i class="fas fa-exclamation-circle"></i> Lỗi tải thông tin</small>';
+            }
+        });
+    }
+
+    // Broadcast delivery request to all available shippers
+    // This function sends notification to shippers and updates order status from PROCESSING to READY
+    function broadcastDelivery(orderId) {
+        if (!orderId) return;
+
+        var broadcastBtn = document.getElementById('btn-broadcast-' + orderId);
+
+        // Prevent double-click
+        if (broadcastBtn && broadcastBtn.disabled) {
+            return;
+        }
+
+        // Disable button immediately
+        if (broadcastBtn) {
+            broadcastBtn.disabled = true;
+            broadcastBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
+        }
+
+        var url = '${pageContext.request.contextPath}/vendor?action=broadcastDelivery&orderId=' + encodeURIComponent(orderId);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result || !result.success) {
+                throw new Error((result && result.message) ? result.message : 'Không thể gửi yêu cầu giao hàng');
+            }
+
+            // Success - reload page to reflect status change from PROCESSING to READY
+            alert('Đã gửi thông báo cho shipper và chuyển trạng thái sang READY!');
+            location.reload();
+        })
+        .catch(function(err) {
+            console.error('Broadcast delivery error', err);
+            alert('Có lỗi: ' + err.message);
+
+            // Re-enable button on error
+            if (broadcastBtn) {
+                broadcastBtn.disabled = false;
+                broadcastBtn.innerHTML = '<i class="fas fa-bullhorn"></i> Gửi cho shipper';
+            }
+        });
+    }
+
+    // On shipping page, auto load shipper info for SHIPPING orders
+    document.addEventListener('DOMContentLoaded', function () {
+        var elements = document.querySelectorAll('[id^="shipper-info-"]');
+        elements.forEach(function(el) {
+            var idStr = el.id.replace('shipper-info-', '');
+            var orderId = parseInt(idStr, 10);
+            if (!isNaN(orderId)) {
+                // Check if order is in SHIPPING status (has the success badge)
+                var card = el.closest('.card');
+                if (card && card.querySelector('.badge.bg-success')) {
+                    loadShipperInfo(orderId);
+                }
+            }
+        });
+    });
+
+    // View order details (reuse the modal from orders page)
+    function viewOrderDetails(orderId) {
+        showOrderDetailModal(orderId);
+    }
+
+    // ==================== NOTIFICATION SYSTEM ====================
+
+    // Load vendor notifications
+    function loadVendorNotifications() {
+        fetch('${pageContext.request.contextPath}/notification?action=getUnread', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (!result || !result.success) {
+                return;
+            }
+
+            var data = result.data || {};
+            var notifications = data.notifications || [];
+            var unreadCount = result.unreadCount || 0;
+
+            // Update badge
+            var badge = document.getElementById('notificationBadge');
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+
+            // Update notification list
+            var notificationList = document.getElementById('notificationList');
+            if (!notificationList) return;
+
+            if (notifications.length === 0) {
+                notificationList.innerHTML = '<li class="text-center text-muted py-3">' +
+                    '<i class="fas fa-inbox"></i> Không có thông báo mới' +
+                    '</li>';
+                return;
+            }
+
+            var html = '';
+            notifications.forEach(function(notif) {
+                var time = notif.createdAt ? formatTimeAgo(new Date(notif.createdAt)) : '';
+                var iconClass = getNotificationIcon(notif.type);
+                var isUnread = !notif.read;
+
+                html += '<li>' +
+                    '<a class="dropdown-item notification-item ' + (isUnread ? 'unread' : '') + '" ' +
+                    'href="#" onclick="handleNotificationClick(' + notif.notificationId + ', \'' +
+                    (notif.actionUrl || '#') + '\'); return false;">' +
+                    '<div class="d-flex">' +
+                    '<div class="notification-icon me-2">' +
+                    '<i class="' + iconClass + '"></i>' +
+                    '</div>' +
+                    '<div class="flex-grow-1">' +
+                    '<div class="notification-title">' + (notif.title || 'Thông báo') + '</div>' +
+                    '<div class="notification-message">' + (notif.message || '') + '</div>' +
+                    '<div class="notification-time">' + time + '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</a>' +
+                    '</li>';
+            });
+
+            notificationList.innerHTML = html;
+        })
+        .catch(function(err) {
+            console.error('Error loading notifications:', err);
+        });
+    }
+
+    // Handle notification click
+    function handleNotificationClick(notificationId, actionUrl) {
+        // Mark as read
+        fetch('${pageContext.request.contextPath}/notification?action=markRead&notificationId=' + notificationId, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function() {
+            // Reload notifications
+            loadVendorNotifications();
+
+            // Navigate to action URL
+            if (actionUrl && actionUrl !== '#') {
+                window.location.href = '${pageContext.request.contextPath}' + actionUrl;
+            }
+        })
+        .catch(function(err) {
+            console.error('Error marking notification as read:', err);
+        });
+    }
+
+    // Mark all notifications as read
+    function markAllNotificationsAsRead() {
+        fetch('${pageContext.request.contextPath}/notification?action=markAllRead', {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(result) {
+            if (result && result.success) {
+                loadVendorNotifications();
+            }
+        })
+        .catch(function(err) {
+            console.error('Error marking all notifications as read:', err);
+        });
+    }
+
+    // Get notification icon based on type
+    function getNotificationIcon(type) {
+        var icons = {
+            'NEW_ORDER': 'fas fa-shopping-cart text-primary',
+            'ORDER_SHIPPING': 'fas fa-truck text-info',
+            'ORDER_COMPLETED': 'fas fa-check-circle text-success',
+            'DELIVERY_READY': 'fas fa-box text-warning',
+            'ORDER_UPDATE': 'fas fa-info-circle text-info'
+        };
+        return icons[type] || 'fas fa-bell text-secondary';
+    }
+
+    // Format time ago
+    function formatTimeAgo(date) {
+        var seconds = Math.floor((new Date() - date) / 1000);
+
+        if (seconds < 60) return 'Vừa xong';
+
+        var minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return minutes + ' phút trước';
+
+        var hours = Math.floor(minutes / 60);
+        if (hours < 24) return hours + ' giờ trước';
+
+        var days = Math.floor(hours / 24);
+        if (days < 7) return days + ' ngày trước';
+
+        return date.toLocaleDateString('vi-VN');
+    }
+
+    // Load notifications on page load and refresh every 30 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        loadVendorNotifications();
+
+        // Auto-refresh notifications every 30 seconds
+        setInterval(loadVendorNotifications, 30000);
+    });
 </script>
+
+<script>
+// Ensure inline onclick handlers can always find functions
+(function() {
+    // If functions exist in this script scope, expose them on window.
+    var expose = [
+        'editProduct',
+        'showAddProductModal',
+        'submitAddProduct',
+        'deleteProduct',
+        'showOrderDetailModal',
+        'broadcastDelivery',
+        'viewOrderDetails',
+        'markAllNotificationsAsRead'
+    ];
+
+    expose.forEach(function(fnName) {
+        try {
+            if (typeof window[fnName] !== 'function' && typeof eval(fnName) === 'function') {
+                window[fnName] = eval(fnName);
+            }
+        } catch (e) {
+            // ignore
+        }
+    });
+})();
+</script>
+
 </body>
 </html>

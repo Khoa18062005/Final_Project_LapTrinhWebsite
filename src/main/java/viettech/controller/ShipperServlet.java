@@ -25,6 +25,72 @@ public class ShipperServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // API: accept delivery from notification link
+        String action = request.getParameter("action");
+        if ("acceptDelivery".equals(action)) {
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+
+            HttpSession session = request.getSession(false);
+            User user = (session != null) ? (User) session.getAttribute("user") : null;
+            if (user == null || user.getRoleID() != 3) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("{\"success\":false,\"message\":\"Unauthorized\"}");
+                return;
+            }
+
+            String orderIdStr = request.getParameter("orderId");
+            if (orderIdStr == null || orderIdStr.isEmpty()) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\":false,\"message\":\"Missing orderId\"}");
+                return;
+            }
+
+            int orderId;
+            try {
+                orderId = Integer.parseInt(orderIdStr);
+            } catch (NumberFormatException e) {
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\":false,\"message\":\"Invalid orderId\"}");
+                return;
+            }
+
+            try {
+                // Find an assignment for this shipper+order and accept it via VendorService (DB handles lock/validation)
+                int shipperId = user.getUserId();
+                int assignmentId = ((viettech.service.ShipperService) service).findAssignmentIdForOrderAndShipper(orderId, shipperId);
+                if (assignmentId <= 0) {
+                    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                    response.getWriter().write("{\"success\":false,\"message\":\"No assignment found for this order\"}");
+                    return;
+                }
+
+                boolean ok;
+                try {
+                    Object result = new viettech.service.VendorService().getClass()
+                            .getMethod("assignOrder", int.class, int.class)
+                            .invoke(new viettech.service.VendorService(), assignmentId, shipperId);
+                    ok = result instanceof Boolean && (Boolean) result;
+                } catch (Exception reflectEx) {
+                    throw new RuntimeException("assignOrder method not available", reflectEx);
+                }
+                if (ok) {
+                    response.getWriter().write("{\"success\":true}");
+                } else {
+                    response.setStatus(HttpServletResponse.SC_CONFLICT);
+                    response.getWriter().write("{\"success\":false,\"message\":\"Accept failed\"}");
+                }
+                return;
+            } catch (Exception ex) {
+                // If DB throws SQLSTATE=45000, surface as errorMessage for frontend
+                String msg = ex.getMessage() != null ? ex.getMessage().replace("\"", "'") : "Unknown error";
+                response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                response.getWriter().write("{\"success\":false,\"errorMessage\":\"" + msg + "\"}");
+                return;
+            }
+        }
+
+        // 1. Lấy Session hiện tại
         // 1. Kiểm tra Session
         HttpSession session = request.getSession(false);
         User user = (session != null) ? (User) session.getAttribute("user") : null;
@@ -122,6 +188,17 @@ public class ShipperServlet extends HttpServlet {
 
                 String deleteAvatar = request.getParameter("deleteAvatar");
                 if ("true".equals(deleteAvatar)) {
+                    avatarUrl = null; // Xóa ảnh trong DB (hoặc set link ảnh default)
+                } else {
+                    // 2. Upload ảnh mới (Sử dụng CloudinaryUtil vừa sửa)
+                    Part filePart = request.getPart("avatarFile");
+
+                    // Hàm uploadAvatar đã tự kiểm tra null và size, nên gọi thẳng
+                    String uploadedUrl = viettech.util.CloudinaryUtil.uploadAvatar(filePart);
+
+                    if (uploadedUrl != null) {
+                        avatarUrl = uploadedUrl;
+                        System.out.println("DEBUG: Đã upload ảnh mới lên Cloudinary: " + avatarUrl);
                     avatarUrl = ""; // Đánh dấu là xóa
 
                     // (Optional) Xóa ảnh cũ trên Cloudinary nếu cần
