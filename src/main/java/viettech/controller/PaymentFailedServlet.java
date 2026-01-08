@@ -58,6 +58,7 @@ public class PaymentFailedServlet extends HttpServlet {
                 // Không cần throw exception, chỉ log lỗi
             }
         }
+        session.removeAttribute("cartItems"       );
 
         // Forward đến JSP
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/payment-failed.jsp");

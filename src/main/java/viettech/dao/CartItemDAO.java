@@ -74,7 +74,7 @@ public class CartItemDAO {
         }
     }
 
-    // READ - Tìm theo Cart ID và Variant ID
+    // READ - Tìm theo Cart ID và Variant ID và ProductId
     public CartItem findByCartIdAndVariantIdandProductId(int cartId, int variantId, int productId) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {

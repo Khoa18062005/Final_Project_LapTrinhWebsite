@@ -2,9 +2,12 @@ package viettech.controller;
 
 import viettech.dao.*;
 import viettech.dto.CartCheckoutItemDTO;
+import viettech.dto.CartItemDTO;
 import viettech.entity.Address;
 import viettech.entity.order.Order;
+import viettech.entity.order.OrderDetail;
 import viettech.entity.order.OrderStatus;
+import viettech.entity.payment.Payment;
 import viettech.entity.user.Customer;
 import viettech.entity.user.User;
 import viettech.entity.voucher.Voucher;
@@ -44,6 +47,7 @@ public class CODPaymentServlet extends HttpServlet {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
         Customer customer = customerDAO.findById(user.getUserId());
+        List<CartItemDTO> cartItemDTOs = (List<CartItemDTO>) session.getAttribute("cartItems");
 
         if (customer == null) {
             response.sendRedirect(request.getContextPath() + "/login");
@@ -73,6 +77,13 @@ public class CODPaymentServlet extends HttpServlet {
             double shippingFee = 30000;
             double tax = 0;
             double voucherDiscount = 0.0;
+            double usedLoyaltyPoints = 0;
+
+            Object lpObj = session.getAttribute("usedLoyaltyPoints");
+            if (lpObj != null) {
+                usedLoyaltyPoints = Double.parseDouble(lpObj.toString());
+            }
+
 
             // Tính discount từ voucher
             if (appliedVoucher != null) {
@@ -90,7 +101,7 @@ public class CODPaymentServlet extends HttpServlet {
                 }
             }
 
-            double totalPrice = subtotal + shippingFee + tax - voucherDiscount;
+            double totalPrice = subtotal + shippingFee + tax - voucherDiscount - usedLoyaltyPoints*1000;
 
             // Tạo đơn hàng
             String orderNumber = generateOrderNumber();
@@ -107,14 +118,14 @@ public class CODPaymentServlet extends HttpServlet {
                     fullCustomer.getUserId(),
                     vendorId,
                     shippingAddress.getAddressId(),
-                    "Pending",
+                    "pending",
                     subtotal,
                     shippingFee,
-                    0,
+                    voucherDiscount,
                     tax,
                     voucherDiscount,
-                    0,
-                    0,
+                    (int)usedLoyaltyPoints,
+                    (int)usedLoyaltyPoints*1000,
                     totalPrice,
                     shippingNote,
                     estimatedDelivery
@@ -127,13 +138,29 @@ public class CODPaymentServlet extends HttpServlet {
                 // Tạo OrderStatus
                 OrderStatus orderStatus = new OrderStatus(
                         createdOrder.getOrderId(),
-                        "Pending",
+                        "pending",
                         "Đơn hàng đã được tạo thành công, thanh toán khi nhận hàng (COD)",
                         null,
                         "SYSTEM",
                         null
                 );
                 orderStatusDAO.insert(orderStatus);
+
+                for(CartCheckoutItemDTO cartItemDTO : selectedCartItems) {
+                    OrderDetail orderDetail = new OrderDetail();
+                    orderDetail.setOrderId(order.getOrderId());
+                    orderDetail.setDiscount(order.getDiscount());
+                    orderDetail.setQuantity(cartItemDTO.getQuantity());
+                    orderDetail.setStatus("active");
+                    orderDetail.setProductId(cartItemDTO.getProductId());
+                    orderDetail.setProductName(cartItemDTO.getProductName());
+                    orderDetail.setSubtotal(cartItemDTO.getSubtotal());
+                    orderDetail.setVariantId(cartItemDTO.getVariantId());
+                    orderDetail.setUnitPrice(cartItemDTO.getPrice());
+                    orderDetail.setVariantInfo(cartItemDTO.getVariantDisplay());
+                    OrderDetailDAO orderDetailDAO = new OrderDetailDAO();
+                    orderDetailDAO.insert(orderDetail);
+                }
 
                 // Lưu VoucherUsage nếu có voucher
                 if (appliedVoucher != null) {
@@ -151,7 +178,21 @@ public class CODPaymentServlet extends HttpServlet {
                     appliedVoucher.setUsageCount(appliedVoucher.getUsageCount() + 1);
                     voucherDAO.update(appliedVoucher);
                 }
+
+                Payment payment = new Payment();
+                payment.setOrderId(order.getOrderId());
+                payment.setAmount(order.getTotalPrice());
+                payment.setPaymentDate(new Date());
+                payment.setPaidAt(new Date());
+                payment.setMethod("COD");
+                payment.setStatus("pending");
+                payment.setProvider("Viettech");
+                PaymentDAO paymentDAO = new PaymentDAO();
+                paymentDAO.insert(payment);
             }
+
+            fullCustomer.setLoyaltyPoints(fullCustomer.getLoyaltyPoints() + (int )totalPrice/1000000 - (int)usedLoyaltyPoints);
+            customerDAO.update(fullCustomer);
 
             // Set attributes cho JSP
             request.setAttribute("order", createdOrder);
@@ -171,6 +212,7 @@ public class CODPaymentServlet extends HttpServlet {
             session.removeAttribute("shippingNote");
             session.removeAttribute("paymentMethod");
             session.removeAttribute("appliedVoucher");
+            session.removeAttribute("cartItems");
 
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/order-confirmation.jsp");
             dispatcher.forward(request, response);

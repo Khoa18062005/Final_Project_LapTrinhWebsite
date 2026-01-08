@@ -1,7 +1,10 @@
 package viettech.controller;
 
 import viettech.dao.*;
+import viettech.dto.CartItemDTO;
 import viettech.entity.order.Order;
+import viettech.entity.order.OrderDetail;
+import viettech.entity.order.OrderStatus;
 import viettech.entity.user.Customer;
 import viettech.entity.user.User;
 import viettech.entity.voucher.Voucher;
@@ -11,6 +14,7 @@ import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet(name = "PaymentSuccessServlet", urlPatterns = {"/payment-success"})
 public class PaymentSuccessServlet extends HttpServlet {
@@ -38,6 +42,8 @@ public class PaymentSuccessServlet extends HttpServlet {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
         Customer customer = customerDAO.findById(user.getUserId());
+
+        int usedLoyaltyPoints = session.getAttribute("usedLoyaltyPoints")==null?0:Integer.parseInt(session.getAttribute("usedLoyaltyPoints").toString());
 
         Boolean paymentSuccess = (Boolean) session.getAttribute("paymentSuccess");
 
@@ -79,9 +85,10 @@ public class PaymentSuccessServlet extends HttpServlet {
             session.removeAttribute("appliedVoucher");
         }
 
-        customer.setLoyaltyPoints(customer.getLoyaltyPoints() + (int) order.getSubtotal()/1000000);
+        customer.setLoyaltyPoints(customer.getLoyaltyPoints() + (int) order.getSubtotal()/1000000 - usedLoyaltyPoints);
         customer.setTotalSpent(customer.getTotalSpent() + (int) order.getSubtotal());
         customerDAO.update(customer);
+        session.removeAttribute("cartItems");
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/payment-success.jsp");
         dispatcher.forward(request, response);
