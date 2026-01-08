@@ -15,61 +15,42 @@ public class ShipperService {
 
     // Khởi tạo DAO
     private final ShipperDAO shipperDAO = new ShipperDAO();
+    private final ShipperNotificationService shipperNotificationService = new ShipperNotificationService();
 
     public Shipper_dto getDashboardData(int shipperId) {
         Shipper_dto dto = new Shipper_dto();
 
-        // 1. Lấy thông tin Shipper từ DAO
         Shipper shipper = shipperDAO.findById(shipperId);
-        if (shipper == null) {
-            System.out.println("DEBUG: Không tìm thấy Shipper với ID: " + shipperId);
-            return null;
-        }
+        if (shipper == null) return null;
         dto.setShipperInfo(shipper);
 
-        // 2. Lấy danh sách nhiệm vụ từ DAO (Đã ẩn SQL trong DAO)
-        List<DeliveryAssignment> allAssignments = shipperDAO.getAssignmentsByShipperId(shipperId);
-
-        System.out.println("================ SHIPPER DASHBOARD DEBUG ================");
-        System.out.println("Shipper ID: " + shipperId);
-        System.out.println("Tổng số đơn tìm thấy: " + allAssignments.size());
-
-        // 3. Phân loại đơn hàng
         List<DeliveryAssignment> pending = new ArrayList<>();
         List<DeliveryAssignment> ongoing = new ArrayList<>();
         List<DeliveryAssignment> history = new ArrayList<>();
 
-        for (DeliveryAssignment da : allAssignments) {
-            // Kiểm tra an toàn dữ liệu để tránh lỗi NullPointer
-            if (da.getDelivery() == null || da.getDelivery().getOrder() == null) {
-                continue;
-            }
-
-            String status = (da.getStatus() != null) ? da.getStatus().trim() : "";
-            String orderStatus = (da.getDelivery().getOrder().getStatus() != null) ? da.getDelivery().getOrder().getStatus().trim() : "";
-
-            // --- LOGIC PHÂN LOẠI ---
-
-            // Nhóm 1: Chờ nhận (Pending)
-            if (containsIgnoreCase(status, "Assigned", "Pending", "Processing", "Ready", "Created")) {
-                pending.add(da);
-            }
-            // Nhóm 2: Đang thực hiện (Ongoing)
-            else if (containsIgnoreCase(status, "Accepted", "Picking Up", "In Transit", "Shipping", "On Delivery")) {
-                ongoing.add(da);
-            }
-            // Nhóm 3: Lịch sử (History)
-            else if (containsIgnoreCase(status, "Completed", "Delivered", "Cancelled", "Returned", "Fail", "Success")) {
-                history.add(da);
-            }
-            // Nhóm 4: Fallback (Dựa vào trạng thái Order nếu trạng thái Shipper lạ)
-            else {
-                if (containsIgnoreCase(orderStatus, "Shipping", "In Transit")) {
-                    ongoing.add(da);
-                } else if (containsIgnoreCase(orderStatus, "Completed", "Delivered")) {
-                    history.add(da);
-                } else {
+        // 1. SÀN ĐƠN HÀNG
+        List<DeliveryAssignment> marketAssignments = shipperDAO.getAvailableAssignments();
+        if (marketAssignments != null) {
+            for (DeliveryAssignment da : marketAssignments) {
+                if (da.getDelivery() != null && da.getDelivery().getOrder() != null) {
+                    // NẾU MUỐN HIỆN TẤT CẢ (KỂ CẢ CỦA MÌNH):
                     pending.add(da);
+                }
+            }
+        }
+
+        // 2. ĐƠN CỦA TÔI
+        List<DeliveryAssignment> myAssignments = shipperDAO.getAssignmentsByShipperId(shipperId);
+        if (myAssignments != null) {
+            for (DeliveryAssignment da : myAssignments) {
+                if (da.getDelivery() == null || da.getDelivery().getOrder() == null) continue;
+
+                String status = (da.getStatus() != null) ? da.getStatus().trim() : "";
+
+                if (containsIgnoreCase(status, "Accepted", "Picking Up", "In Transit", "Shipping", "On Delivery")) {
+                    ongoing.add(da);
+                } else if (containsIgnoreCase(status, "Completed", "Delivered", "Cancelled", "Fail", "Success")) {
+                    history.add(da);
                 }
             }
         }
@@ -78,9 +59,7 @@ public class ShipperService {
         dto.setOngoingOrders(ongoing);
         dto.setHistoryOrders(history);
 
-        // 4. Tính toán thống kê
-        calculateStatistics(shipperId, dto, allAssignments);
-
+        calculateStatistics(shipperId, dto, myAssignments);
         return dto;
     }
 
@@ -175,29 +154,104 @@ public class ShipperService {
         }
     }
 
-    public void updateStatus(int assignmentId, String action) {
-        // Tìm Assignment qua DAO
+    public void updateStatus(int assignmentId, String action, int currentShipperId) {
         DeliveryAssignment da = shipperDAO.findAssignmentById(assignmentId);
 
         if (da != null) {
             if ("accept".equals(action)) {
-                da.setStatus("In Transit"); // Đổi trạng thái khi nhận đơn
-                da.setAcceptedAt(new Date());
-                da.setStartedAt(new Date());
-                if (da.getDelivery() != null) da.getDelivery().setStatus("In Transit");
-            } else if ("complete".equals(action)) {
-                da.setStatus("Completed"); // Đổi trạng thái khi hoàn thành
-                da.setCompletedAt(new Date());
-                if (da.getDelivery() != null) {
-                    da.getDelivery().setStatus("Delivered");
-                    da.getDelivery().setActualDelivery(new Date());
-                    if (da.getDelivery().getOrder() != null) {
-                        da.getDelivery().getOrder().setStatus("Completed");
-                        da.getDelivery().getOrder().setCompletedAt(new Date());
+                // Nhận đơn: Chỉ cần status Ready
+                if ("Ready".equalsIgnoreCase(da.getStatus())) {
+
+                    // SỬA LỖI: Gán trực tiếp int
+                    da.setShipperId(currentShipperId);
+                    da.setStatus("In Transit");
+
+                    da.setAcceptedAt(new Date());
+                    da.setAssignedAt(new Date());
+                    da.setStartedAt(new Date());
+
+                    if (da.getDelivery() != null) {
+                        da.getDelivery().setStatus("In Transit");
+                    }
+                    System.out.println("DEBUG: Shipper " + currentShipperId + " nhận đơn " + assignmentId);
+
+                    // Gửi thông báo cho shipper khi nhận đơn
+                    try {
+                        String orderNumber = da.getDelivery() != null && da.getDelivery().getOrder() != null
+                            ? da.getDelivery().getOrder().getOrderNumber() : "N/A";
+                        String customerName = "";
+                        String address = "";
+                        int customerId = 0;
+
+                        if (da.getDelivery() != null && da.getDelivery().getOrder() != null) {
+                            if (da.getDelivery().getOrder().getCustomer() != null) {
+                                customerName = da.getDelivery().getOrder().getCustomer().getLastName() + " "
+                                    + da.getDelivery().getOrder().getCustomer().getFirstName();
+                                customerId = da.getDelivery().getOrder().getCustomer().getUserId();
+                            }
+                            if (da.getDelivery().getOrder().getAddress() != null) {
+                                address = da.getDelivery().getOrder().getAddress().getStreet() + ", "
+                                    + da.getDelivery().getOrder().getAddress().getDistrict();
+                            }
+                        }
+
+                        // Thông báo cho shipper
+                        shipperNotificationService.notifyOrderAccepted(currentShipperId, orderNumber, customerName, address);
+
+                        // Thông báo cho khách hàng
+                        if (customerId > 0) {
+                            Shipper shipper = shipperDAO.findById(currentShipperId);
+                            String shipperName = shipper != null
+                                ? shipper.getLastName() + " " + shipper.getFirstName()
+                                : "Shipper";
+                            shipperNotificationService.notifyCustomerOrderPickedUp(customerId, orderNumber, shipperName);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Lỗi gửi thông báo nhận đơn: " + e.getMessage());
                     }
                 }
+
+            } else if ("complete".equals(action)) {
+                // SỬA LỖI: So sánh int dùng == (không dùng .equals)
+                if (da.getShipperId() == currentShipperId) {
+                    da.setStatus("Completed");
+                    da.setCompletedAt(new Date());
+
+                    if (da.getDelivery() != null) {
+                        da.getDelivery().setStatus("Delivered");
+                        da.getDelivery().setActualDelivery(new Date());
+                        if (da.getDelivery().getOrder() != null) {
+                            da.getDelivery().getOrder().setStatus("Completed");
+                            da.getDelivery().getOrder().setCompletedAt(new Date());
+                        }
+                    }
+
+                    // Gửi thông báo cho shipper khi hoàn thành đơn
+                    try {
+                        String orderNumber = da.getDelivery() != null && da.getDelivery().getOrder() != null
+                            ? da.getDelivery().getOrder().getOrderNumber() : "N/A";
+                        double earnings = da.getEarnings();
+                        int customerId = 0;
+
+                        if (da.getDelivery() != null && da.getDelivery().getOrder() != null
+                            && da.getDelivery().getOrder().getCustomer() != null) {
+                            customerId = da.getDelivery().getOrder().getCustomer().getUserId();
+                        }
+
+                        // Thông báo cho shipper
+                        shipperNotificationService.notifyOrderCompleted(currentShipperId, orderNumber, earnings);
+
+                        // Thông báo cho khách hàng
+                        if (customerId > 0) {
+                            shipperNotificationService.notifyCustomerOrderDelivered(customerId, orderNumber);
+                        }
+                    } catch (Exception e) {
+                        System.out.println("Lỗi gửi thông báo hoàn thành: " + e.getMessage());
+                    }
+                } else {
+                    System.out.println("Lỗi: Shipper ID không khớp (" + da.getShipperId() + " != " + currentShipperId + ")");
+                }
             }
-            // Gọi DAO để update xuống DB
             shipperDAO.updateAssignment(da);
         }
     }

@@ -10,14 +10,14 @@ import viettech.entity.user.Customer;
 import viettech.entity.user.User;
 import viettech.entity.voucher.Voucher;
 import viettech.entity.voucher.VoucherUsage;
+import viettech.service.CartService;
 
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.annotation.*;
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @WebServlet(name = "CheckoutServlet", urlPatterns = {"/checkout"})
 public class CheckoutServlet extends HttpServlet {
@@ -28,6 +28,7 @@ public class CheckoutServlet extends HttpServlet {
     private OrderStatusDAO orderStatusDAO;
     private VoucherDAO voucherDAO;
     private VoucherUsageDAO voucherUsageDAO;
+    private CartService cartService;
 
     @Override
     public void init() throws ServletException {
@@ -38,6 +39,7 @@ public class CheckoutServlet extends HttpServlet {
         orderStatusDAO = new OrderStatusDAO();
         voucherDAO = new VoucherDAO();
         voucherUsageDAO = new VoucherUsageDAO();
+        cartService = new CartService();
     }
 
     @Override
@@ -81,8 +83,8 @@ public class CheckoutServlet extends HttpServlet {
             request.setAttribute("defaultAddress", defaultAddress);
 
             // Lấy danh sách voucher active và valid
-            List<Voucher> availableVouchers = voucherDAO.findActiveAndValid();
-            request.setAttribute("availableVouchers", availableVouchers);
+            List<Voucher> vouchers = voucherDAO.findActiveAndValid();
+            List<Voucher> availableVouchers = new ArrayList<>();
 
             List<CartCheckoutItemDTO> selectedCartItems = (List<CartCheckoutItemDTO>) session.getAttribute("selectedCartItems");
             if (selectedCartItems != null && !selectedCartItems.isEmpty()) {
@@ -94,6 +96,32 @@ public class CheckoutServlet extends HttpServlet {
                 }
                 request.setAttribute("total", total);
             }
+            for (Voucher voucher : vouchers) {
+
+                List<Integer> productIds = parseIds(voucher.getApplicableProducts());
+                List<Integer> categoryIds = parseIds(voucher.getApplicableCategories());
+
+                // Voucher áp dụng cho tất cả
+                if (productIds.isEmpty() && categoryIds.isEmpty()) {
+                    long userUsageCount = this.numberOfUsagePerCustomer(fullCustomer.getUserId(), voucher.getVoucherId());
+                    if (userUsageCount < voucher.getUsageLimitPerUser()) {
+                        availableVouchers.add(voucher);
+                        continue;
+                    }
+                }
+
+                boolean matchProduct = !productIds.isEmpty()
+                        && cartService.isProductsInCart(selectedCartItems, productIds);
+
+                boolean matchCategory = !categoryIds.isEmpty()
+                        && cartService.isCategoriesInCart(selectedCartItems, categoryIds);
+
+                if (matchProduct || matchCategory) {
+                    availableVouchers.add(voucher);
+                }
+            }
+
+            request.setAttribute("availableVouchers", availableVouchers);
 
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/views/shipping-info.jsp");
             dispatcher.forward(request, response);
@@ -198,7 +226,7 @@ public class CheckoutServlet extends HttpServlet {
 
                     // Kiểm tra user đã dùng voucher này chưa (nếu có giới hạn per user)
                     if (appliedVoucher.getUsageLimitPerUser() > 0) {
-                        long userUsageCount = voucherUsageDAO.countByVoucherId(appliedVoucher.getVoucherId());
+                        long userUsageCount = this.numberOfUsagePerCustomer(customer.getUserId(), appliedVoucher.getVoucherId());
                         if (userUsageCount >= appliedVoucher.getUsageLimitPerUser()) {
                             throw new Exception("Bạn đã sử dụng hết lượt áp dụng voucher này");
                         }
@@ -215,6 +243,10 @@ public class CheckoutServlet extends HttpServlet {
                     } else if ("SHIPPING".equals(appliedVoucher.getType())) {
                         voucherDiscount = appliedVoucher.getDiscountAmount();
                         shippingFee -= voucherDiscount;
+                        if(shippingFee < 0){
+                            shippingFee = 0;
+                        }
+                        voucherDiscount = 0;
                     }
 
                     // Lưu voucher vào session để dùng sau
@@ -224,7 +256,43 @@ public class CheckoutServlet extends HttpServlet {
                 }
             }
 
-            double totalPrice = subtotal + shippingFee + tax - voucherDiscount;
+            String usedLoyaltyPointsStr = request.getParameter("usedLoyaltyPoints");
+            int usedLoyaltyPoints = 0;
+            double loyaltyDiscount = 0.0;
+
+            if (usedLoyaltyPointsStr != null && !usedLoyaltyPointsStr.trim().isEmpty()) {
+                try {
+                    usedLoyaltyPoints = Integer.parseInt(usedLoyaltyPointsStr);
+
+                    // Kiểm tra user có đủ điểm không
+                    if (usedLoyaltyPoints > fullCustomer.getLoyaltyPoints()) {
+                        throw new Exception("Bạn không có đủ điểm tích lũy");
+                    }
+
+                    // Tính giá trị giảm giá từ loyalty points (1 điểm = 1000đ)
+                    loyaltyDiscount = usedLoyaltyPoints * 1000.0;
+
+                    // Kiểm tra không vượt quá tổng tiền còn lại
+                    double remainingAmount = subtotal - voucherDiscount;
+                    if (loyaltyDiscount > remainingAmount) {
+                        loyaltyDiscount = remainingAmount;
+                        usedLoyaltyPoints = (int) (loyaltyDiscount / 1000.0);
+                    }
+
+                    // Lưu vào session để sử dụng sau
+                    session.setAttribute("usedLoyaltyPoints", usedLoyaltyPoints);
+                    session.setAttribute("loyaltyDiscount", loyaltyDiscount);
+
+                } catch (NumberFormatException e) {
+                    throw new Exception("Số điểm tích lũy không hợp lệ");
+                }
+            }
+
+            double totalPrice = subtotal + shippingFee + tax - voucherDiscount - loyaltyDiscount;
+
+            if (totalPrice < 0) {
+                totalPrice = 0;
+            }
 
             // Xử lý theo phương thức thanh toán
             if ("VNPAY".equals(paymentMethod)) {
@@ -278,11 +346,11 @@ public class CheckoutServlet extends HttpServlet {
                                 subtotal,
                                 voucherDiscount
                         );
-                        voucherUsageDAO.insert(voucherUsage);
+                        session.setAttribute("voucherUsage", voucherUsage);
 
                         // Tăng usage count của voucher
-                        appliedVoucher.setUsageCount(appliedVoucher.getUsageCount() + 1);
-                        voucherDAO.update(appliedVoucher);
+                        session.setAttribute("appliedVoucher", appliedVoucher);
+
                     }
                 }
 
@@ -299,7 +367,7 @@ public class CheckoutServlet extends HttpServlet {
                 if (isBuyNow != null && isBuyNow) {
                     response.sendRedirect(request.getContextPath() + "/checkout/payment");
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/checkout/payment-cart");
+                    response.sendRedirect(request.getContextPath() + "/checkout/payment-cod-confirmed");
                 }
 
             } else if ("MOMO".equals(paymentMethod)) {
@@ -315,5 +383,22 @@ public class CheckoutServlet extends HttpServlet {
             request.setAttribute("errorMessage", "Có lỗi xảy ra: " + e.getMessage());
             doGet(request, response);
         }
+    }
+
+    public int numberOfUsagePerCustomer(int customerId, int voucherId) {
+        List<VoucherUsage> voucherUsage = voucherUsageDAO.findByCustomerId(customerId);
+        return (int) voucherUsage.stream().filter(vu -> vu.getVoucherId() == voucherId).count();
+    }
+
+    private List<Integer> parseIds(String str) {
+        if (str == null || str.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return Arrays.stream(str.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Integer::parseInt)
+                .collect(Collectors.toList());
     }
 }

@@ -100,7 +100,7 @@ public class ShipperServlet extends HttpServlet {
             if (idStr != null) {
                 try {
                     int assignmentId = Integer.parseInt(idStr);
-                    service.updateStatus(assignmentId, action);
+                    service.updateStatus(assignmentId, action, user.getUserId());
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }

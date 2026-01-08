@@ -282,6 +282,10 @@
                             <div class="voucher-card"
                                  data-voucher-code="${voucher.code}"
                                  data-voucher-id="${voucher.voucherId}"
+                                 data-voucher-type="${voucher.type}"
+                                 data-discount-percent="${voucher.discountPercent}"
+                                 data-discount-amount="${voucher.discountAmount}"
+                                 data-max-discount="${voucher.maxDiscount}"
                                  data-min-order="${voucher.minOrderValue}">
                               <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
@@ -340,13 +344,93 @@
                   <!-- KẾT THÚC PHẦN CHỌN VOUCHER -->
                   <!-- ========================================== -->
 
+                  <div class="loyalty-section">
+                    <h5 class="mb-3"><i class="bi bi-star-fill"></i> Điểm tích lũy</h5>
+
+                    <!-- Hiển thị số điểm hiện có -->
+                    <div class="loyalty-balance-card">
+                      <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                          <span class="text-muted">Điểm tích lũy hiện có:</span>
+                          <h4 class="mb-0 mt-1">
+                            <span class="loyalty-points-display">${customer.loyaltyPoints}</span>
+                            <small class="text-muted">điểm</small>
+                          </h4>
+                        </div>
+                        <div class="text-end">
+                          <span class="text-muted d-block" style="font-size: 0.85rem;">Giá trị quy đổi:</span>
+                          <h5 class="mb-0 text-success">
+                            <fmt:formatNumber value="${customer.loyaltyPoints * 1000}" type="number" pattern="#,###"/>đ
+                          </h5>
+                        </div>
+                      </div>
+
+                      <!-- Thông tin quy đổi -->
+                      <div class="alert alert-info mb-3" style="font-size: 0.9rem;">
+                        <i class="bi bi-info-circle"></i> 1 điểm = 1,000đ | Tối đa sử dụng đến khi tổng đơn hàng = 0đ
+                      </div>
+                    </div>
+
+                    <!-- Input nhập số điểm muốn sử dụng -->
+                    <div class="loyalty-input-group">
+                      <label for="loyaltyPointsInput" class="form-label">
+                        Nhập số điểm muốn sử dụng:
+                      </label>
+                      <div class="input-group">
+                        <input type="number"
+                               class="form-control"
+                               id="loyaltyPointsInput"
+                               name="loyaltyPoints"
+                               min="0"
+                               max="${customer.loyaltyPoints}"
+                               placeholder="Nhập số điểm"
+                               value="0">
+                        <button type="button"
+                                class="btn btn-outline-primary"
+                                id="applyLoyaltyBtn">
+                          Áp dụng
+                        </button>
+                        <button type="button"
+                                class="btn btn-outline-success"
+                                id="useAllLoyaltyBtn">
+                          Dùng hết
+                        </button>
+                      </div>
+                      <small class="text-muted mt-1 d-block">
+                        Tối đa: ${customer.loyaltyPoints} điểm
+                      </small>
+                    </div>
+
+                    <!-- Hiển thị điểm đang sử dụng -->
+                    <div id="appliedLoyaltyDisplay" class="alert alert-success d-none mt-3">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                          <i class="bi bi-check-circle"></i>
+                          Đang sử dụng: <strong id="appliedLoyaltyPoints">0</strong> điểm
+                          <span class="ms-2 text-muted">
+                    (Giảm <strong id="appliedLoyaltyValue">0đ</strong>)
+                </span>
+                        </div>
+                        <button type="button" class="btn-close" id="removeLoyaltyBtn"></button>
+                      </div>
+                    </div>
+
+                    <!-- Cảnh báo nếu không đủ điểm -->
+                    <div id="loyaltyWarning" class="alert alert-warning d-none mt-3">
+                      <i class="bi bi-exclamation-triangle"></i>
+                      <span id="loyaltyWarningMessage"></span>
+                    </div>
+                  </div>
+
+                  <!-- Thêm input hidden để gửi về server -->
+                  <input type="hidden" name="usedLoyaltyPoints" id="usedLoyaltyPoints" value="0">
+
                   <!-- Phương thức thanh toán -->
                   <div class="payment-method-section mb-4">
                     <label for="paymentMethod" class="form-label fw-bold">Chọn phương thức thanh toán:</label>
                     <select class="form-select form-select-lg" id="paymentMethod" name="paymentMethod" required>
                       <option value="" disabled selected>-- Vui lòng chọn --</option>
                       <option value="COD">Thanh toán khi nhận hàng (COD)</option>
-                      <option value="MOMO">Ví điện tử MoMo</option>
                       <option value="VNPAY">VNPay</option>
                     </select>
                     <div class="payment-method-icons mt-2">
@@ -398,67 +482,7 @@
 <!-- Script riêng cho chọn địa chỉ -->
 <script src="${pageContext.request.contextPath}/assets/js/address-dropdown.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/voucher-handler.js"></script>
+<script src="${pageContext.request.contextPath}/assets/js/checkout-calculator.js"></script>
 
-
-<!-- Script xử lý voucher -->
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const voucherCodeInput = document.getElementById('voucherCodeInput');
-    const applyVoucherBtn = document.getElementById('applyVoucherBtn');
-    const appliedVoucherDisplay = document.getElementById('appliedVoucherDisplay');
-    const appliedVoucherCode = document.getElementById('appliedVoucherCode');
-    const removeVoucherBtn = document.getElementById('removeVoucherBtn');
-    const voucherCards = document.querySelectorAll('.voucher-card');
-
-    // Xử lý click vào voucher card
-    voucherCards.forEach(card => {
-      card.addEventListener('click', function() {
-        const voucherCode = this.dataset.voucherCode;
-        const minOrder = parseFloat(this.dataset.minOrder);
-
-        // Kiểm tra giá trị đơn hàng
-        if (orderTotal < minOrder) {
-          alert('Đơn hàng chưa đạt giá trị tối thiểu để áp dụng voucher này!');
-          return;
-        }
-
-        // Remove selected class từ tất cả cards
-        voucherCards.forEach(c => c.classList.remove('selected'));
-
-        // Add selected class cho card được chọn
-        this.classList.add('selected');
-
-        // Set giá trị cho input
-        voucherCodeInput.value = voucherCode;
-
-        // Hiển thị thông báo đã áp dụng
-        appliedVoucherCode.textContent = voucherCode;
-        appliedVoucherDisplay.classList.remove('d-none');
-      });
-    });
-
-    // Xử lý nút áp dụng voucher
-    if (applyVoucherBtn) {
-      applyVoucherBtn.addEventListener('click', function() {
-        const code = voucherCodeInput.value.trim();
-        if (code) {
-          appliedVoucherCode.textContent = code;
-          appliedVoucherDisplay.classList.remove('d-none');
-        } else {
-          alert('Vui lòng nhập mã voucher!');
-        }
-      });
-    }
-
-    // Xử lý nút xóa voucher
-    if (removeVoucherBtn) {
-      removeVoucherBtn.addEventListener('click', function() {
-        voucherCodeInput.value = '';
-        appliedVoucherDisplay.classList.add('d-none');
-        voucherCards.forEach(c => c.classList.remove('selected'));
-      });
-    }
-  });
-</script>
 </body>
 </html>

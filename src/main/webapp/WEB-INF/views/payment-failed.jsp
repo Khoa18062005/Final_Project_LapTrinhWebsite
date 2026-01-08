@@ -15,75 +15,7 @@
 
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/main.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/avatar.css">
-
-  <style>
-    .failed-container {
-      min-height: 80vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .failed-card {
-      max-width: 600px;
-      width: 100%;
-      text-align: center;
-      padding: 3rem;
-      border-radius: 15px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    }
-
-    .failed-icon {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 2rem;
-      animation: shake 0.5s ease-out;
-    }
-
-    .failed-icon i {
-      font-size: 3rem;
-      color: white;
-    }
-
-    @keyframes shake {
-      0%, 100% { transform: translateX(0); }
-      10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-      20%, 40%, 60%, 80% { transform: translateX(10px); }
-    }
-
-    .error-message {
-      background: #fff3cd;
-      border-left: 4px solid #ffc107;
-      padding: 1rem;
-      border-radius: 5px;
-      margin: 2rem 0;
-      text-align: left;
-    }
-
-    .btn-group-custom {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      margin-top: 2rem;
-    }
-
-    .help-text {
-      margin-top: 2rem;
-      padding: 1.5rem;
-      background: #f8f9fa;
-      border-radius: 10px;
-    }
-
-    .help-text ul {
-      text-align: left;
-      margin-bottom: 0;
-    }
-  </style>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/payment-failed.css">
 </head>
 <body>
 <jsp:include page="../../header.jsp" />
@@ -125,13 +57,16 @@
 
       <div class="btn-group-custom">
         <a href="${pageContext.request.contextPath}/checkout" class="btn btn-primary btn-lg">
-          <i class="bi bi-arrow-clockwise me-2"></i>Thử lại
+          <i class="bi bi-arrow-clockwise"></i>
+          Thử lại
         </a>
         <a href="${pageContext.request.contextPath}/cart" class="btn btn-outline-secondary btn-lg">
-          <i class="bi bi-cart me-2"></i>Giỏ hàng
+          <i class="bi bi-cart"></i>
+          Giỏ hàng
         </a>
         <a href="${pageContext.request.contextPath}/" class="btn btn-outline-secondary btn-lg">
-          <i class="bi bi-house me-2"></i>Trang chủ
+          <i class="bi bi-house"></i>
+          Trang chủ
         </a>
       </div>
 

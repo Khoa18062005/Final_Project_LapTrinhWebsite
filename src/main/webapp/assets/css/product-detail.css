@@ -1183,4 +1183,6 @@
         height: 40px;
     }
 }
-
+.variant-option:hover{
+    color: black!important;
+}

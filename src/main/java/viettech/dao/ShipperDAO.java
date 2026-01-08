@@ -165,6 +165,26 @@ public class ShipperDAO {
     // ==================================================================
 
     /**
+     * Lấy danh sách tất cả shipper đang hoạt động (role = 3)
+     * Dùng để gửi thông báo khi có đơn hàng mới
+     */
+    public List<Shipper> findAllActiveShippers() {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT s FROM Shipper s WHERE s.roleID = 3";
+            TypedQuery<Shipper> query = em.createQuery(jpql, Shipper.class);
+            List<Shipper> shippers = query.getResultList();
+            logger.debug("✓ Found {} active shipper(s)", shippers.size());
+            return shippers;
+        } catch (Exception e) {
+            logger.error("✗ Error finding active shippers", e);
+            return new java.util.ArrayList<>();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
      * Lấy danh sách nhiệm vụ giao hàng của Shipper (Kèm Fetch dữ liệu liên quan)
      */
     public List<DeliveryAssignment> getAssignmentsByShipperId(int shipperId) {
@@ -180,12 +200,9 @@ public class ShipperDAO {
 
             TypedQuery<DeliveryAssignment> query = em.createQuery(jpql, DeliveryAssignment.class);
             query.setParameter("sid", shipperId);
-
-            List<DeliveryAssignment> list = query.getResultList();
-            logger.debug("✓ Found {} assignments for shipper ID {}", list.size(), shipperId);
-            return list;
+            return query.getResultList();
         } catch (Exception e) {
-            logger.error("✗ Error fetching assignments for shipper ID {}", shipperId, e);
+            e.printStackTrace();
             return Collections.emptyList();
         } finally {
             em.close();
@@ -219,12 +236,26 @@ public class ShipperDAO {
     /**
      * Tìm Assignment theo ID (Để update trạng thái)
      */
+    /**
+     * Tìm Assignment theo ID (Kèm FETCH dữ liệu Delivery/Order để tránh lỗi Lazy)
+     */
     public DeliveryAssignment findAssignmentById(int id) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {
-            return em.find(DeliveryAssignment.class, id);
+            // Dùng JOIN FETCH để ép Hibernate load hết dữ liệu 1 lần
+            String jpql = "SELECT da FROM DeliveryAssignment da " +
+                    "LEFT JOIN FETCH da.delivery d " +
+                    "LEFT JOIN FETCH d.order o " +
+                    "WHERE da.assignmentId = :id";
+
+            TypedQuery<DeliveryAssignment> query = em.createQuery(jpql, DeliveryAssignment.class);
+            query.setParameter("id", id);
+
+            return query.getSingleResult(); // Trả về kết quả duy nhất
+        } catch (NoResultException e) {
+            return null;
         } catch (Exception e) {
-            logger.error("✗ Error finding assignment ID {}", id, e);
+            e.printStackTrace();
             return null;
         } finally {
             em.close();
@@ -243,11 +274,8 @@ public class ShipperDAO {
             trans.commit();
         } catch (Exception e) {
             if (trans.isActive()) trans.rollback();
-            logger.error("✗ Failed to update assignment ID {}", da.getAssignmentId(), e);
-            throw new RuntimeException("Failed to update assignment", e);
-        } finally {
-            em.close();
-        }
+            e.printStackTrace();
+        } finally { em.close(); }
     }
 
     /**
@@ -296,6 +324,28 @@ public class ShipperDAO {
         } catch (Exception e) {
             if (trans.isActive()) trans.rollback();
             e.printStackTrace();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Lấy danh sách đơn hàng CHƯA CÓ SHIPPER (Pool đơn hàng tự do)
+     */
+    public List<DeliveryAssignment> getAvailableAssignments() {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT da FROM DeliveryAssignment da " +
+                    "LEFT JOIN FETCH da.delivery d " +
+                    "LEFT JOIN FETCH d.order o " +
+                    "LEFT JOIN FETCH o.customer c " +
+                    "LEFT JOIN FETCH o.address a " +
+                    "LEFT JOIN FETCH d.warehouse w " +
+                    "WHERE da.status = 'Ready' " + // <--- CHỈ LỌC THEO STATUS
+                    "ORDER BY da.assignedAt DESC";
+
+            TypedQuery<DeliveryAssignment> query = em.createQuery(jpql, DeliveryAssignment.class);
+            return query.getResultList();
         } finally {
             em.close();
         }

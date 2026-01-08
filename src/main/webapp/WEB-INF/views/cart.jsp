@@ -165,10 +165,6 @@
                                 <span>Phí vận chuyển:</span>
                                 <span id="shipping-fee">30.000₫</span>
                             </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Giảm giá:</span>
-                                <span class="text-success" id="discount-amount">-₫0</span>
-                            </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <span class="fw-bold">Tổng cộng:</span>
@@ -180,19 +176,6 @@
                                     </span>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="voucher-code" class="form-label">Mã giảm giá</label>
-                                <div class="input-group">
-                                    <input type="text"
-                                           class="form-control"
-                                           id="voucher-code"
-                                           placeholder="Nhập mã giảm giá">
-                                    <button class="btn btn-outline-primary" type="button" id="apply-voucher">
-                                        Áp dụng
-                                    </button>
-                                </div>
-                                <div id="voucher-message" class="mt-1 small"></div>
-                            </div>
 
                             <button type="button"
                                     class="btn btn-success w-100 py-3 fw-bold"

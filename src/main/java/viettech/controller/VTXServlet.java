@@ -2,6 +2,7 @@ package viettech.controller;
 
 import viettech.entity.user.Customer;
 import viettech.entity.user.User;
+import viettech.service.UserService;
 import viettech.util.SessionUtil;
 
 import javax.servlet.ServletException;
@@ -16,11 +17,13 @@ import java.io.IOException;
 @WebServlet("/profile/vtx")
 public class VTXServlet extends HttpServlet {
 
+    private final UserService userService = new UserService();
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        System.out.println("🪙 ===== VTX PAGE DEBUG =====");
+        System.out.println("🪙 ===== VTX PAGE DEBUG (RELOADED) =====");
 
         // Check login
         User user = (User) SessionUtil.getAttribute(request, "user");
@@ -39,17 +42,32 @@ public class VTXServlet extends HttpServlet {
             return;
         }
 
-        Customer customer = (Customer) user;
-        
-        // Get loyalty points and membership info
+        // 🔴 QUAN TRỌNG: Luôn query mới từ database bằng email
+        String userEmail = user.getEmail();
+        System.out.println("📧 Querying fresh data for email: " + userEmail);
+
+        Customer customer = userService.findCustomerByEmail(userEmail);
+
+        if (customer == null) {
+            System.out.println("❌ Failed to reload customer from database");
+            SessionUtil.setErrorMessage(request, "Không thể tải thông tin VTX!");
+            response.sendRedirect(request.getContextPath() + "/profile");
+            return;
+        }
+
+        // 🔴 Cập nhật customer mới vào session để các trang khác dùng
+        SessionUtil.setAttribute(request, "user", customer);
+
+        // Get loyalty points and membership info (từ database mới)
         int loyaltyPoints = customer.getLoyaltyPoints();
         String membershipTier = customer.getMembershipTier();
         double totalSpent = customer.getTotalSpent();
 
-        System.out.println("👤 Customer: " + customer.getEmail());
+        System.out.println("👤 Customer (RELOADED): " + customer.getEmail());
         System.out.println("🪙 Loyalty Points: " + loyaltyPoints);
         System.out.println("🏆 Membership Tier: " + membershipTier);
         System.out.println("💰 Total Spent: " + totalSpent);
+        System.out.println("💰 Total Spent (formatted): " + String.format("%,.0f", totalSpent) + "đ");
 
         // Calculate tier progress (Bronze -> Silver -> Gold -> Platinum)
         int nextTierThreshold = calculateNextTierThreshold(membershipTier);
@@ -77,7 +95,14 @@ public class VTXServlet extends HttpServlet {
      * Tính ngưỡng chi tiêu cần đạt để lên hạng tiếp theo
      */
     private int calculateNextTierThreshold(String currentTier) {
-        switch (currentTier.toLowerCase()) {
+        if (currentTier == null) {
+            return 5000000;
+        }
+
+        String tier = currentTier.trim().toLowerCase();
+        System.out.println("🔍 Calculating next tier for: " + tier);
+
+        switch (tier) {
             case "bronze":
                 return 5000000; // 5 triệu để lên Silver
             case "silver":
@@ -87,6 +112,7 @@ public class VTXServlet extends HttpServlet {
             case "platinum":
                 return 0; // Đã max tier
             default:
+                System.out.println("⚠️ Unknown tier: " + currentTier + ", defaulting to Bronze");
                 return 5000000;
         }
     }
@@ -95,14 +121,23 @@ public class VTXServlet extends HttpServlet {
      * Tính % tiến độ lên hạng tiếp theo
      */
     private int calculateTierProgress(double totalSpent, String currentTier) {
+        if (currentTier == null) {
+            return 0;
+        }
+
+        String tier = currentTier.trim().toLowerCase();
         int threshold = calculateNextTierThreshold(currentTier);
-        
+
+        System.out.println("📈 Calculating progress: tier=" + tier +
+                ", totalSpent=" + totalSpent +
+                ", threshold=" + threshold);
+
         if (threshold == 0) {
             return 100; // Platinum = max tier
         }
 
         int previousThreshold = 0;
-        switch (currentTier.toLowerCase()) {
+        switch (tier) {
             case "silver":
                 previousThreshold = 5000000; // Bronze threshold
                 break;
@@ -111,9 +146,20 @@ public class VTXServlet extends HttpServlet {
                 break;
             case "platinum":
                 return 100;
+            default: // Bronze
+                previousThreshold = 0;
+        }
+
+        System.out.println("📈 Previous threshold: " + previousThreshold);
+
+        if (threshold <= previousThreshold) {
+            return 0;
         }
 
         double progress = ((totalSpent - previousThreshold) / (threshold - previousThreshold)) * 100;
-        return Math.min(100, Math.max(0, (int) progress));
+        int roundedProgress = Math.min(100, Math.max(0, (int) Math.round(progress)));
+
+        System.out.println("📈 Raw progress: " + progress + "%, Rounded: " + roundedProgress + "%");
+        return roundedProgress;
     }
 }
