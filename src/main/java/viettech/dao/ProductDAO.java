@@ -485,6 +485,8 @@ public class ProductDAO {
         } catch (Exception e) {
             logger.error("✗ Error finding product with images: {}", productId, e);
             return null;
+        }
+    }
     /**
      * Tìm sản phẩm gợi ý theo từ khóa (dùng cho search suggestions)
      */
