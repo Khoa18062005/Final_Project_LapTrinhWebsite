@@ -10,7 +10,9 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Servlet xử lý các trang menu profile
@@ -57,19 +59,21 @@ public class VoucherServlet extends HttpServlet {
     /**
      * Xử lý trang vouchers với logic đặc biệt
      */
+    /**
+     * Xử lý trang vouchers với logic đặc biệt
+     */
     private void handleVouchersPage(HttpServletRequest request, HttpServletResponse response, User user)
             throws ServletException, IOException {
         try {
             System.out.println("🎫 ===== VOUCHER PAGE DEBUG =====");
 
+            // Lấy customer ID
+            int customerId = user.getUserId();
+            System.out.println("👤 Current User ID: " + customerId);
+
             // Lấy tất cả voucher
             List<Voucher> allVouchers = voucherDAO.findAll();
             System.out.println("📊 Total vouchers from DB: " + allVouchers.size());
-
-            // Debug từng voucher
-            for (Voucher v : allVouchers) {
-                System.out.println("  - Voucher: " + v.getCode() + " | isPublic: " + v.isPublic() + " | isActive: " + v.isActive());
-            }
 
             // Lọc chỉ lấy voucher public
             List<Voucher> publicVouchers = allVouchers.stream()
@@ -77,32 +81,52 @@ public class VoucherServlet extends HttpServlet {
                     .toList();
             System.out.println("📊 Public vouchers: " + publicVouchers.size());
 
+            // ✅ TẠO MAP ĐỂ LƯU USER USAGE CHO TỪNG VOUCHER
+            Map<Integer, Long> userUsageMap = new HashMap<>();
+            for (Voucher v : publicVouchers) {
+                long userUsageCount = voucherDAO.countUserUsage(v.getVoucherId(), customerId);
+                userUsageMap.put(v.getVoucherId(), userUsageCount);
+                System.out.println("  📊 Voucher " + v.getCode() + " - User usage: " + userUsageCount + "/" + v.getUsageLimitPerUser());
+            }
+
             // Phân loại voucher
             Date now = new Date();
             System.out.println("📅 Current time: " + now);
 
-            // Voucher có thể dùng
+            // Voucher có thể dùng (kiểm tra cả user usage)
             List<Voucher> activeVouchers = publicVouchers.stream()
                     .filter(v -> {
                         boolean isActive = v.isActive();
                         boolean startOk = v.getStartDate().before(now);
                         boolean expiryOk = v.getExpiryDate().after(now);
-                        boolean usageOk = v.getUsageCount() < v.getUsageLimit();
+                        boolean serverUsageOk = v.getUsageCount() < v.getUsageLimit();
+
+                        // ✅ LẤY USER USAGE TỪ MAP
+                        long userUsageCount = userUsageMap.get(v.getVoucherId());
+                        boolean userUsageOk = userUsageCount < v.getUsageLimitPerUser();
 
                         System.out.println("  🔍 " + v.getCode() +
                                 " | active:" + isActive +
                                 " | start:" + startOk +
                                 " | expiry:" + expiryOk +
-                                " | usage:" + usageOk);
+                                " | serverUsage:" + serverUsageOk + " (" + v.getUsageCount() + "/" + v.getUsageLimit() + ")" +
+                                " | userUsage:" + userUsageOk + " (" + userUsageCount + "/" + v.getUsageLimitPerUser() + ")");
 
-                        return isActive && startOk && expiryOk && usageOk;
+                        return isActive && startOk && expiryOk && serverUsageOk && userUsageOk;
                     })
                     .toList();
             System.out.println("✅ Active vouchers: " + activeVouchers.size());
 
-            // Voucher hết hạn
+            // Voucher hết hạn hoặc hết lượt
             List<Voucher> expiredVouchers = publicVouchers.stream()
-                    .filter(v -> v.getExpiryDate().before(now))
+                    .filter(v -> {
+                        boolean timeExpired = v.getExpiryDate().before(now);
+                        boolean serverLimitReached = v.getUsageCount() >= v.getUsageLimit();
+                        long userUsageCount = userUsageMap.get(v.getVoucherId());
+                        boolean userLimitReached = userUsageCount >= v.getUsageLimitPerUser();
+
+                        return timeExpired || serverLimitReached || userLimitReached;
+                    })
                     .toList();
             System.out.println("❌ Expired vouchers: " + expiredVouchers.size());
 
@@ -114,6 +138,10 @@ public class VoucherServlet extends HttpServlet {
             request.setAttribute("allVouchers", publicVouchers);
             request.setAttribute("activeVouchers", activeVouchers);
             request.setAttribute("expiredVouchers", expiredVouchers);
+            request.setAttribute("customerId", customerId);
+
+            // ✅ TRUYỀN MAP VÀO JSP
+            request.setAttribute("userUsageMap", userUsageMap);
 
             // Forward to JSP
             request.getRequestDispatcher("/WEB-INF/views/profile/vouchers.jsp")

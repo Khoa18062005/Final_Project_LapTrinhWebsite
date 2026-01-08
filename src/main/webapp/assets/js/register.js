@@ -572,12 +572,9 @@ function showAlert(type, message) {
     closeBtn.type = 'button';
     closeBtn.className = 'btn-close';
     closeBtn.setAttribute('data-bs-dismiss', 'alert');
-
     alertDiv.appendChild(strong);
     alertDiv.appendChild(textNode);
     alertDiv.appendChild(closeBtn);
-
     document.querySelector('.card-body').insertBefore(alertDiv, document.querySelector('form'));
-
     setTimeout(() => alertDiv.remove(), 5000);
 }
