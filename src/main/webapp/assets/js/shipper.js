@@ -36,6 +36,57 @@ function initShipperDashboard() {
     updateStats();
     updateOnlineStatus();
     setInterval(updateCurrentDate, 60000); // Update every minute
+
+    // Auto reload trang mỗi 1 phút để cập nhật dữ liệu mới
+    startAutoReload();
+}
+
+// Auto reload dữ liệu mỗi 1 phút (60000ms)
+let autoReloadInterval = null;
+const AUTO_RELOAD_INTERVAL = 60000; // 1 phút
+
+function startAutoReload() {
+    if (autoReloadInterval) {
+        clearInterval(autoReloadInterval);
+    }
+
+    autoReloadInterval = setInterval(function() {
+        console.log('[Auto Reload] Đang tải lại dữ liệu shipper...');
+        reloadShipperData();
+    }, AUTO_RELOAD_INTERVAL);
+
+    console.log('[Auto Reload] Đã bật tự động tải lại mỗi 1 phút');
+}
+
+function stopAutoReload() {
+    if (autoReloadInterval) {
+        clearInterval(autoReloadInterval);
+        autoReloadInterval = null;
+        console.log('[Auto Reload] Đã tắt tự động tải lại');
+    }
+}
+
+// Reload dữ liệu shipper từ server
+function reloadShipperData() {
+    const contextPath = window.shipperContextPath || '';
+
+    // Reload trang để lấy dữ liệu mới nhất
+    // Hoặc có thể dùng AJAX để không reload toàn trang
+    fetch(contextPath + '/shipper?ajax=true&t=' + Date.now(), {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            // Reload trang để cập nhật giao diện
+            location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('[Auto Reload] Lỗi khi tải dữ liệu:', error);
+    });
 }
 
 // Update Current Date

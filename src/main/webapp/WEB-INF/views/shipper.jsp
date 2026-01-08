@@ -378,7 +378,23 @@
     document.addEventListener("DOMContentLoaded", function() {
         requestGPS();
         try { updateDashboard(); } catch (e) { console.error("Lỗi vẽ biểu đồ:", e); }
+
+        // Khởi tạo auto reload mỗi 1 phút
+        if (typeof initShipperDashboard === 'function') {
+            initShipperDashboard();
+        } else {
+            // Fallback: Tự động reload trang mỗi 1 phút
+            startAutoReloadPage();
+        }
     });
+
+    // Fallback auto reload function
+    function startAutoReloadPage() {
+        setInterval(function() {
+            console.log('[Auto Reload] Đang tải lại trang shipper...');
+            location.reload();
+        }, 60000); // 1 phút = 60000ms
+    }
 
     function requestGPS() {
         const overlay = document.getElementById('gps-overlay');
