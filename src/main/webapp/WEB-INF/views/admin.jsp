@@ -49,11 +49,6 @@
                     <i class="fas fa-box"></i>
                     <span>Sản phẩm</span>
                 </a>
-                <a href="#orders" class="nav-item" onclick="return showSection('orders', this)">
-                    <i class="fas fa-shopping-cart"></i>
-                    <span>Đơn hàng</span>
-                    <span class="badge-count">12</span>
-                </a>
                 <a href="#users" class="nav-item" onclick="return showSection('users', this)">
                     <i class="fas fa-users"></i>
                     <span>Người dùng</span>
@@ -67,31 +62,21 @@
                     <i class="fas fa-ticket-alt"></i>
                     <span>Voucher</span>
                 </a>
-                <a href="#flash-sales" class="nav-item" onclick="return showSection('flash-sales', this)">
-                    <i class="fas fa-bolt"></i>
-                    <span>Flash Sale</span>
-                </a>
             </div>
 
             <!-- Support Section -->
             <div class="nav-menu-section">
                 <div class="section-title">Hỗ trợ</div>
+                <a href="#contact-messages" class="nav-item" onclick="return showSection('contact-messages', this)">
+                    <i class="fas fa-envelope"></i>
+                    <span>Tin nhắn KH</span>
+                    <c:if test="${unreadContactMessages != null && unreadContactMessages > 0}">
+                        <span class="badge-count">${unreadContactMessages}</span>
+                    </c:if>
+                </a>
                 <a href="#chatbot" class="nav-item" onclick="return showSection('chatbot', this)">
                     <i class="fas fa-robot"></i>
                     <span>AI Chatbot</span>
-                </a>
-                <a href="#reviews" class="nav-item" onclick="return showSection('reviews', this)">
-                    <i class="fas fa-star"></i>
-                    <span>Đánh giá</span>
-                </a>
-            </div>
-
-            <!-- System Section -->
-            <div class="nav-menu-section">
-                <div class="section-title">Hệ thống</div>
-                <a href="#settings" class="nav-item" onclick="return showSection('settings', this)">
-                    <i class="fas fa-cog"></i>
-                    <span>Cài đặt</span>
                 </a>
             </div>
         </nav>
@@ -182,14 +167,6 @@
             <jsp:include page="/WEB-INF/views/admin_pages/products.jsp"/>
         </section>
 
-        <!-- Orders Section -->
-        <section id="orders" class="content-section">
-            <div class="section-header">
-                <h2>Quản lý đơn hàng</h2>
-            </div>
-            <p>Đang phát triển...</p>
-        </section>
-
         <!-- Users Section -->
         <section id="users" class="content-section">
             <jsp:include page="/WEB-INF/views/admin_pages/users.jsp"/>
@@ -200,198 +177,14 @@
             <jsp:include page="/WEB-INF/views/admin_pages/voucher.jsp"/>
         </section>
 
-        <!-- Flash Sales Section -->
-        <section id="flash-sales" class="content-section">
-            <div class="section-header">
-                <h2>Quản lý Flash Sale</h2>
-                <button class="btn btn-primary" onclick="openAddFlashSaleModal()">
-                    <i class="fas fa-plus"></i> Tạo Flash Sale
-                </button>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-icon orange">
-                            <i class="fas fa-bolt"></i>
-                        </div>
-                    </div>
-                    <div class="stat-details">
-                        <h3>Flash Sale đang diễn ra</h3>
-                        <p class="stat-number">${activeFlashSales != null ? activeFlashSales : 0}</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-icon green">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    </div>
-                    <div class="stat-details">
-                        <h3>Đã hoàn thành</h3>
-                        <p class="stat-number">${completedFlashSales != null ? completedFlashSales : 0}</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-icon blue">
-                            <i class="fas fa-calendar-alt"></i>
-                        </div>
-                    </div>
-                    <div class="stat-details">
-                        <h3>Sắp diễn ra</h3>
-                        <p class="stat-number">${upcomingFlashSales != null ? upcomingFlashSales : 0}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Tên chiến dịch</th>
-                            <th>Thời gian</th>
-                            <th>Sản phẩm</th>
-                            <th>Giảm giá</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:if test="${empty flashSaleList}">
-                            <tr>
-                                <td colspan="6" style="text-align: center; padding: 48px;">
-                                    <i class="fas fa-bolt" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px; display: block;"></i>
-                                    <p style="color: var(--text-muted);">Chưa có Flash Sale nào. Tạo chiến dịch đầu tiên!</p>
-                                </td>
-                            </tr>
-                        </c:if>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
         <!-- Chatbot Section -->
         <section id="chatbot" class="content-section">
             <jsp:include page="/WEB-INF/views/admin_pages/Chatbot.jsp"/>
         </section>
 
-        <!-- Reviews Section -->
-        <section id="reviews" class="content-section">
-            <div class="section-header">
-                <h2>Quản lý đánh giá</h2>
-                <div class="filter-group">
-                    <select id="reviewRatingFilter">
-                        <option value="">Tất cả đánh giá</option>
-                        <option value="5">5 sao</option>
-                        <option value="4">4 sao</option>
-                        <option value="3">3 sao</option>
-                        <option value="2">2 sao</option>
-                        <option value="1">1 sao</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="reviews-list" id="reviewsList">
-                <c:forEach var="review" items="${reviewList}">
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="review-user">
-                                <img src="https://ui-avatars.com/api/?name=${review.customerName}&background=random" alt="${review.customerName}">
-                                <div class="review-user-info">
-                                    <h4>${review.customerName}</h4>
-                                    <small style="color: var(--text-muted);">${review.productName}</small>
-                                </div>
-                            </div>
-                            <div class="review-rating">
-                                <c:forEach begin="1" end="5" var="i">
-                                    <i class="fas fa-star ${i <= review.rating ? '' : 'far'}"></i>
-                                </c:forEach>
-                            </div>
-                        </div>
-                        <p class="review-content">${review.comment}</p>
-                        <div style="margin-top: 16px; display: flex; gap: 8px;">
-                            <button class="btn btn-sm btn-secondary">
-                                <i class="fas fa-reply"></i> Phản hồi
-                            </button>
-                            <button class="btn btn-sm btn-danger">
-                                <i class="fas fa-flag"></i> Báo cáo
-                            </button>
-                        </div>
-                    </div>
-                </c:forEach>
-                <c:if test="${empty reviewList}">
-                    <div class="review-card" style="text-align: center; padding: 48px;">
-                        <i class="fas fa-star" style="font-size: 48px; color: var(--text-muted); margin-bottom: 16px;"></i>
-                        <p style="color: var(--text-muted);">Chưa có đánh giá nào</p>
-                    </div>
-                </c:if>
-            </div>
-        </section>
-
-        <!-- Settings Section -->
-        <section id="settings" class="content-section">
-            <div class="section-header">
-                <h2>Cài đặt hệ thống</h2>
-            </div>
-
-            <div class="settings-container">
-                <div class="settings-card">
-                    <h3>Thông tin cửa hàng</h3>
-                    <form id="storeSettingsForm">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="storeName">Tên cửa hàng</label>
-                                <input type="text" id="storeName" class="form-control" value="VietTech Shop">
-                            </div>
-                            <div class="form-group">
-                                <label for="storePhone">Số điện thoại</label>
-                                <input type="tel" id="storePhone" class="form-control" value="1900 1234">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="storeEmail">Email liên hệ</label>
-                            <input type="email" id="storeEmail" class="form-control" value="contact@viettech.com">
-                        </div>
-                        <div class="form-group">
-                            <label for="storeAddress">Địa chỉ</label>
-                            <textarea id="storeAddress" class="form-control" rows="2">123 Nguyễn Văn Linh, Quận 7, TP.HCM</textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Lưu thay đổi
-                        </button>
-                    </form>
-                </div>
-
-                <div class="settings-card">
-                    <h3>Cấu hình email</h3>
-                    <form id="emailSettingsForm">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="smtpHost">SMTP Host</label>
-                                <input type="text" id="smtpHost" class="form-control" placeholder="smtp.gmail.com">
-                            </div>
-                            <div class="form-group">
-                                <label for="smtpPort">SMTP Port</label>
-                                <input type="number" id="smtpPort" class="form-control" placeholder="587">
-                            </div>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="smtpUsername">Username</label>
-                                <input type="text" id="smtpUsername" class="form-control" placeholder="your-email@gmail.com">
-                            </div>
-                            <div class="form-group">
-                                <label for="smtpPassword">Password</label>
-                                <input type="password" id="smtpPassword" class="form-control" placeholder="••••••••">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save"></i> Lưu cấu hình
-                        </button>
-                    </form>
-                </div>
-            </div>
+        <!-- Contact Messages Section -->
+        <section id="contact-messages" class="content-section">
+            <jsp:include page="/WEB-INF/views/admin_pages/contact-messages.jsp"/>
         </section>
     </main>
 

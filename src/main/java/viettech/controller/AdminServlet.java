@@ -3,7 +3,9 @@ package viettech.controller;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import viettech.dao.*;
+import viettech.util.SessionUtil;
 import viettech.entity.Address;
+import viettech.entity.Notification;
 import viettech.entity.order.Order;
 import viettech.entity.order.OrderDetail;
 import viettech.entity.product.Laptop;
@@ -16,6 +18,9 @@ import viettech.entity.user.Shipper;
 import viettech.entity.user.User;
 import viettech.entity.user.Vendor;
 import viettech.entity.voucher.Voucher;
+import viettech.service.ContactMessageService;
+import viettech.service.NotificationService;
+import viettech.service.SentimentAnalysis;
 import viettech.service.StatisticService;
 
 import javax.servlet.ServletException;
@@ -43,6 +48,12 @@ public class AdminServlet extends HttpServlet {
     private final AdminDAO adminDAO = new AdminDAO();
     private final VendorDAO vendorDAO = new VendorDAO();
     private final ShipperDAO shipperDAO = new ShipperDAO();
+    private final NotificationDAO notificationDAO = new NotificationDAO();
+
+    // Service
+    private final NotificationService notificationService = new NotificationService();
+    private final ContactMessageService contactMessageService = new ContactMessageService();
+    private final SentimentAnalysis sentimentAnalysis = SentimentAnalysis.getInstance();
 
     // DAO riêng cho từng loại sản phẩm (Dùng để Insert)
     private final PhoneDAO phoneDAO = new PhoneDAO();
@@ -97,6 +108,11 @@ public class AdminServlet extends HttpServlet {
             req.setAttribute("totalVendors", 0);
             req.setAttribute("totalShippers", 0);
             req.setAttribute("totalCustomers", 0);
+            req.setAttribute("contactMessagesList", new ArrayList<>());
+            req.setAttribute("totalContactMessages", 0L);
+            req.setAttribute("unreadContactMessages", 0L);
+            req.setAttribute("currentPage", 1);
+            req.setAttribute("totalPages", 1);
 
             // Khởi tạo Service
             StatisticService statisticService = new StatisticService();
@@ -194,6 +210,9 @@ public class AdminServlet extends HttpServlet {
         // 9. Lấy danh sách người dùng và thống kê
         loadUserData(req);
 
+        // 10. Lấy danh sách tin nhắn từ khách hàng (contact messages)
+        loadContactMessages(req);
+
         } catch (Exception e) {
             // Log the error but still try to forward to the page
             e.printStackTrace();
@@ -288,6 +307,36 @@ public class AdminServlet extends HttpServlet {
         req.setAttribute("totalCustomers", totalCustomers);
     }
 
+    // --- LOAD CONTACT MESSAGES ---
+    private void loadContactMessages(HttpServletRequest req) {
+        int pageSize = 10;
+        int currentPage = 1;
+
+        try {
+            String pageParam = req.getParameter("page");
+            if (pageParam != null && !pageParam.isEmpty()) {
+                currentPage = Integer.parseInt(pageParam);
+            }
+        } catch (NumberFormatException e) {
+            // Keep default value
+        }
+
+        String statusFilter = req.getParameter("statusFilter");
+
+        // Sử dụng ContactMessageService để lấy dữ liệu
+        ContactMessageService.ContactMessageResult result =
+                contactMessageService.getContactMessages(currentPage, pageSize, statusFilter,
+                        SessionUtil.getCurrentUser(req,User.class).getUserId());
+        // Set attributes cho JSP
+
+        req.setAttribute("contactMessagesList", result.getMessages());
+        req.setAttribute("sentimentMap", result.getSentimentMap());
+        req.setAttribute("totalContactMessages", result.getTotalMessages());
+        req.setAttribute("unreadContactMessages", result.getUnreadMessages());
+        req.setAttribute("currentPage", result.getCurrentPage());
+        req.setAttribute("totalPages", result.getTotalPages());
+    }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
@@ -318,6 +367,15 @@ public class AdminServlet extends HttpServlet {
                 break;
             case "add_user":
                 addUser(req, resp);
+                break;
+            case "mark_contact_read":
+                markContactAsRead(req, resp);
+                break;
+            case "delete_contact_message":
+                deleteContactMessage(req, resp);
+                break;
+            case "reply_contact_message":
+                replyContactMessage(req, resp);
                 break;
             default:
                 resp.sendRedirect(req.getContextPath() + "/admin");
@@ -829,5 +887,65 @@ public class AdminServlet extends HttpServlet {
                 .replaceAll("[^a-z0-9\\s-]", "")
                 .replaceAll("\\s+", "-")
                 + "-" + System.currentTimeMillis();
+    }
+
+    // --- MARK CONTACT MESSAGE AS READ ---
+    private void markContactAsRead(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            int notificationId = Integer.parseInt(req.getParameter("notificationId"));
+
+            boolean success = contactMessageService.markAsRead(notificationId);
+
+            if (success) {
+                resp.sendRedirect(req.getContextPath() + "/admin?section=contact-messages&contactMessage=marked_read");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/admin?section=contact-messages&contactError=not_found");
+            }
+        } catch (Exception e) {
+            System.err.println("Error marking contact as read: " + e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/admin?section=contact-messages&contactError=mark_failed");
+        }
+    }
+
+    // --- DELETE CONTACT MESSAGE ---
+    private void deleteContactMessage(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            int notificationId = Integer.parseInt(req.getParameter("notificationId"));
+
+            boolean success = contactMessageService.deleteMessage(notificationId);
+
+            if (success) {
+                resp.sendRedirect(req.getContextPath() + "/admin?section=contact-messages&contactMessage=deleted");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/admin?section=contact-messages&contactError=delete_failed");
+            }
+        } catch (Exception e) {
+            System.err.println("Error deleting contact message: " + e.getMessage());
+            resp.sendRedirect(req.getContextPath() + "/admin?section=contact-messages&contactError=delete_failed");
+        }
+    }
+
+    // --- REPLY CONTACT MESSAGE ---
+    private void replyContactMessage(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            int originalNotificationId = Integer.parseInt(req.getParameter("notificationId"));
+            int userId = Integer.parseInt(req.getParameter("userId"));
+            String replyTitle = req.getParameter("replyTitle");
+            String replyMessage = req.getParameter("replyMessage");
+
+            boolean success = contactMessageService.replyToMessage(
+                originalNotificationId, userId, replyTitle, replyMessage);
+
+            if (success) {
+                resp.sendRedirect(req.getContextPath() + "/admin?section=contact-messages&contactMessage=replied");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/admin?section=contact-messages&contactError=reply_failed");
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error replying to contact message: " + e.getMessage());
+            e.printStackTrace();
+            resp.sendRedirect(req.getContextPath() + "/admin?section=contact-messages&contactError=reply_failed");
+        }
     }
 }
