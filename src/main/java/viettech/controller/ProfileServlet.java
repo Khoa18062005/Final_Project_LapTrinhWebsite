@@ -37,7 +37,7 @@ public class ProfileServlet extends HttpServlet {
 
         request.setAttribute("user", user);
         // Chuyển hướng đến servlet hiển thị hoặc JSP
-        request.getRequestDispatcher("/WEB-INF/views/profile-info.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/views/profile/info.jsp").forward(request, response);
     }
 
     @Override
