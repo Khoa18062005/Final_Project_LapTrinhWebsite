@@ -1,46 +1,28 @@
 package viettech.controller;
 
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
-import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.service.AiServices;
-import viettech.service.DatabaseTool;
-import viettech.service.SqlAssistant;
+import viettech.service.ChatBotService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-@WebServlet("/admin/chatbot")
+@WebServlet("/admin/chat")
 public class ChatbotServlet extends HttpServlet {
-    private SqlAssistant assistant;
+
+    private ChatBotService chatBotService;
 
     @Override
     public void init() throws ServletException {
         super.init();
-        String apiKey = System.getenv("GROQ_API_KEY");
-        OpenAiChatModel model = OpenAiChatModel.builder()
-                .baseUrl("https://api.groq.com/openai/v1")
-                .apiKey(apiKey)
-                .modelName("llama-3.3-70b-versatile")
-                .temperature(0.0)
-                .build();
-        this.assistant = AiServices.builder(SqlAssistant.class)
-                .chatModel(model)
-                .tools(new DatabaseTool())
-                .chatMemory(MessageWindowChatMemory.withMaxMessages(10))
-                .build();
-    }
-
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // Hiển thị trang chatbot
-        request.getRequestDispatcher("/WEB-INF/views/admin_pages/chatbot.jsp").forward(request, response);
+        chatBotService = ChatBotService.getInstance();
+        System.out.println("ChatbotServlet initialized, service ready: " + chatBotService.isInitialized());
     }
 
     @Override
@@ -50,34 +32,61 @@ public class ChatbotServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
-        String message = request.getParameter("message");
+        // Enable CORS if needed
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
         JsonObject jsonResponse = new JsonObject();
+        PrintWriter out = response.getWriter();
 
         try {
-            if (message == null || message.trim().isEmpty()) {
+            // Read JSON body
+            StringBuilder sb = new StringBuilder();
+            BufferedReader reader = request.getReader();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+
+            String requestBody = sb.toString();
+            String question = null;
+
+            // Parse JSON to get question
+            if (!requestBody.isEmpty()) {
+                JsonObject jsonRequest = JsonParser.parseString(requestBody).getAsJsonObject();
+                if (jsonRequest.has("question")) {
+                    question = jsonRequest.get("question").getAsString();
+                }
+            }
+
+            if (question == null || question.trim().isEmpty()) {
                 jsonResponse.addProperty("success", false);
-                jsonResponse.addProperty("message", "Vui lòng nhập câu hỏi");
+                jsonResponse.addProperty("response", "Vui lòng nhập câu hỏi");
             } else {
-                String answer = getAnswer(message);
-                jsonResponse.addProperty("success", true);
-                jsonResponse.addProperty("message", answer);
+                // Call ChatBotService to get answer
+                String answer = chatBotService.chat(question);
+                jsonResponse.addProperty("success", chatBotService.isInitialized());
+                jsonResponse.addProperty("response", answer);
             }
         } catch (Exception e) {
+            e.printStackTrace();
             jsonResponse.addProperty("success", false);
-            jsonResponse.addProperty("message", "Lỗi xử lý: " + e.getMessage());
+            jsonResponse.addProperty("response", "Lỗi xử lý: " + e.getMessage());
         }
 
-        PrintWriter out = response.getWriter();
         out.print(jsonResponse);
         out.flush();
     }
 
-    public String getAnswer(String question) {
-        try {
-            return assistant.chat(question);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    protected void doOptions(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // Handle CORS preflight request
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        response.setStatus(HttpServletResponse.SC_OK);
     }
 
 }

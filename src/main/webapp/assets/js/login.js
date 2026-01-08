@@ -101,7 +101,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             firework.appendChild(particle);
         }
-
         setTimeout(() => firework.remove(), 2000);
     });
 });

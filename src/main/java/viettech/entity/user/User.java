@@ -230,6 +230,10 @@ public abstract class User {
         return createdAt;
     }
 
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt != null ? createdAt : new Date();
+    }
+
     public Date getUpdatedAt() {
         return updatedAt;
     }

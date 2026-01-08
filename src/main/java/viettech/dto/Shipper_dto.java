@@ -1,6 +1,6 @@
 package viettech.dto;
 
-import viettech.entity.delivery.DeliveryAssignment;
+import viettech.entity.order.Order;
 import viettech.entity.user.Shipper;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +22,10 @@ public class Shipper_dto {
     private double incomeMonth;
     private long countMonth;
 
-    // 5. Danh sách đơn hàng (Để hiển thị bảng)
-    private List<DeliveryAssignment> pendingOrders;   // Chờ nhận
-    private List<DeliveryAssignment> ongoingOrders;   // Đang giao
-    private List<DeliveryAssignment> historyOrders;   // Lịch sử hoàn thành
+    // 5. Danh sách đơn hàng (Từ bảng orders)
+    private List<Order> pendingOrders;   // Chờ nhận (status = Ready)
+    private List<Order> ongoingOrders;   // Đang giao (status = Shipping)
+    private List<Order> historyOrders;   // Lịch sử hoàn thành (status = Completed)
 
     // 6. Dữ liệu Biểu đồ (Chart.js)
     // Biểu đồ 7 ngày: Ngày (20/12) -> Tiền
@@ -68,14 +68,14 @@ public class Shipper_dto {
     public void setCountMonth(long countMonth) { this.countMonth = countMonth; }
 
     // --- Danh sách đơn ---
-    public List<DeliveryAssignment> getPendingOrders() { return pendingOrders; }
-    public void setPendingOrders(List<DeliveryAssignment> pendingOrders) { this.pendingOrders = pendingOrders; }
+    public List<Order> getPendingOrders() { return pendingOrders; }
+    public void setPendingOrders(List<Order> pendingOrders) { this.pendingOrders = pendingOrders; }
 
-    public List<DeliveryAssignment> getOngoingOrders() { return ongoingOrders; }
-    public void setOngoingOrders(List<DeliveryAssignment> ongoingOrders) { this.ongoingOrders = ongoingOrders; }
+    public List<Order> getOngoingOrders() { return ongoingOrders; }
+    public void setOngoingOrders(List<Order> ongoingOrders) { this.ongoingOrders = ongoingOrders; }
 
-    public List<DeliveryAssignment> getHistoryOrders() { return historyOrders; }
-    public void setHistoryOrders(List<DeliveryAssignment> historyOrders) { this.historyOrders = historyOrders; }
+    public List<Order> getHistoryOrders() { return historyOrders; }
+    public void setHistoryOrders(List<Order> historyOrders) { this.historyOrders = historyOrders; }
 
     // --- Dữ liệu Biểu đồ ---
     public List<String> getChartLabels7Days() { return chartLabels7Days; }

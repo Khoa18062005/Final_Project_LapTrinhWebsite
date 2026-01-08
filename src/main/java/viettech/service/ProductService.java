@@ -387,7 +387,7 @@ public class ProductService {
 
                     dto.setPrimaryImage(primaryImageUrl);
                     // ==========================================
-
+                    dto.setBrand(p.getBrand());
                     return dto;
                 })
                 .toList();
@@ -627,6 +627,10 @@ public class ProductService {
         String temp = Normalizer.normalize(input, Normalizer.Form.NFD);
         temp = Pattern.compile("\\p{InCombiningDiacriticalMarks}+").matcher(temp).replaceAll("");
         temp = temp.replaceAll("đ", "d").replaceAll("Đ", "d");
+        temp = temp.replaceAll("ê", "e").replaceAll("Ê", "E");
+        temp = temp.replaceAll("ô", "o").replaceAll("Ô", "O");
+        temp = temp.replaceAll("ư", "u").replaceAll("Ư", "U");
+        temp = temp.replaceAll("ơ", "o").replaceAll("Ơ", "O");
         return temp.toLowerCase();
     }
 
@@ -654,6 +658,11 @@ public class ProductService {
         dto.setOldPrice(p.getBasePrice());
         dto.setDiscountPercent(0);
         dto.setPrimaryImage(getPrimaryImageUrl(p));
+
+        // === THÊM MỚI: Set brand để hỗ trợ lọc theo hãng ===
+        // RẤT QUAN TRỌNG - Nếu thiếu dòng này thì danh sách hãng sẽ trống!
+        dto.setBrand(p.getBrand());
+
         return dto;
     }
 
@@ -664,6 +673,8 @@ public class ProductService {
         }
         return products.stream()
                 .limit(limit)
+                // === ĐÃ ĐƯỢC CẬP NHẬT BRAND TỰ ĐỘNG ===
+                // Vì convertProductToCardDTO đã set brand ở trên
                 .map(this::convertProductToCardDTO)
                 .toList();
     }
@@ -676,58 +687,90 @@ public class ProductService {
      * @param minPrice     Giá thấp nhất (null hoặc -1 nếu không lọc)
      * @param maxPrice     Giá cao nhất (null hoặc -1 nếu không lọc)
      */
-    public List<ProductCardDTO> filterAndSort(List<ProductCardDTO> originalList, String sortType, Double minPrice, Double maxPrice) {
-        // --- 1. DEBUG LOG (Xem Console của Server) ---
-        System.out.println("====== START FILTER ======");
-        System.out.println("Sort requested: " + sortType);
+    public List<ProductCardDTO> filterAndSort(
+            List<ProductCardDTO> originalList,
+            String sortType,
+            Double minPrice,
+            Double maxPrice,
+            Double minRating) {
+
+        System.out.println("====== START FILTER & SORT ======");
+        System.out.println("Sort: " + sortType +
+                " | MinPrice: " + minPrice +
+                " | MaxPrice: " + maxPrice +
+                " | MinRating: " + minRating);
 
         if (originalList == null || originalList.isEmpty()) {
+            System.out.println("Danh sách gốc rỗng → trả về empty list");
+            System.out.println("====== END FILTER & SORT ======");
             return new ArrayList<>();
         }
 
-        // --- 2. Tạo danh sách mới để tránh lỗi UnsupportedOperation ---
         List<ProductCardDTO> resultList = new ArrayList<>(originalList);
 
-        // --- 3. Lọc theo giá (Dùng vòng lặp for cổ điển cho an toàn) ---
+        // === 1. Lọc theo giá ===
         if ((minPrice != null && minPrice >= 0) || (maxPrice != null && maxPrice >= 0)) {
-            List<ProductCardDTO> tempList = new ArrayList<>();
-            for (ProductCardDTO p : resultList) {
-                boolean pass = true;
-                if (minPrice != null && minPrice >= 0 && p.getPrice() < minPrice) pass = false;
-                if (maxPrice != null && maxPrice >= 0 && p.getPrice() > maxPrice) pass = false;
-
-                if (pass) tempList.add(p);
-            }
-            resultList = tempList; // Gán lại danh sách đã lọc
+            resultList = resultList.stream()
+                    .filter(p -> {
+                        if (minPrice != null && minPrice >= 0 && p.getPrice() < minPrice) return false;
+                        return !(maxPrice != null && maxPrice >= 0 && p.getPrice() > maxPrice);
+                    })
+                    .collect(Collectors.toList());
+            System.out.println("Sau lọc giá: " + resultList.size() + " sản phẩm");
         }
 
-        // --- 4. Sắp xếp (QUAN TRỌNG) ---
-        if (sortType != null) {
-            if (sortType.trim().equals("price_asc")) {
-                System.out.println("-> Dang sap xep Tang Dan...");
-                Collections.sort(resultList, new Comparator<ProductCardDTO>() {
-                    @Override
-                    public int compare(ProductCardDTO o1, ProductCardDTO o2) {
-                        return Double.compare(o1.getPrice(), o2.getPrice());
-                    }
-                });
-            } else if (sortType.trim().equals("price_desc")) {
-                System.out.println("-> Dang sap xep Giam Dan...");
-                Collections.sort(resultList, new Comparator<ProductCardDTO>() {
-                    @Override
-                    public int compare(ProductCardDTO o1, ProductCardDTO o2) {
-                        return Double.compare(o2.getPrice(), o1.getPrice());
-                    }
-                });
+        // === 2. Lọc theo số sao (rating) ===
+        if (minRating != null && minRating > 0) {
+            resultList = resultList.stream()
+                    .filter(p -> p.getRating() >= minRating)
+                    .collect(Collectors.toList());
+            System.out.println("Sau lọc rating ≥ " + minRating + ": " + resultList.size() + " sản phẩm");
+        }
+
+        // === 3. Sắp xếp ===
+        if (sortType != null && !sortType.trim().isEmpty()) {
+            String sort = sortType.trim().toLowerCase();
+
+            switch (sort) {
+                case "price_asc":
+                    resultList.sort(Comparator.comparingDouble(ProductCardDTO::getPrice));
+                    System.out.println("Đã sắp xếp: Giá tăng dần");
+                    break;
+
+                case "price_desc":
+                    resultList.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
+                    System.out.println("Đã sắp xếp: Giá giảm dần");
+                    break;
+
+                case "rating_desc":
+                    resultList.sort((a, b) -> Double.compare(b.getRating(), a.getRating()));
+                    System.out.println("Đã sắp xếp: Rating cao → thấp");
+                    break;
+
+                default:
+                    // Mặc định sắp xếp giá tăng dần nếu sortType không hợp lệ
+                    resultList.sort(Comparator.comparingDouble(ProductCardDTO::getPrice));
+                    System.out.println("SortType không hợp lệ → mặc định giá tăng dần");
+                    break;
             }
         }
 
-        // Log kết quả giá của sản phẩm đầu tiên sau khi xếp
+        // Log sản phẩm đầu tiên sau khi xử lý
         if (!resultList.isEmpty()) {
-            System.out.println("-> Gia san pham dau tien: " + resultList.get(0).getPrice());
+            ProductCardDTO first = resultList.get(0);
+            System.out.println("Sản phẩm đầu: " + first.getName() +
+                    " | Giá: " + first.getPrice() +
+                    " | Rating: " + first.getRating());
         }
-        System.out.println("====== END FILTER ======");
+
+        System.out.println("Kết quả cuối: " + resultList.size() + " sản phẩm");
+        System.out.println("====== END FILTER & SORT ======");
 
         return resultList;
+    }
+
+    public void increaseViewProduct(int item_id){
+        ProductDAO productDAO = new ProductDAO();
+        productDAO.incrementViewCount(item_id);
     }
 }

@@ -1,7 +1,9 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
 <footer class="footer">
   <div class="container py-5">
     <div class="row g-4">
-
       <!-- Column 1: Brand & Info -->
       <div class="col-lg-4 col-md-6">
         <div class="footer-brand mb-4">
@@ -49,7 +51,25 @@
         <ul class="footer-links list-unstyled">
           <li><a href="${pageContext.request.contextPath}/about">Giới thiệu</a></li>
           <li><a href="${pageContext.request.contextPath}/contact">Liên hệ</a></li>
-          <li><a href="${pageContext.request.contextPath}/careers">Tuyển dụng</a></li>
+
+          <!-- ✅ KIỂM TRA ĐĂNG NHẬP CHO TUYỂN DỤNG -->
+          <c:choose>
+            <c:when test="${not empty sessionScope.user}">
+              <!-- Đã đăng nhập → Cho phép truy cập -->
+              <li><a href="${pageContext.request.contextPath}/careers">Tuyển dụng</a></li>
+            </c:when>
+            <c:otherwise>
+              <!-- Chưa đăng nhập → Hiện modal đăng nhập -->
+              <li>
+                <a href="javascript:void(0);"
+                   data-bs-toggle="modal"
+                   data-bs-target="#smemberModal">
+                  Tuyển dụng
+                </a>
+              </li>
+            </c:otherwise>
+          </c:choose>
+
           <li><a href="${pageContext.request.contextPath}/policy/terms">Điều khoản sử dụng</a></li>
           <li><a href="${pageContext.request.contextPath}/policy/privacy">Chính sách bảo mật</a></li>
         </ul>
@@ -61,11 +81,11 @@
         <div class="footer-contact">
           <p class="footer-contact-item mb-2">
             <span class="footer-contact-label">Địa chỉ:</span><br>
-            <span class="footer-contact-value">123 Đường ABC, Quận XYZ<br>TP. Hồ Chí Minh</span>
+            <span class="footer-contact-value">01 Đ. Võ Văn Ngân, Linh Chiểu, Thủ Đức, Thành phố Hồ Chí Minh</span>
           </p>
           <p class="footer-contact-item mb-2">
             <span class="footer-contact-label">Hotline:</span><br>
-            <a href="tel:19009999" class="footer-contact-link">1900 9999</a>
+            <a href="tel:0866448892" class="footer-contact-link">0866 448 892</a>
           </p>
           <p class="footer-contact-item mb-2">
             <span class="footer-contact-label">Email:</span><br>

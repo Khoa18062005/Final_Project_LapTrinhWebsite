@@ -1,0 +1,254 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+/* ===== RESET ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+}
+
+body {
+    background-color: #f2f6fc;
+    color: #333;
+}
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 160px; /* Nên để dư 10-20px so với chiều cao header để đẹp */
+}
+/* ===== MÀU CHỦ ĐẠO ===== */
+:root {
+    --primary-color: #0d6efd;
+    --primary-dark: #0b5ed7;
+    --color-border: #e0e0e0;
+}
+
+/* =============== FILTER & SORT BAR - PHIÊN BẢN ĐẸP NHẤT =============== */
+.filter-sort-bar {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px 28px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(13, 110, 253, 0.1);
+    margin-bottom: 32px;
+}
+
+/* Tiêu đề "Sắp xếp theo" */
+.filter-sort-bar .fw-bold.text-secondary {
+    font-size: 15px;
+    color: #444;
+    font-weight: 600;
+}
+
+/* ================= NÚT SẮP XẾP ================= */
+.btn-sort {
+    padding: 10px 22px;
+    font-size: 14.5px;
+    font-weight: 500;
+    border-radius: 50px; /* Bo tròn mạnh */
+    border: 1px solid #e0e0e0;
+    background: #ffffff;
+    color: #555;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    min-width: 110px;
+    justify-content: center;
+}
+
+.btn-sort:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(13, 110, 253, 0.15);
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+
+.btn-sort-active {
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    border-color: #0d6efd !important;
+    color: #fff !important;
+    box-shadow: 0 8px 25px rgba(13, 110, 253, 0.3);
+    font-weight: 600;
+}
+
+.btn-sort-active:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(13, 110, 253, 0.4);
+}
+
+/* ================= LỌC GIÁ ================= */
+.price-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+/* Ô nhập giá */
+.price-filter-group .form-control {
+    height: 48px;
+    border-radius: 24px; /* Bo tròn lớn */
+    border: 1px solid #ddd;
+    background: #fff;
+    font-size: 15px;
+    text-align: center;
+    min-width: 160px;
+    padding: 0 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.price-filter-group .form-control:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+    transform: scale(1.02);
+}
+
+.price-filter-group .form-control::placeholder {
+    color: #aaa;
+    font-style: normal;
+}
+
+/* Dấu gạch ngang */
+.price-filter-group .text-secondary {
+    font-size: 22px;
+    font-weight: bold;
+    color: #bbb;
+    margin-bottom: 8px;
+}
+
+/* Nút Lọc */
+.price-filter-group .btn-primary {
+    height: 50px;
+    padding: 0 32px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 15.5px;
+    background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    border: none;
+    box-shadow: 0 8px 20px rgba(13, 110, 253, 0.25);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.price-filter-group .btn-primary:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(13, 110, 253, 0.35);
+    background: linear-gradient(135deg, #0b5ed7, #084298);
+}
+
+/* Nút Xóa lọc */
+.price-filter-group .btn-outline-secondary {
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 50px;
+    font-weight: 500;
+    border: 1px solid #ddd;
+    color: #666;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.price-filter-group .btn-outline-secondary:hover {
+    background: #f8f9fa;
+    border-color: #0d6efd;
+    color: #0d6efd;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 992px) {
+    .price-filter-group {
+        justify-content: center;
+        margin-top: 16px;
+    }
+
+    .filter-sort-bar .d-flex.gap-2 {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .filter-sort-bar {
+        padding: 18px;
+        border-radius: 18px;
+    }
+
+    .btn-sort {
+        padding: 9px 18px;
+        font-size: 14px;
+        min-width: 100px;
+    }
+
+    .price-filter-group .form-control {
+        min-width: 140px;
+        height: 46px;
+        font-size: 14.5px;
+    }
+
+    .price-filter-group .btn-primary,
+    .price-filter-group .btn-outline-secondary {
+        height: 46px;
+        padding: 0 24px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .filter-sort-bar {
+        padding: 16px;
+    }
+
+    .price-filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .price-filter-group .form-control {
+        width: 100%;
+        min-width: unset;
+    }
+
+    .price-filter-group .text-secondary {
+        display: none;
+    }
+
+    .price-filter-group .btn-primary,
+    .price-filter-group .btn-outline-secondary {
+        width: 100%;
+        justify-content: center;
+    }
+}
+.category-title{
+    margin-left: 45px!important;
+}
+
+.text-muted-filter{
+    margin-left: 45px;
+}
+.form-control-price:hover{
+    /*background: #eef5ff;*/
+    border-color: #0d6efd!important;
+    color: #0d6efd;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(13, 110, 253, 0.15);
+}
+section.products .product-badges .badge.installment {
+    top: 10px !important;
+    left: 10px !important;
+    right: auto !important;
+}
+.col-12 .d-flex{
+   margin-left: 45px;
+}
+#filter-price{
+    margin-right: 45px;
+}

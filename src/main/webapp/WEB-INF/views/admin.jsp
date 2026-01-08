@@ -1,404 +1,262 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page isErrorPage="false" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - DashStack</title>
+    <title>Admin Dashboard - VietTech</title>
+    <link rel="icon" type="image/png" href="${pageContext.request.contextPath}/assets/PNG/AVT.png">
+
+    <!-- Google Fonts - Roboto (matching main.css) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons (matching index.jsp) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Admin CSS (after Bootstrap to override styles) -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Admin JavaScript - loaded synchronously for onclick handlers -->
+    <script src="${pageContext.request.contextPath}/assets/js/admin.js"></script>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
         <div class="logo">
-            <h2>Dash<span>Stack</span></h2>
+            <h2>Viet<span>Tech</span></h2>
         </div>
+
         <nav class="nav-menu">
+            <!-- Main Section -->
             <div class="nav-menu-section">
-                <a href="#dashboard" class="nav-item active" onclick="showSection('dashboard')">
+                <a href="#dashboard" class="nav-item active" onclick="return showSection('dashboard', this)">
                     <i class="fas fa-chart-pie"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="#products" class="nav-item" onclick="showSection('products')">
-                    <i class="fas fa-shopping-bag"></i>
-                    <span>Products</span>
+                <a href="#products" class="nav-item" onclick="return showSection('products', this)">
+                    <i class="fas fa-box"></i>
+                    <span>Sản phẩm</span>
                 </a>
-                <a href="#favorites" class="nav-item" onclick="showSection('favorites')">
-                    <i class="fas fa-heart"></i>
-                    <span>Favorites</span>
-                </a>
-                <a href="#inbox" class="nav-item" onclick="showSection('inbox')">
-                    <i class="fas fa-inbox"></i>
-                    <span>Inbox</span>
+                <a href="#users" class="nav-item" onclick="return showSection('users', this)">
+                    <i class="fas fa-users"></i>
+                    <span>Người dùng</span>
                 </a>
             </div>
+
+            <!-- Marketing Section -->
             <div class="nav-menu-section">
-                <div class="section-title">PAGES</div>
-                <a href="#orders" class="nav-item" onclick="showSection('orders')">
-                    <i class="fas fa-list-ul"></i>
-                    <span>Order Lists</span>
+                <div class="section-title">Marketing</div>
+                <a href="#vouchers" class="nav-item" onclick="return showSection('vouchers', this)">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Voucher</span>
                 </a>
-                <a href="#stock" class="nav-item" onclick="showSection('stock')">
-                    <i class="fas fa-box"></i>
-                    <span>Product Stock</span>
+            </div>
+
+            <!-- Support Section -->
+            <div class="nav-menu-section">
+                <div class="section-title">Hỗ trợ</div>
+                <a href="#contact-messages" class="nav-item" onclick="return showSection('contact-messages', this)">
+                    <i class="fas fa-envelope"></i>
+                    <span>Tin nhắn KH</span>
+                    <c:if test="${unreadContactMessages != null && unreadContactMessages > 0}">
+                        <span class="badge-count">${unreadContactMessages}</span>
+                    </c:if>
+                </a>
+                <a href="#chatbot" class="nav-item" onclick="return showSection('chatbot', this)">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Chatbot</span>
                 </a>
             </div>
         </nav>
+
+        <!-- Sidebar Footer -->
         <div class="sidebar-footer">
-            <a href="#" class="nav-item">
+            <a href="${pageContext.request.contextPath}/logout" class="nav-item">
                 <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
+                <span>Đăng xuất</span>
             </a>
         </div>
-    </div>
+    </aside>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <main class="main-content" id="main-content">
         <!-- Top Navbar -->
-        <div class="top-navbar">
+        <header class="top-navbar">
             <div class="navbar-left">
-                <button class="menu-toggle" onclick="toggleSidebar()">
+                <button class="menu-toggle" onclick="toggleSidebar()" aria-label="Toggle menu">
                     <i class="fas fa-bars"></i>
                 </button>
                 <h1 id="page-title">Dashboard</h1>
             </div>
+
             <div class="navbar-right">
+                <!-- Search Box -->
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search">
+                    <input type="text" placeholder="Tìm kiếm..." aria-label="Search">
                 </div>
+
+                <!-- Language Selector -->
                 <div class="language-selector">
-                    <img src="https://flagcdn.com/w40/gb.png" alt="EN">
-                    <span>Eng</span>
+                    <img src="https://flagcdn.com/w40/vn.png" alt="VN">
+                    <span>VN</span>
                     <i class="fas fa-chevron-down"></i>
                 </div>
-                <div class="notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="badge">6</span>
+
+                <!-- Notifications -->
+                <div class="notifications dropdown" id="adminNotificationBell">
+                    <button class="notification-bell-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" style="display: none;">0</span>
+                    </button>
+
+                    <!-- Notification Dropdown -->
+                    <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+                        <div class="notification-dropdown-header">
+                            <h6>Thông báo</h6>
+                            <a href="${pageContext.request.contextPath}/admin/notifications" class="view-all-link">Xem tất cả</a>
+                        </div>
+                        <div class="notification-dropdown-body">
+                            <!-- Notifications will be loaded here via JavaScript -->
+                            <div class="notification-loading text-center py-4">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2 text-muted small">Đang tải thông báo...</p>
+                            </div>
+                        </div>
+                        <div class="notification-dropdown-footer">
+                            <a href="${pageContext.request.contextPath}/admin/notifications/mark-all-read" class="mark-all-read">
+                                <i class="fas fa-check-double"></i> Đánh dấu tất cả đã đọc
+                            </a>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- User Profile -->
                 <div class="user-profile">
-                    <img src="https://via.placeholder.com/44" alt="Admin">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=2563EB&color=fff" alt="Admin">
                     <div class="user-profile-info">
-                        <div class="name">Moni Roy</div>
-                        <div class="role">Admin</div>
+                        <div class="name">${sessionScope.admin != null ? sessionScope.admin.fullName : 'Admin'}</div>
+                        <div class="role">Quản trị viên</div>
                     </div>
                     <i class="fas fa-chevron-down"></i>
                 </div>
             </div>
-        </div>
+        </header>
 
         <!-- Dashboard Section -->
-        <div id="dashboard" class="content-section active">
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-icon blue">
-                            <i class="fas fa-users"></i>
-                        </div>
-                    </div>
-                    <div class="stat-details">
-                        <h3>Total User</h3>
-                        <p class="stat-number" id="total-users">40,689</p>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>8.5%</span>
-                            <span class="text">Up from yesterday</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-icon green">
-                            <i class="fas fa-shopping-bag"></i>
-                        </div>
-                    </div>
-                    <div class="stat-details">
-                        <h3>Total Order</h3>
-                        <p class="stat-number" id="total-orders">10,293</p>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>1.3%</span>
-                            <span class="text">Up from past week</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-icon orange">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                    </div>
-                    <div class="stat-details">
-                        <h3>Total Sales</h3>
-                        <p class="stat-number" id="total-sales">$89,000</p>
-                        <div class="stat-change negative">
-                            <i class="fas fa-arrow-down"></i>
-                            <span>4.3%</span>
-                            <span class="text">Down from yesterday</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-card-header">
-                        <div class="stat-icon purple">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                    </div>
-                    <div class="stat-details">
-                        <h3>Total Pending</h3>
-                        <p class="stat-number" id="total-pending">2,040</p>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>1.8%</span>
-                            <span class="text">Up from yesterday</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="charts-grid">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3>Sales Details</h3>
-                        <select class="chart-filter">
-                            <option>October</option>
-                            <option>November</option>
-                            <option>December</option>
-                        </select>
-                    </div>
-                    <canvas id="revenueChart"></canvas>
-                </div>
-                <div class="chart-card">
-                    <h3>Deals Details</h3>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><img src="https://via.placeholder.com/36" alt="Product"> Apple Watch</td>
-                                    <td><span class="status-badge delivered">Delivered</span></td>
-                                </tr>
-                                <tr>
-                                    <td><img src="https://via.placeholder.com/36" alt="Product"> Mac Book Pro</td>
-                                    <td><span class="status-badge pending">Pending</span></td>
-                                </tr>
-                                <tr>
-                                    <td><img src="https://via.placeholder.com/36" alt="Product"> IPhone 13 Pro</td>
-                                    <td><span class="status-badge rejected">Rejected</span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <section id="dashboard" class="content-section active">
+            <jsp:include page="/WEB-INF/views/admin_pages/dashboard.jsp"/>
+        </section>
 
         <!-- Products Section -->
-        <div id="products" class="content-section">
-            <div class="section-header">
-                <h2>Quản lý sản phẩm</h2>
-                <button class="btn btn-primary" onclick="openAddProductModal()">
-                    <i class="fas fa-plus"></i> Thêm sản phẩm
-                </button>
-            </div>
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Hình ảnh</th>
-                            <th>Tên sản phẩm</th>
-                            <th>Danh mục</th>
-                            <th>Giá</th>
-                            <th>Kho</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsTable"></tbody>
-                </table>
-            </div>
-        </div>
+        <section id="products" class="content-section">
+            <jsp:include page="/WEB-INF/views/admin_pages/products.jsp"/>
+        </section>
 
         <!-- Users Section -->
-        <div id="users" class="content-section">
-            <div class="section-header">
-                <h2>Quản lý người dùng</h2>
-                <button class="btn btn-primary" onclick="openAddUserModal()">
-                    <i class="fas fa-plus"></i> Thêm người dùng
-                </button>
-            </div>
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Avatar</th>
-                            <th>Tên</th>
-                            <th>Email</th>
-                            <th>Số điện thoại</th>
-                            <th>Vai trò</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="usersTable"></tbody>
-                </table>
-            </div>
-        </div>
+        <section id="users" class="content-section">
+            <jsp:include page="/WEB-INF/views/admin_pages/users.jsp"/>
+        </section>
 
-        <!-- Orders Section -->
-        <div id="orders" class="content-section">
-            <div class="section-header">
-                <h2>Quản lý đơn hàng</h2>
-            </div>
-            <div class="table-container">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Mã đơn</th>
-                            <th>Khách hàng</th>
-                            <th>Ngày đặt</th>
-                            <th>Tổng tiền</th>
-                            <th>Trạng thái</th>
-                            <th>Thanh toán</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTable"></tbody>
-                </table>
-            </div>
-        </div>
+        <!-- Vouchers Section -->
+        <section id="vouchers" class="content-section">
+            <jsp:include page="/WEB-INF/views/admin_pages/voucher.jsp"/>
+        </section>
 
-        <!-- Revenue Section -->
-        <div id="revenue" class="content-section">
-            <div class="section-header">
-                <h2>Báo cáo doanh thu</h2>
-                <div class="filter-group">
-                    <select id="revenueFilter" onchange="filterRevenue()">
-                        <option value="week">Tuần này</option>
-                        <option value="month" selected>Tháng này</option>
-                        <option value="year">Năm này</option>
-                    </select>
-                </div>
-            </div>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <h3>Doanh thu tháng này</h3>
-                    <p class="stat-number large" id="monthRevenue">0 ₫</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Đơn hàng hoàn thành</h3>
-                    <p class="stat-number large" id="completedOrders">0</p>
-                </div>
-                <div class="stat-card">
-                    <h3>Giá trị đơn trung bình</h3>
-                    <p class="stat-number large" id="avgOrderValue">0 ₫</p>
-                </div>
-            </div>
-            <div class="chart-card">
-                <canvas id="revenueDetailChart"></canvas>
-            </div>
-        </div>
+        <!-- Chatbot Section -->
+        <section id="chatbot" class="content-section">
+            <jsp:include page="/WEB-INF/views/admin_pages/Chatbot.jsp"/>
+        </section>
 
-        <!-- Categories Section -->
-        <div id="categories" class="content-section">
-            <div class="section-header">
-                <h2>Quản lý danh mục</h2>
-                <button class="btn btn-primary" onclick="openAddCategoryModal()">
-                    <i class="fas fa-plus"></i> Thêm danh mục
-                </button>
-            </div>
-            <div class="categories-grid" id="categoriesGrid"></div>
-        </div>
+        <!-- Contact Messages Section -->
+        <section id="contact-messages" class="content-section">
+            <jsp:include page="/WEB-INF/views/admin_pages/contact-messages.jsp"/>
+        </section>
+    </main>
 
-        <!-- Reviews Section -->
-        <div id="reviews" class="content-section">
-            <div class="section-header">
-                <h2>Quản lý đánh giá</h2>
-            </div>
-            <div class="reviews-list" id="reviewsList"></div>
-        </div>
-
-        <!-- Settings Section -->
-        <div id="settings" class="content-section">
-            <div class="section-header">
-                <h2>Cài đặt hệ thống</h2>
-            </div>
-            <div class="settings-container">
-                <div class="settings-card">
-                    <h3>Thông tin cửa hàng</h3>
-                    <form>
-                        <div class="form-group">
-                            <label>Tên cửa hàng</label>
-                            <input type="text" value="VietTech Shop" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Email liên hệ</label>
-                            <input type="email" value="contact@viettech.com" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Số điện thoại</label>
-                            <input type="tel" value="0123456789" class="form-control">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modals -->
+    <!-- Add Product Modal -->
     <div id="productModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-lg">
             <div class="modal-header">
-                <h2>Thêm sản phẩm mới</h2>
-                <span class="close" onclick="closeModal('productModal')">&times;</span>
+                <h3>Thêm sản phẩm mới</h3>
+                <button class="modal-close" onclick="closeModal('productModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="productForm">
-                    <div class="form-group">
-                        <label>Tên sản phẩm</label>
-                        <input type="text" id="productName" class="form-control" required>
+                <form id="productForm" action="${pageContext.request.contextPath}/admin" method="POST">
+                    <input type="hidden" name="action" value="add_product">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productName">Tên sản phẩm <span class="required">*</span></label>
+                            <input type="text" id="productName" name="name" class="form-control" required placeholder="Nhập tên sản phẩm">
+                        </div>
+                        <div class="form-group">
+                            <label for="productBrand">Thương hiệu <span class="required">*</span></label>
+                            <input type="text" id="productBrand" name="brand" class="form-control" required placeholder="Nhập thương hiệu">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Danh mục</label>
-                        <select id="productCategory" class="form-control" required>
-                            <option value="Điện thoại">Điện thoại</option>
-                            <option value="Laptop">Laptop</option>
-                            <option value="Phụ kiện">Phụ kiện</option>
-                        </select>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productCategory">Danh mục <span class="required">*</span></label>
+                            <select id="productCategory" name="categoryId" class="form-control" required>
+                                <option value="">-- Chọn danh mục --</option>
+                                <option value="1">Điện thoại</option>
+                                <option value="3">Laptop</option>
+                                <option value="4">Tablet</option>
+                                <option value="5">Tai nghe / Phụ kiện</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="productPrice">Giá (₫) <span class="required">*</span></label>
+                            <input type="number" id="productPrice" name="basePrice" class="form-control" required placeholder="0" min="0">
+                        </div>
                     </div>
+
                     <div class="form-group">
-                        <label>Giá (₫)</label>
-                        <input type="number" id="productPrice" class="form-control" required>
+                        <label for="productDescription">Mô tả</label>
+                        <textarea id="productDescription" name="description" class="form-control" rows="4" placeholder="Nhập mô tả sản phẩm..."></textarea>
                     </div>
-                    <div class="form-group">
-                        <label>Số lượng</label>
-                        <input type="number" id="productStock" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Mô tả</label>
-                        <textarea id="productDescription" class="form-control" rows="3"></textarea>
-                    </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" onclick="closeModal('productModal')">Hủy</button>
-                        <button type="submit" class="btn btn-primary">Thêm sản phẩm</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Thêm sản phẩm
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="${pageContext.request.contextPath}/assets/js/admin.js"></script>
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Notification Variables -->
+    <script>
+        const contextPath = "${pageContext.request.contextPath}";
+        const isLoggedIn = true; // Admin luôn đăng nhập
+    </script>
+
+    <!-- Admin Notification JS -->
+    <script src="${pageContext.request.contextPath}/assets/js/admin-notification.js"></script>
 </body>
 </html>
+

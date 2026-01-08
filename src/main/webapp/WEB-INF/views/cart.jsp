@@ -97,11 +97,6 @@
                                             </td>
                                             <td style="width: 150px;">
                                                 <div class="input-group input-group-sm">
-                                                    <button class="btn btn-outline-secondary"
-                                                            type="button"
-                                                            onclick="cartController.decreaseQuantity(${item.productId}, ${item.variantId})">
-                                                        <i class="bi bi-dash"></i>
-                                                    </button>
                                                     <input type="number"
                                                            class="form-control text-center quantity-input"
                                                            value="${item.quantity}"
@@ -110,11 +105,6 @@
                                                            data-product-id="${item.productId}"
                                                            data-variant-id="${item.variantId}"
                                                            onchange="cartController.updateQuantityFromInput(this)">
-                                                    <button class="btn btn-outline-secondary"
-                                                            type="button"
-                                                            onclick="cartController.increaseQuantity(${item.productId}, ${item.variantId})">
-                                                        <i class="bi bi-plus"></i>
-                                                    </button>
                                                 </div>
                                             </td>
                                             <td style="width: 120px;">
@@ -168,19 +158,12 @@
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Tạm tính:</span>
                                 <span id="subtotal-amount">
-                                        <fmt:formatNumber value="${total}"
-                                                          type="currency"
-                                                          currencySymbol="₫"
-                                                          groupingUsed="true" />
+                                        <fmt:formatNumber value="${total}" type="currency" currencySymbol="₫" groupingUsed="true" />
                                     </span>
                             </div>
                             <div class="d-flex justify-content-between mb-2">
                                 <span>Phí vận chuyển:</span>
-                                <span id="shipping-fee">₫0</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span>Giảm giá:</span>
-                                <span class="text-success" id="discount-amount">-₫0</span>
+                                <span id="shipping-fee">30.000₫</span>
                             </div>
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
@@ -193,25 +176,12 @@
                                     </span>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="voucher-code" class="form-label">Mã giảm giá</label>
-                                <div class="input-group">
-                                    <input type="text"
-                                           class="form-control"
-                                           id="voucher-code"
-                                           placeholder="Nhập mã giảm giá">
-                                    <button class="btn btn-outline-primary" type="button" id="apply-voucher">
-                                        Áp dụng
-                                    </button>
-                                </div>
-                                <div id="voucher-message" class="mt-1 small"></div>
-                            </div>
 
                             <button type="button"
                                     class="btn btn-success w-100 py-3 fw-bold"
                                     id="checkout-btn"
                                     onclick="cartController.checkout()">
-                                <i class="bi bi-credit-card me-2"></i>THANH TOÁN
+                                <i class="bi bi-credit-card me-2"></i>TIẾP TỤC
                             </button>
 
                             <div class="mt-3 text-center">

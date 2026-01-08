@@ -475,8 +475,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (phoneInput) {
         phoneInput.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
-            if (value.length > 11) {
-                value = value.slice(0, 11);
+            if (value.length > 10) {
+                value = value.slice(0, 10);
             }
             e.target.value = value;
         });
@@ -496,7 +496,7 @@ function validateEmail(email) {
 
 function validatePhone(phone) {
     phone = phone.replace(/[\s\-\.]/g, '');
-    const phoneRegex = /^[0-9]{10,11}$/;
+    const phoneRegex = /^[0-9]{10}$/;
     const validPrefixes = /^(03|05|07|08|09)/;
     return phoneRegex.test(phone) && validPrefixes.test(phone);
 }
