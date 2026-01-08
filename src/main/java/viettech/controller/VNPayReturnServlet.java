@@ -59,7 +59,7 @@ public class VNPayReturnServlet extends HttpServlet {
 
                     if (order != null) {
                         // Cập nhật status sang PAID
-                        order.setStatus("PAID");
+                        order.setStatus("Paid");
                         orderDAO.update(order);
 
                         // Ghi OrderStatus: PAID
@@ -77,7 +77,7 @@ public class VNPayReturnServlet extends HttpServlet {
                         // Ghi OrderStatus: CONFIRMED
                         OrderStatus confirmedStatus = new OrderStatus(
                                 order.getOrderId(),
-                                "CONFIRMED",
+                                "Confirmed",
                                 "Đơn hàng đã được xác nhận tự động sau thanh toán",
                                 null,
                                 "SYSTEM",
@@ -86,7 +86,7 @@ public class VNPayReturnServlet extends HttpServlet {
                         orderStatusDAO.insert(confirmedStatus);
 
                         // Cập nhật status cuối cùng sang CONFIRMED
-                        order.setStatus("CONFIRMED");
+                        order.setStatus("Confirmed");
                         orderDAO.update(order);
 
                         session.setAttribute("paymentSuccess", true);
@@ -111,13 +111,13 @@ public class VNPayReturnServlet extends HttpServlet {
 
                     Order order = orderDAO.findByOrderNumber(vnp_TxnRef);
                     if (order != null) {
-                        order.setStatus("PAYMENT_FAILED");
+                        order.setStatus("Payment_Failed");
                         order.setCancelReason("VNPay error: " + errorMessage);
                         orderDAO.update(order);
 
                         OrderStatus failedStatus = new OrderStatus(
                                 order.getOrderId(),
-                                "PAYMENT_FAILED",
+                                "Payment_Failed",
                                 "Thanh toán VNPay thất bại. Lý do: " + errorMessage
                                         + " (Mã lỗi: " + vnp_ResponseCode + ")",
                                 null,
@@ -137,13 +137,13 @@ public class VNPayReturnServlet extends HttpServlet {
                 // CHỮ KÝ KHÔNG HỢP LỆ
                 Order order = orderDAO.findByOrderNumber(vnp_TxnRef);
                 if (order != null) {
-                    order.setStatus("PAYMENT_FAILED");
+                    order.setStatus("Payment_Failed");
                     order.setCancelReason("Chữ ký VNPay không hợp lệ");
                     orderDAO.update(order);
 
                     OrderStatus securityFailedStatus = new OrderStatus(
                             order.getOrderId(),
-                            "PAYMENT_FAILED",
+                            "Payment_Failed",
                             "Xác thực chữ ký VNPay thất bại. Giao dịch có thể bị giả mạo.",
                             null,
                             "SYSTEM",

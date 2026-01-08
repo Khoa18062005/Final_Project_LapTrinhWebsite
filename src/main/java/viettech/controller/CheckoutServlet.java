@@ -103,8 +103,11 @@ public class CheckoutServlet extends HttpServlet {
 
                 // Voucher áp dụng cho tất cả
                 if (productIds.isEmpty() && categoryIds.isEmpty()) {
-                    availableVouchers.add(voucher);
-                    continue;
+                    long userUsageCount = this.numberOfUsagePerCustomer(fullCustomer.getUserId(), voucher.getVoucherId());
+                    if (userUsageCount < voucher.getUsageLimitPerUser()) {
+                        availableVouchers.add(voucher);
+                        continue;
+                    }
                 }
 
                 boolean matchProduct = !productIds.isEmpty()
@@ -240,6 +243,10 @@ public class CheckoutServlet extends HttpServlet {
                     } else if ("SHIPPING".equals(appliedVoucher.getType())) {
                         voucherDiscount = appliedVoucher.getDiscountAmount();
                         shippingFee -= voucherDiscount;
+                        if(shippingFee < 0){
+                            shippingFee = 0;
+                        }
+                        voucherDiscount = 0;
                     }
 
                     // Lưu voucher vào session để dùng sau
@@ -303,11 +310,11 @@ public class CheckoutServlet extends HttpServlet {
                                 subtotal,
                                 voucherDiscount
                         );
-                        voucherUsageDAO.insert(voucherUsage);
+                        session.setAttribute("voucherUsage", voucherUsage);
 
                         // Tăng usage count của voucher
-                        appliedVoucher.setUsageCount(appliedVoucher.getUsageCount() + 1);
-                        voucherDAO.update(appliedVoucher);
+                        session.setAttribute("appliedVoucher", appliedVoucher);
+
                     }
                 }
 
@@ -324,7 +331,7 @@ public class CheckoutServlet extends HttpServlet {
                 if (isBuyNow != null && isBuyNow) {
                     response.sendRedirect(request.getContextPath() + "/checkout/payment");
                 } else {
-                    response.sendRedirect(request.getContextPath() + "/checkout/payment-cart");
+                    response.sendRedirect(request.getContextPath() + "/checkout/payment-cod-confirmed");
                 }
 
             } else if ("MOMO".equals(paymentMethod)) {

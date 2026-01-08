@@ -346,7 +346,6 @@
                     <select class="form-select form-select-lg" id="paymentMethod" name="paymentMethod" required>
                       <option value="" disabled selected>-- Vui lòng chọn --</option>
                       <option value="COD">Thanh toán khi nhận hàng (COD)</option>
-                      <option value="MOMO">Ví điện tử MoMo</option>
                       <option value="VNPAY">VNPay</option>
                     </select>
                     <div class="payment-method-icons mt-2">
