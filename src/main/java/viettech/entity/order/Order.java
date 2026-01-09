@@ -431,4 +431,18 @@ public class Order {
     public void setVoucherUsages(List<VoucherUsage> voucherUsages) {
         this.voucherUsages = voucherUsages;
     }
+
+    // Override equals and hashCode for proper Set behavior
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Order order = (Order) o;
+        return orderId == order.orderId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(orderId);
+    }
 }

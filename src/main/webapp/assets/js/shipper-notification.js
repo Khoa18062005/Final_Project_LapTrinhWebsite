@@ -6,7 +6,7 @@
 
     // Cấu hình
     const CONFIG = {
-        pollInterval: 15000, // 15 giây kiểm tra thông báo mới
+        pollInterval: 60000, // 60 giây kiểm tra thông báo mới (1 phút)
         maxNotifications: 10,
         soundEnabled: true
     };
@@ -192,10 +192,15 @@
 
         body.innerHTML = html;
 
-        // Bind click event - chuyển đến section tương ứng
+        // Bind click event - đánh dấu đã đọc và chuyển đến section tương ứng
         body.querySelectorAll('.notification-item').forEach(item => {
             item.addEventListener('click', function() {
+                const notifId = this.dataset.id;
                 const type = this.dataset.type;
+
+                // Đánh dấu đã đọc (gọi API)
+                markAsRead(notifId, this);
+
                 // Đóng dropdown
                 document.getElementById('shipperNotificationDropdown').classList.remove('show');
 
@@ -208,6 +213,35 @@
                     showSection('history'); // Lịch sử
                 }
             });
+        });
+    }
+
+    // Đánh dấu một thông báo đã đọc
+    function markAsRead(notificationId, element) {
+        fetch(`${contextPath}/api/shipper/notifications`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `action=markRead&notificationId=${encodeURIComponent(notificationId)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Cập nhật UI - bỏ class unread
+                if (element) {
+                    element.classList.remove('unread');
+                    const dot = element.querySelector('.notification-item-dot');
+                    if (dot) dot.remove();
+                }
+
+                // Cập nhật badge số đếm
+                updateBadge(data.unreadCount);
+            }
+        })
+        .catch(error => {
+            console.error('Error marking notification as read:', error);
         });
     }
 
@@ -250,36 +284,38 @@
         return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
-    // Đánh dấu một thông báo đã đọc
-    function markAsRead(notificationId) {
-        fetch(`${contextPath}/notifications/mark-read`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: `notificationId=${notificationId}`
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updateUnreadCount();
+    // Cập nhật badge số thông báo
+    function updateBadge(count) {
+        const badge = document.getElementById('shipperNotificationBadge');
+        const bell = document.querySelector('#shipperNotificationBell i');
+
+        if (count > 0) {
+            if (badge) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'flex';
             }
-        })
-        .catch(error => {
-            console.error('Error marking notification as read:', error);
-        });
+            if (bell) {
+                bell.classList.add('has-notifications');
+            }
+        } else {
+            if (badge) {
+                badge.style.display = 'none';
+            }
+            if (bell) {
+                bell.classList.remove('has-notifications');
+            }
+        }
     }
 
     // Đánh dấu tất cả đã đọc
     function markAllAsRead() {
-        fetch(`${contextPath}/notifications/mark-read`, {
+        fetch(`${contextPath}/api/shipper/notifications`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: 'markAll=true'
+            body: 'action=markAllRead'
         })
         .then(response => response.json())
         .then(data => {
@@ -290,10 +326,12 @@
                     const dot = item.querySelector('.notification-item-dot');
                     if (dot) dot.remove();
                 });
-                updateUnreadCount();
 
-                // Hiển thị toast
-                showToast('Đã đánh dấu tất cả đã đọc', 'success');
+                // Cập nhật badge với số mới từ server
+                updateBadge(data.unreadCount);
+
+                // Hiển thị toast 5 giây
+                showToast('Đã đánh dấu tất cả đã đọc', 'success', 5000);
             }
         })
         .catch(error => {
@@ -413,8 +451,10 @@
     }
 
     // Hiển thị toast thông báo
-    function showToast(message, type) {
+    // duration: thời gian hiển thị (mặc định 5000ms = 5 giây)
+    function showToast(message, type, duration) {
         type = type || 'info';
+        duration = duration || 5000; // Mặc định 5 giây
 
         // Tạo container nếu chưa có
         let container = document.getElementById('toastContainer');
@@ -431,6 +471,7 @@
         let iconClass = 'fa-info-circle';
         if (type === 'success') iconClass = 'fa-check-circle';
         else if (type === 'error') iconClass = 'fa-times-circle';
+        else if (type === 'warning') iconClass = 'fa-exclamation-triangle';
 
         toast.innerHTML = '<i class="fas ' + iconClass + '"></i><span>' + message + '</span>';
 
@@ -439,16 +480,16 @@
         // Animation
         setTimeout(function() { toast.classList.add('show'); }, 10);
 
-        // Tự động ẩn sau 3 giây
+        // Tự động ẩn sau duration (mặc định 5 giây)
         setTimeout(function() {
             toast.classList.remove('show');
             setTimeout(function() { toast.remove(); }, 300);
-        }, 3000);
+        }, duration);
     }
 
     // Polling kiểm tra thông báo mới (đơn mới trên sàn)
     let pollTimer = null;
-    let lastUnreadCount = 0;
+    let lastUnreadCount = -1; // -1 để không hiện toast lần đầu tiên
 
     function startPolling() {
         if (pollTimer) return;
@@ -460,32 +501,31 @@
                     if (data.success) {
                         const newCount = data.unreadCount;
 
-                        // Nếu có đơn mới
-                        if (newCount > lastUnreadCount && lastUnreadCount >= 0) {
-                            // Cập nhật badge
-                            updateUnreadCount();
+                        // Cập nhật badge
+                        updateBadge(newCount);
 
-                            // Reload notifications
+                        // Nếu có thông báo mới (so với lần trước)
+                        if (newCount > lastUnreadCount && lastUnreadCount >= 0) {
+                            // Reload notifications nếu dropdown đang mở
                             const dropdown = document.getElementById('shipperNotificationDropdown');
                             if (dropdown && dropdown.classList.contains('show')) {
                                 loadNotifications();
                             }
 
-                            // Hiển thị toast nếu có đơn mới
-                            if (lastUnreadCount > 0) {
-                                showToast('🆕 Có đơn hàng mới trên sàn!', 'info');
+                            // Hiển thị toast 5 giây
+                            const diff = newCount - lastUnreadCount;
+                            showToast(`🆕 Có ${diff} thông báo mới!`, 'warning', 5000);
 
-                                // Play sound (optional)
-                                if (CONFIG.soundEnabled) {
-                                    playNotificationSound();
-                                }
+                            // Play sound (optional)
+                            if (CONFIG.soundEnabled) {
+                                playNotificationSound();
+                            }
 
-                                // Rung chuông animation
-                                const bell = document.querySelector('#shipperNotificationBell i');
-                                if (bell) {
-                                    bell.classList.add('ringing');
-                                    setTimeout(function() { bell.classList.remove('ringing'); }, 1000);
-                                }
+                            // Rung chuông animation
+                            const bell = document.querySelector('#shipperNotificationBell i');
+                            if (bell) {
+                                bell.classList.add('ringing');
+                                setTimeout(function() { bell.classList.remove('ringing'); }, 1000);
                             }
                         }
 

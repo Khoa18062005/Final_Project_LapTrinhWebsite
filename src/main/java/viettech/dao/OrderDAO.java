@@ -258,6 +258,34 @@ public class OrderDAO {
             em.close();
         }
     }
+
+    /**
+     * Fetch order with customer and address relationships eagerly loaded
+     * This is needed to avoid LazyInitializationException when accessing relationships
+     * after the EntityManager is closed
+     */
+    public Order findByIdWithRelations(int orderId) {
+        EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
+        try {
+            String jpql = "SELECT o FROM Order o " +
+                    "LEFT JOIN FETCH o.customer " +
+                    "LEFT JOIN FETCH o.address " +
+                    "WHERE o.orderId = :orderId";
+            TypedQuery<Order> query = em.createQuery(jpql, Order.class);
+            query.setParameter("orderId", orderId);
+            Order order = query.getSingleResult();
+            if (order != null) {
+                logger.debug("✓ Found order with relations by ID: {}", orderId);
+            }
+            return order;
+        } catch (NoResultException e) {
+            logger.warn("✗ Order not found with ID: {}", orderId);
+            return null;
+        } catch (Exception e) {
+            logger.error("✗ Error finding order with relations by ID: {}", orderId, e);
+            return null;
+        }
+    }
     public List<Order> findByCustomerIdAndStatus(int customerId, String status) {
         EntityManager em = JPAConfig.getEntityManagerFactory().createEntityManager();
         try {

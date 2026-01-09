@@ -1,12 +1,13 @@
 package viettech.service;
 
 import org.mindrot.jbcrypt.BCrypt;
+import viettech.config.JPAConfig;
 import viettech.dao.ShipperDAO;
 import viettech.dto.Shipper_dto;
-import viettech.entity.delivery.DeliveryAssignment;
 import viettech.entity.order.Order;
 import viettech.entity.user.Shipper;
 
+import javax.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
@@ -121,85 +122,88 @@ public class ShipperService {
         }
     }
 
+    /**
+     * Cập nhật trạng thái đơn hàng (accept / complete)
+     */
     public void updateStatus(int orderId, String action, int currentShipperId) {
         Order order = shipperDAO.findOrderById(orderId);
+        if (order == null) {
+            System.out.println("Lỗi: Không tìm thấy Order ID: " + orderId);
+            return;
+        }
 
-        if (order != null) {
-            if ("accept".equals(action)) {
-                // Nhận đơn: Chỉ cần status Ready
-                if ("Ready".equalsIgnoreCase(order.getStatus())) {
-                    order.setStatus("Shipping");
-                    shipperDAO.updateOrderStatus(orderId, "Shipping");
+        if ("accept".equals(action)) {
+            // Nhận đơn: Ready -> Shipping
+            if ("Ready".equalsIgnoreCase(order.getStatus())) {
+                order.setStatus("Shipping");
+                shipperDAO.updateOrderStatus(orderId, "Shipping");
 
-                    System.out.println("DEBUG: Shipper " + currentShipperId + " nhận đơn " + orderId);
+                // Gửi thông báo
+                try {
+                    String orderNumber = order.getOrderNumber();
+                    int customerId = order.getCustomer() != null ? order.getCustomer().getUserId() : 0;
+                    String customerName = "";
+                    String addressStr = "";
 
-                    // Gửi thông báo cho shipper khi nhận đơn
-                    try {
-                        String orderNumber = order.getOrderNumber();
-                        String customerName = "";
-                        String address = "";
-                        int customerId = 0;
+                    if (order.getCustomer() != null) {
+                        customerName = order.getCustomer().getLastName() + " " + order.getCustomer().getFirstName();
+                    }
+                    if (order.getAddress() != null) {
+                        addressStr = order.getAddress().getStreet() + ", " + order.getAddress().getDistrict();
+                    }
 
-                        if (order.getCustomer() != null) {
-                            customerName = order.getCustomer().getLastName() + " " + order.getCustomer().getFirstName();
-                            customerId = order.getCustomer().getUserId();
-                        }
-                        if (order.getAddress() != null) {
-                            address = order.getAddress().getStreet() + ", " + order.getAddress().getDistrict();
-                        }
+                    // Thông báo cho shipper
+                    shipperNotificationService.notifyOrderAccepted(currentShipperId, orderNumber, customerName, addressStr);
 
-                        // Thông báo cho shipper
-                        shipperNotificationService.notifyOrderAccepted(currentShipperId, orderNumber, customerName, address);
-
-                        // Thông báo cho khách hàng
-                        if (customerId > 0) {
-                            Shipper shipper = shipperDAO.findById(currentShipperId);
-                            String shipperName = shipper != null
+                    // Thông báo cho khách hàng
+                    if (customerId > 0) {
+                        Shipper shipper = shipperDAO.findById(currentShipperId);
+                        String shipperName = shipper != null
                                 ? shipper.getLastName() + " " + shipper.getFirstName()
                                 : "Shipper";
-                            shipperNotificationService.notifyCustomerOrderPickedUp(customerId, orderNumber, shipperName);
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Lỗi gửi thông báo nhận đơn: " + e.getMessage());
+                        shipperNotificationService.notifyCustomerOrderPickedUp(customerId, orderNumber, shipperName);
                     }
+                } catch (Exception e) {
+                    System.out.println("Lỗi gửi thông báo nhận đơn: " + e.getMessage());
                 }
+            } else {
+                System.out.println("Lỗi: Đơn hàng không ở trạng thái Ready");
+            }
 
-            } else if ("complete".equals(action)) {
-                // Hoàn thành đơn
-                if ("Shipping".equalsIgnoreCase(order.getStatus())) {
-                    order.setStatus("Completed");
-                    order.setCompletedAt(new Date());
-                    shipperDAO.updateOrderStatus(orderId, "Completed");
+        } else if ("complete".equals(action)) {
+            // Hoàn thành đơn: Shipping -> Completed
+            if ("Shipping".equalsIgnoreCase(order.getStatus())) {
+                order.setStatus("Completed");
+                order.setCompletedAt(new Date());
+                shipperDAO.updateOrderStatus(orderId, "Completed");
 
-                    // Gửi thông báo cho shipper khi hoàn thành đơn
-                    try {
-                        String orderNumber = order.getOrderNumber();
-                        double earnings = order.getShippingFee();
-                        int customerId = 0;
+                // Gửi thông báo
+                try {
+                    String orderNumber = order.getOrderNumber();
+                    double earnings = order.getShippingFee();
+                    int customerId = order.getCustomer() != null ? order.getCustomer().getUserId() : 0;
 
-                        if (order.getCustomer() != null) {
-                            customerId = order.getCustomer().getUserId();
-                        }
+                    // Thông báo cho shipper
+                    shipperNotificationService.notifyOrderCompleted(currentShipperId, orderNumber, earnings);
 
-                        // Thông báo cho shipper
-                        shipperNotificationService.notifyOrderCompleted(currentShipperId, orderNumber, earnings);
-
-                        // Thông báo cho khách hàng
-                        if (customerId > 0) {
-                            shipperNotificationService.notifyCustomerOrderDelivered(customerId, orderNumber);
-                        }
-                    } catch (Exception e) {
-                        System.out.println("Lỗi gửi thông báo hoàn thành: " + e.getMessage());
+                    // Thông báo cho khách hàng
+                    if (customerId > 0) {
+                        shipperNotificationService.notifyCustomerOrderDelivered(customerId, orderNumber);
                     }
-                } else {
-                    System.out.println("Lỗi: Đơn hàng không ở trạng thái Shipping");
+                } catch (Exception e) {
+                    System.out.println("Lỗi gửi thông báo hoàn thành: " + e.getMessage());
                 }
+            } else {
+                System.out.println("Lỗi: Đơn hàng không ở trạng thái Shipping");
             }
         }
     }
 
-    public void updateProfile(int userId, String firstName, String lastName, String phone, String password, String vehiclePlate, String licenseNumber, String avatarUrl) {
-        // 1. Tìm User hiện tại
+    /**
+     * Cập nhật thông tin cá nhân shipper
+     */
+    public void updateProfile(int userId, String firstName, String lastName, String phone,
+                              String password, String vehiclePlate, String licenseNumber, String avatarUrl) {
         Shipper shipper = shipperDAO.findById(userId);
 
         if (shipper != null) {
@@ -208,10 +212,7 @@ public class ShipperService {
             if (lastName != null && !lastName.isEmpty()) shipper.setLastName(lastName.trim());
             if (phone != null && !phone.isEmpty()) shipper.setPhone(phone.trim());
 
-            // Xử lý Avatar:
-            // - null: giữ nguyên
-            // - "": xóa ảnh (set null)
-            // - "url": cập nhật
+            // Xử lý Avatar
             if (avatarUrl != null) {
                 if (avatarUrl.trim().isEmpty()) {
                     shipper.setAvatar(null);
@@ -223,7 +224,6 @@ public class ShipperService {
             // Xử lý Password (Mã hóa nếu có thay đổi)
             if (password != null && !password.trim().isEmpty()) {
                 String pwd = password.trim();
-                // Kiểm tra xem pass đã mã hóa chưa để tránh mã hóa 2 lần
                 if (pwd.startsWith("$2a$") || pwd.startsWith("$2b$") || pwd.startsWith("$2y$")) {
                     shipper.setPassword(pwd);
                 } else {
@@ -234,16 +234,43 @@ public class ShipperService {
             // Lưu User/Shipper info qua JPA
             shipperDAO.update(shipper);
 
-            // 2. Cập nhật thông tin xe cộ (Biển số, GPLX) bằng Native Query trong DAO
+            // Cập nhật thông tin xe cộ
             String vPlate = (vehiclePlate != null) ? vehiclePlate.trim() : "";
             String lNum = (licenseNumber != null) ? licenseNumber.trim() : "";
-
             shipperDAO.updateVehicleInfo(userId, vPlate, lNum);
         }
     }
 
-    // Thêm hàm updateLocation để phục vụ Servlet
+    /**
+     * Find assignment_id for the given order and shipper.
+     * Used by notification accept flow: /shipper?action=acceptDelivery&orderId=...
+     */
+    public int findAssignmentIdForOrderAndShipper(int orderId, int shipperId) {
+        EntityManager em = JPAConfig.getEntityManager();
+        try {
+            String sql = "SELECT da.assignment_id " +
+                    "FROM deliveries d JOIN delivery_assignments da ON da.delivery_id = d.delivery_id " +
+                    "WHERE d.order_id = ? AND da.shipper_id = ? " +
+                    "ORDER BY da.assigned_at DESC LIMIT 1";
+
+            Object one = em.createNativeQuery(sql)
+                    .setParameter(1, orderId)
+                    .setParameter(2, shipperId)
+                    .getResultStream()
+                    .findFirst()
+                    .orElse(null);
+
+            return one == null ? 0 : ((Number) one).intValue();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Cập nhật vị trí GPS của shipper
+     */
     public void updateLocation(int shipperId, double lat, double lon) {
         shipperDAO.updateCurrentLocation(shipperId, lat, lon);
     }
 }
+

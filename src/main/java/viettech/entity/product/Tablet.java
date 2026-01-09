@@ -125,6 +125,7 @@ public class Tablet extends Product {
                   double weight,
                   String dimensions,
                   boolean isFeatured,
+                  int quantity,
 
                   double screenSize,
                   String screenResolution,
@@ -152,7 +153,7 @@ public class Tablet extends Product {
 
         super(vendorId, categoryId, name, slug, basePrice,
                 description, brand, specifications, status,
-                condition, weight, dimensions, isFeatured);
+                condition, weight, dimensions, isFeatured, quantity);
 
         this.screenSize = screenSize;
         this.screenResolution = screenResolution != null ? screenResolution : "";

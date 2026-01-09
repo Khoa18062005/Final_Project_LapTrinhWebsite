@@ -591,20 +591,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);
 });
 
-// Simulate new order notification
-setInterval(() => {
-    const random = Math.random();
-    if (random > 0.95 && document.getElementById('onlineStatus').checked) {
-        playNotificationSound();
-        showNotification('🔔 Bạn có đơn hàng mới! Kiểm tra ngay.', 'success');
-
-        // Update badge
-        const badge = document.getElementById('ordersCount');
-        if (badge) {
-            badge.textContent = parseInt(badge.textContent) + 1;
-        }
-    }
-}, 30000); // Check every 30 seconds
+// Real notifications are now handled by shipper-notification.js
+// Removed simulated notification code
 
 // Notification Sound
 function playNotificationSound() {
