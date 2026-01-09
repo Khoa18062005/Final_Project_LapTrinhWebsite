@@ -50,7 +50,7 @@ public class VNPayConfig {
         String vnp_CreateDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
         
-        cld.add(Calendar.MINUTE, 15); // Thời gian hết hạn: 15 phút
+        cld.add(Calendar.MINUTE, 150); // Thời gian hết hạn: 15 phút
         String vnp_ExpireDate = formatter.format(cld.getTime());
         vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
         
