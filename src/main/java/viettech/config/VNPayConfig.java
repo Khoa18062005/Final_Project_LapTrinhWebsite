@@ -11,7 +11,7 @@ public class VNPayConfig {
     
     // VNPay Configuration - QUAN TRỌNG: Thay đổi các giá trị này theo tài khoản VNPay của bạn
     public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static String vnp_ReturnUrl = "http://localhost:8080/Final_Project_LapTrinhWebsite_war_exploded/vnpay-return";
+    public static String vnp_ReturnUrl = "https://viettech.fit/vnpay-return";
     public static String vnp_TmnCode = "EW3G1DYY"; // Mã website tại VNPay
     public static String vnp_HashSecret = "39WAASC61XG4D9U6GOGXHEKG9LKC540S"; // Chuỗi bí mật
     public static String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
