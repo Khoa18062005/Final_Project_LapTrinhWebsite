@@ -297,7 +297,7 @@ public class CheckoutServlet extends HttpServlet {
             // Xử lý theo phương thức thanh toán
             if ("VNPAY".equals(paymentMethod)) {
                 String orderNumber = VNPayConfig.generateOrderNumber();
-                int vendorId = 1;
+                int vendorId = 16;
 
                 Calendar cal = Calendar.getInstance();
                 cal.add(Calendar.DAY_OF_MONTH, 3);
